@@ -155,7 +155,7 @@ For automated tests of the complete example using [bats](https://github.com/bats
       oidc_provider_enabled = var.oidc_provider_enabled
 
       workers_role_arns          = [module.eks_node_group.eks_node_group_role_arn]
-      workers_security_group_ids = [module.eks_node_group.eks_node_group_security_group_id]
+      workers_security_group_ids = []
     }
 
     module "eks_node_group" {
@@ -171,8 +171,7 @@ For automated tests of the complete example using [bats](https://github.com/bats
       desired_size              = var.desired_size
       min_size                  = var.min_size
       max_size                  = var.max_size
-      cluster_name              = module.label.id
-      cluster_security_group_id = module.eks_cluster.security_group_id
+      cluster_name              = module.eks_cluster.eks_cluster_id
       kubernetes_version        = var.kubernetes_version
     }
 ```
@@ -196,18 +195,14 @@ Available targets:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| allowed_cidr_blocks | List of CIDR blocks to be allowed to connect to the worker nodes | list(string) | `<list>` | no |
-| allowed_security_groups | List of Security Group IDs to be allowed to connect to the worker nodes | list(string) | `<list>` | no |
 | ami_release_version | AMI version of the EKS Node Group. Defaults to latest version for Kubernetes version | string | `null` | no |
 | ami_type | Type of Amazon Machine Image (AMI) associated with the EKS Node Group. Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`. Terraform will only perform drift detection if a configuration value is provided | string | `AL2_x86_64` | no |
 | attributes | Additional attributes (e.g. `1`) | list(string) | `<list>` | no |
 | cluster_name | The name of the EKS cluster | string | - | yes |
-| cluster_security_group_id | Security Group ID of the EKS cluster | string | - | yes |
-| cluster_security_group_ingress_enabled | Whether to enable the EKS cluster Security Group as ingress to workers Security Group | bool | `true` | no |
 | delimiter | Delimiter to be used between `namespace`, `stage`, `name` and `attributes` | string | `-` | no |
 | desired_size | Desired number of worker nodes | number | - | yes |
 | disk_size | Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided | number | `20` | no |
-| ec2_ssh_key_name | SSH key name that should be used to access the worker nodes | string | `null` | no |
+| ec2_ssh_key | SSH key name that should be used to access the worker nodes | string | `null` | no |
 | enabled | Whether to create the resources. Set to `false` to prevent the module from creating any resources | bool | `true` | no |
 | existing_workers_role_policy_arns | List of existing policy ARNs that will be attached to the workers default role on creation | list(string) | `<list>` | no |
 | existing_workers_role_policy_arns_count | Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed` | number | `0` | no |
@@ -218,6 +213,7 @@ Available targets:
 | min_size | Minimum number of worker nodes | number | - | yes |
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | `` | no |
+| source_security_group_ids | Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0) | list(string) | `<list>` | no |
 | stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | `` | no |
 | subnet_ids | A list of subnet IDs to launch resources in | list(string) | - | yes |
 | tags | Additional tags (e.g. `{ BusinessUnit = "XYZ" }` | map(string) | `<map>` | no |
@@ -232,9 +228,6 @@ Available targets:
 | eks_node_group_resources | List of objects containing information about underlying resources of the EKS Node Group |
 | eks_node_group_role_arn | ARN of the worker nodes IAM role |
 | eks_node_group_role_name | Name of the worker nodes IAM role |
-| eks_node_group_security_group_arn | ARN of the worker nodes Security Group |
-| eks_node_group_security_group_id | ID of the worker nodes Security Group |
-| eks_node_group_security_group_name | Name of the worker nodes Security Group |
 | eks_node_group_status | Status of the EKS Node Group |
 
 

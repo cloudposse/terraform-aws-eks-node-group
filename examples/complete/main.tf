@@ -56,23 +56,22 @@ module "eks_cluster" {
   oidc_provider_enabled = var.oidc_provider_enabled
 
   workers_role_arns          = [module.eks_node_group.eks_node_group_role_arn]
-  workers_security_group_ids = [module.eks_node_group.eks_node_group_security_group_id]
+  workers_security_group_ids = []
 }
 
 module "eks_node_group" {
-  source                    = "../../"
-  namespace                 = var.namespace
-  stage                     = var.stage
-  name                      = var.name
-  attributes                = var.attributes
-  tags                      = var.tags
-  vpc_id                    = module.vpc.vpc_id
-  subnet_ids                = module.subnets.public_subnet_ids
-  instance_types            = var.instance_types
-  desired_size              = var.desired_size
-  min_size                  = var.min_size
-  max_size                  = var.max_size
-  cluster_name              = module.eks_cluster.eks_cluster_id
-  cluster_security_group_id = module.eks_cluster.security_group_id
-  kubernetes_version        = var.kubernetes_version
+  source             = "../../"
+  namespace          = var.namespace
+  stage              = var.stage
+  name               = var.name
+  attributes         = var.attributes
+  tags               = var.tags
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.subnets.public_subnet_ids
+  instance_types     = var.instance_types
+  desired_size       = var.desired_size
+  min_size           = var.min_size
+  max_size           = var.max_size
+  cluster_name       = module.eks_cluster.eks_cluster_id
+  kubernetes_version = var.kubernetes_version
 }

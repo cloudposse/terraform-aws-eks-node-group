@@ -1,18 +1,3 @@
-output "eks_node_group_security_group_id" {
-  description = "ID of the worker nodes Security Group"
-  value       = join("", aws_security_group.default.*.id)
-}
-
-output "eks_node_group_security_group_arn" {
-  description = "ARN of the worker nodes Security Group"
-  value       = join("", aws_security_group.default.*.arn)
-}
-
-output "eks_node_group_security_group_name" {
-  description = "Name of the worker nodes Security Group"
-  value       = join("", aws_security_group.default.*.name)
-}
-
 output "eks_node_group_role_arn" {
   description = "ARN of the worker nodes IAM role"
   value       = join("", aws_iam_role.default.*.arn)

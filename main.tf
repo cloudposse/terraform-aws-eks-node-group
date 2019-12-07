@@ -63,69 +63,6 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
   role       = join("", aws_iam_role.default.*.name)
 }
 
-resource "aws_security_group" "default" {
-  count       = var.enabled ? 1 : 0
-  name        = module.label.id
-  description = "Security Group for EKS worker nodes"
-  vpc_id      = var.vpc_id
-  tags        = module.label.tags
-}
-
-resource "aws_security_group_rule" "egress" {
-  count             = var.enabled ? 1 : 0
-  description       = "Allow all egress traffic"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = join("", aws_security_group.default.*.id)
-  type              = "egress"
-}
-
-resource "aws_security_group_rule" "ingress_self" {
-  count                    = var.enabled ? 1 : 0
-  description              = "Allow nodes to communicate with each other"
-  from_port                = 0
-  to_port                  = 65535
-  protocol                 = "-1"
-  security_group_id        = join("", aws_security_group.default.*.id)
-  source_security_group_id = join("", aws_security_group.default.*.id)
-  type                     = "ingress"
-}
-
-resource "aws_security_group_rule" "ingress_cluster" {
-  count                    = var.enabled && var.cluster_security_group_ingress_enabled ? 1 : 0
-  description              = "Allow workers to receive communication from the cluster control plane"
-  from_port                = 0
-  to_port                  = 65535
-  protocol                 = "-1"
-  security_group_id        = join("", aws_security_group.default.*.id)
-  source_security_group_id = var.cluster_security_group_id
-  type                     = "ingress"
-}
-
-resource "aws_security_group_rule" "ingress_security_groups" {
-  count                    = var.enabled ? length(var.allowed_security_groups) : 0
-  description              = "Allow inbound traffic from existing Security Groups"
-  from_port                = 0
-  to_port                  = 65535
-  protocol                 = "-1"
-  source_security_group_id = var.allowed_security_groups[count.index]
-  security_group_id        = join("", aws_security_group.default.*.id)
-  type                     = "ingress"
-}
-
-resource "aws_security_group_rule" "ingress_cidr_blocks" {
-  count             = var.enabled && length(var.allowed_cidr_blocks) > 0 ? 1 : 0
-  description       = "Allow inbound traffic from CIDR blocks"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = var.allowed_cidr_blocks
-  security_group_id = join("", aws_security_group.default.*.id)
-  type              = "ingress"
-}
-
 resource "aws_eks_node_group" "default" {
   count           = var.enabled ? 1 : 0
   cluster_name    = var.cluster_name
@@ -148,10 +85,10 @@ resource "aws_eks_node_group" "default" {
   }
 
   dynamic "remote_access" {
-    for_each = var.ec2_ssh_key_name != null && var.ec2_ssh_key_name != "" ? ["true"] : []
+    for_each = var.ec2_ssh_key != null && var.ec2_ssh_key != "" ? ["true"] : []
     content {
-      ec2_ssh_key               = var.ec2_ssh_key_name
-      source_security_group_ids = [join("", aws_security_group.default.*.id)]
+      ec2_ssh_key               = var.ec2_ssh_key
+      source_security_group_ids = var.source_security_group_ids
     }
   }
 

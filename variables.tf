@@ -44,35 +44,12 @@ variable "cluster_name" {
   description = "The name of the EKS cluster"
 }
 
-variable "cluster_security_group_ingress_enabled" {
-  type        = bool
-  description = "Whether to enable the EKS cluster Security Group as ingress to workers Security Group"
-  default     = true
-}
-
-variable "cluster_security_group_id" {
-  type        = string
-  description = "Security Group ID of the EKS cluster"
-}
-
 variable "vpc_id" {
   type        = string
   description = "VPC ID for the EKS cluster"
 }
 
-variable "allowed_security_groups" {
-  type        = list(string)
-  default     = []
-  description = "List of Security Group IDs to be allowed to connect to the worker nodes"
-}
-
-variable "allowed_cidr_blocks" {
-  type        = list(string)
-  default     = []
-  description = "List of CIDR blocks to be allowed to connect to the worker nodes"
-}
-
-variable "ec2_ssh_key_name" {
+variable "ec2_ssh_key" {
   type        = string
   description = "SSH key name that should be used to access the worker nodes"
   default     = null
@@ -143,4 +120,10 @@ variable "kubernetes_version" {
   type        = string
   description = "Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided"
   default     = null
+}
+
+variable "source_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
