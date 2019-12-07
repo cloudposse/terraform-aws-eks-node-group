@@ -58,12 +58,32 @@ func TestExamplesComplete(t *testing.T) {
 	// Verify we're getting back the outputs we expect
 	assert.Equal(t, "eg-test-eks-node-group-cluster", eksClusterSecurityGroupName)
 
-	// Wait for the worker nodes to join the cluster
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupId := terraform.Output(t, terraformOptions, "eks_node_group_id")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, "eg-test-eks-node-group-cluster:eg-test-eks-node-group-workers", eksNodeGroupId)
+
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupRoleName := terraform.Output(t, terraformOptions, "eks_node_group_role_name")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, "eg-test-eks-node-group-workers", eksNodeGroupRoleName)
+
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupSecurityGroupName := terraform.Output(t, terraformOptions, "eks_node_group_security_group_name")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, "eg-test-eks-node-group-workers", eksNodeGroupSecurityGroupName)
+
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupStatus := terraform.Output(t, terraformOptions, "eks_node_group_status")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, "ACTIVE", eksNodeGroupStatus)
+
+	// Wait for the worker nodes from Node Group to join the cluster
 	// https://github.com/kubernetes/client-go
 	// https://www.rushtehrani.com/post/using-kubernetes-api
 	// https://rancher.com/using-kubernetes-api-go-kubecon-2017-session-recap
 	// https://gianarb.it/blog/kubernetes-shared-informer
-	fmt.Println("Waiting for worker nodes to join the EKS cluster")
+	fmt.Println("Waiting for worker nodes from Node Group to join the EKS cluster")
 
 	kubeconfigPath := "/.kube/config"
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
@@ -92,10 +112,10 @@ func TestExamplesComplete(t *testing.T) {
 
 	select {
 	case <-stopChannel:
-		msg := "All worker nodes have joined the EKS cluster"
+		msg := "All worker nodes from Node Group have joined the EKS cluster"
 		fmt.Println(msg)
 	case <-time.After(5 * time.Minute):
-		msg := "Not all worker nodes have joined the EKS cluster"
+		msg := "Not all worker nodes from Node Group have joined the EKS cluster"
 		fmt.Println(msg)
 		assert.Fail(t, msg)
 	}

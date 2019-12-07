@@ -10,7 +10,7 @@ stage = "test"
 
 name = "eks-node-group"
 
-instance_types = ["t3.medium"]
+instance_types = ["t3.small"]
 
 desired_size = 2
 

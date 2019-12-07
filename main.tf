@@ -147,9 +147,12 @@ resource "aws_eks_node_group" "default" {
     min_size     = var.min_size
   }
 
-  remote_access {
-    ec2_ssh_key               = var.ec2_ssh_key_name
-    source_security_group_ids = [join("", aws_security_group.default.*.id)]
+  dynamic "remote_access" {
+    for_each = var.ec2_ssh_key_name != null && var.ec2_ssh_key_name != "" ? ["true"] : []
+    content {
+      ec2_ssh_key               = var.ec2_ssh_key_name
+      source_security_group_ids = [join("", aws_security_group.default.*.id)]
+    }
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.

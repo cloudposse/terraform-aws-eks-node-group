@@ -72,7 +72,7 @@ module "eks_node_group" {
   desired_size              = var.desired_size
   min_size                  = var.min_size
   max_size                  = var.max_size
-  cluster_name              = module.label.id
+  cluster_name              = module.eks_cluster.eks_cluster_id
   cluster_security_group_id = module.eks_cluster.security_group_id
   kubernetes_version        = var.kubernetes_version
 }
