@@ -66,7 +66,6 @@ module "eks_node_group" {
   name               = var.name
   attributes         = var.attributes
   tags               = var.tags
-  vpc_id             = module.vpc.vpc_id
   subnet_ids         = module.subnets.public_subnet_ids
   instance_types     = var.instance_types
   desired_size       = var.desired_size

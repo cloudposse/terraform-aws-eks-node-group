@@ -44,11 +44,6 @@ variable "cluster_name" {
   description = "The name of the EKS cluster"
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "VPC ID for the EKS cluster"
-}
-
 variable "ec2_ssh_key" {
   type        = string
   description = "SSH key name that should be used to access the worker nodes"

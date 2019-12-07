@@ -217,7 +217,6 @@ Available targets:
 | stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | `` | no |
 | subnet_ids | A list of subnet IDs to launch resources in | list(string) | - | yes |
 | tags | Additional tags (e.g. `{ BusinessUnit = "XYZ" }` | map(string) | `<map>` | no |
-| vpc_id | VPC ID for the EKS cluster | string | - | yes |
 
 ## Outputs
 
