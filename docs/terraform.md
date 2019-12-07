@@ -14,8 +14,8 @@
 | existing_workers_role_policy_arns | List of existing policy ARNs that will be attached to the workers default role on creation | list(string) | `<list>` | no |
 | existing_workers_role_policy_arns_count | Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed` | number | `0` | no |
 | instance_types | Set of instance types associated with the EKS Node Group. Defaults to ["t3.medium"]. Terraform will only perform drift detection if a configuration value is provided | list(string) | - | yes |
+| kubernetes_labels | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed | map(string) | `<map>` | no |
 | kubernetes_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | string | `null` | no |
-| labels | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed | map(string) | `<map>` | no |
 | max_size | Maximum number of worker nodes | number | - | yes |
 | min_size | Minimum number of worker nodes | number | - | yes |
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |

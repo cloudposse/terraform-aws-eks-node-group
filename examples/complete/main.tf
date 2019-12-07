@@ -73,4 +73,5 @@ module "eks_node_group" {
   max_size           = var.max_size
   cluster_name       = module.eks_cluster.eks_cluster_id
   kubernetes_version = var.kubernetes_version
+  kubernetes_labels  = var.kubernetes_labels
 }

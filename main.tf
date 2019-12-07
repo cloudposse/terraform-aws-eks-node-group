@@ -72,7 +72,7 @@ resource "aws_eks_node_group" "default" {
   ami_type        = var.ami_type
   disk_size       = var.disk_size
   instance_types  = var.instance_types
-  labels          = var.labels
+  labels          = var.kubernetes_labels
   release_version = var.ami_release_version
   version         = var.kubernetes_version
 

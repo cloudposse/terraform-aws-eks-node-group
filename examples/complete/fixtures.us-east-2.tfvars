@@ -22,4 +22,4 @@ disk_size = 20
 
 kubeconfig_path = "/.kube/config"
 
-labels = {}
+kubernetes_labels = {}

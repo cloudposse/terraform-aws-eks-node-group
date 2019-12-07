@@ -99,7 +99,7 @@ variable "instance_types" {
   description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
 }
 
-variable "labels" {
+variable "kubernetes_labels" {
   type        = map(string)
   description = "Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed"
   default     = {}
