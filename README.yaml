@@ -1,0 +1,172 @@
+---
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: terraform-aws-eks-node-group
+
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+
+# Canonical GitHub repo
+github_repo: cloudposse/terraform-aws-eks-node-group
+
+# Badges to display
+badges:
+  - name: "Codefresh Build Status"
+    image: "https://g.codefresh.io/api/badges/pipeline/cloudposse/terraform-modules%2Fterraform-aws-eks-node-group?type=cf-1"
+    url: "https://g.codefresh.io/public/accounts/cloudposse/pipelines/5dead6c731a1a7177ed48f8e"
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg"
+    url: "https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest"
+  - name: "Slack Community"
+    image: "https://slack.cloudposse.com/badge.svg"
+    url: "https://slack.cloudposse.com"
+
+related:
+  - name: "terraform-aws-eks-cluster"
+    description: "Terraform module to provision an EKS cluster on AWS"
+    url: "https://github.com/cloudposse/terraform-aws-eks-cluster"
+  - name: "terraform-aws-eks-workers"
+    description: "Terraform module to provision an AWS AutoScaling Group, IAM Role, and Security Group for EKS Workers"
+    url: "https://github.com/cloudposse/terraform-aws-eks-workers"
+  - name: "terraform-aws-ec2-autoscale-group"
+    description: "Terraform module to provision Auto Scaling Group and Launch Template on AWS"
+    url: "https://github.com/cloudposse/terraform-aws-ec2-autoscale-group"
+  - name: "terraform-aws-ecs-container-definition"
+    description: "Terraform module to generate well-formed JSON documents (container definitions) that are passed to the  aws_ecs_task_definition Terraform resource"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-container-definition"
+  - name: "terraform-aws-ecs-alb-service-task"
+    description: "Terraform module which implements an ECS service which exposes a web service via ALB"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-alb-service-task"
+  - name: "terraform-aws-ecs-web-app"
+    description: "Terraform module that implements a web app on ECS and supports autoscaling, CI/CD, monitoring, ALB integration, and much more"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-web-app"
+  - name: "terraform-aws-ecs-codepipeline"
+    description: "Terraform module for CI/CD with AWS Code Pipeline and Code Build for ECS"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-codepipeline"
+  - name: "terraform-aws-ecs-cloudwatch-autoscaling"
+    description: "Terraform module to autoscale ECS Service based on CloudWatch metrics"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-autoscaling"
+  - name: "terraform-aws-ecs-cloudwatch-sns-alarms"
+    description: "Terraform module to create CloudWatch Alarms on ECS Service level metrics"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms"
+  - name: "terraform-aws-ec2-instance"
+    description: "Terraform module for providing a general purpose EC2 instance"
+    url: "https://github.com/cloudposse/terraform-aws-ec2-instance"
+  - name: "terraform-aws-ec2-instance-group"
+    description: "Terraform module for provisioning multiple general purpose EC2 hosts for stateful applications"
+    url: "https://github.com/cloudposse/terraform-aws-ec2-instance-group"
+
+# Short description of this project
+description: |-
+  Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
+
+  Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
+
+introduction: |-
+
+# How to use this project
+usage: |-
+
+  For a complete example, see [examples/complete](examples/complete).
+
+  For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS), see [test](test).
+
+  ```hcl
+      provider "aws" {
+        region = var.region
+      }
+
+      module "label" {
+        source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.16.0"
+        namespace  = var.namespace
+        name       = var.name
+        stage      = var.stage
+        delimiter  = var.delimiter
+        attributes = compact(concat(var.attributes, list("cluster")))
+        tags       = var.tags
+      }
+
+      locals {
+        tags = merge(module.label.tags, map("kubernetes.io/cluster/${module.label.id}", "shared"))
+      }
+
+      module "vpc" {
+        source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.8.1"
+        namespace  = var.namespace
+        stage      = var.stage
+        name       = var.name
+        attributes = var.attributes
+        cidr_block = var.vpc_cidr_block
+        tags       = local.tags
+      }
+
+      module "subnets" {
+        source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.18.1"
+        availability_zones   = var.availability_zones
+        namespace            = var.namespace
+        stage                = var.stage
+        name                 = var.name
+        attributes           = var.attributes
+        vpc_id               = module.vpc.vpc_id
+        igw_id               = module.vpc.igw_id
+        cidr_block           = module.vpc.vpc_cidr_block
+        nat_gateway_enabled  = false
+        nat_instance_enabled = false
+        tags                 = local.tags
+      }
+
+      module "eks_cluster" {
+        source                = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.13.0"
+        namespace             = var.namespace
+        stage                 = var.stage
+        name                  = var.name
+        attributes            = var.attributes
+        tags                  = var.tags
+        region                = var.region
+        vpc_id                = module.vpc.vpc_id
+        subnet_ids            = module.subnets.public_subnet_ids
+        kubernetes_version    = var.kubernetes_version
+        kubeconfig_path       = var.kubeconfig_path
+        oidc_provider_enabled = var.oidc_provider_enabled
+
+        workers_role_arns          = [module.eks_node_group.eks_node_group_role_arn]
+        workers_security_group_ids = []
+      }
+
+      module "eks_node_group" {
+        source                = "git::https://github.com/cloudposse/terraform-aws-eks-node-group.git?ref=master"
+        namespace                 = var.namespace
+        stage                     = var.stage
+        name                      = var.name
+        attributes                = var.attributes
+        tags                      = var.tags
+        vpc_id                    = module.vpc.vpc_id
+        subnet_ids                = module.subnets.public_subnet_ids
+        instance_types            = var.instance_types
+        desired_size              = var.desired_size
+        min_size                  = var.min_size
+        max_size                  = var.max_size
+        cluster_name              = module.eks_cluster.eks_cluster_id
+        kubernetes_version        = var.kubernetes_version
+      }
+  ```
+
+include:
+  - "docs/targets.md"
+  - "docs/terraform.md"
+
+# Contributors to this project
+contributors:
+  - name: "Erik Osterman"
+    github: "osterman"
+  - name: "Andriy Knysh"
+    github: "aknysh"
+  - name: "Igor Rodionov"
+    github: "goruha"
