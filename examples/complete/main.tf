@@ -74,5 +74,5 @@ module "eks_node_group" {
   cluster_name       = module.eks_cluster.eks_cluster_id
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
-  disk_size	     = var.disk_size
+  disk_size          = var.disk_size
 }

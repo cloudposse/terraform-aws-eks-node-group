@@ -20,6 +20,6 @@ min_size = 2
 
 disk_size = 20
 
-kubeconfig_path = "${HOME}/.kube/config"
+kubeconfig_path = "/.kube/config"
 
 kubernetes_labels = {}
