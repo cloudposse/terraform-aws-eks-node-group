@@ -3,6 +3,12 @@ locals {
     var.tags,
     {
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    },
+    {
+      "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+    },
+    {
+      "k8s.io/cluster-autoscaler/enabled" = "true"
     }
   )
 }
