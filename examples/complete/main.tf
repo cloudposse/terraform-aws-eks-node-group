@@ -42,7 +42,7 @@ module "subnets" {
 }
 
 module "eks_cluster" {
-  source                = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.13.0"
+  source                = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.16.0"
   namespace             = var.namespace
   stage                 = var.stage
   name                  = var.name
@@ -74,4 +74,5 @@ module "eks_node_group" {
   cluster_name       = module.eks_cluster.eks_cluster_id
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
+  disk_size          = var.disk_size
 }
