@@ -61,7 +61,7 @@ data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
 
 resource "aws_iam_policy" "amazon_eks_worker_node_autoscaler_policy" {
   count  = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
-  name   = "AmazonEKSNodeGroupAutoscaler"
+  name   = "${module.label.id}-autoscaler"
   path   = "/"
   policy = join("", data.aws_iam_policy_document.amazon_eks_worker_node_autoscaler_policy.*.json)
 }
