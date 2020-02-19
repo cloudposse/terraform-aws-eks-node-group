@@ -203,6 +203,7 @@ Available targets:
 | desired_size | Desired number of worker nodes | number | - | yes |
 | disk_size | Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided | number | `20` | no |
 | ec2_ssh_key | SSH key name that should be used to access the worker nodes | string | `null` | no |
+| enable_cluster_autoscaler | Whether to enable node group to scale the Auto Scaling Group | bool | `false` | no |
 | enabled | Whether to create the resources. Set to `false` to prevent the module from creating any resources | bool | `true` | no |
 | existing_workers_role_policy_arns | List of existing policy ARNs that will be attached to the workers default role on creation | list(string) | `<list>` | no |
 | existing_workers_role_policy_arns_count | Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed` | number | `0` | no |
