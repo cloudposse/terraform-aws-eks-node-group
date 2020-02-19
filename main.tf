@@ -8,7 +8,7 @@ locals {
       "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
     },
     {
-      "k8s.io/cluster-autoscaler/enabled" = "true"
+      "k8s.io/cluster-autoscaler/enabled" = "${var.enable_cluster_autoscaler}"
     }
   )
 }
@@ -38,6 +38,34 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
+data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
+  count = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
+  statement {
+    sid = "AllowToScaleEKSNodeGroupAutoScalingGroup"
+
+    actions = [
+      "autoscaling:DescribeAutoScalingGroups",
+      "autoscaling:DescribeAutoScalingInstances",
+      "autoscaling:DescribeLaunchConfigurations",
+      "autoscaling:DescribeTags",
+      "autoscaling:SetDesiredCapacity",
+      "autoscaling:TerminateInstanceInAutoScalingGroup",
+      "ec2:DescribeLaunchTemplateVersions"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "amazon_eks_worker_node_autoscaler_policy" {
+  count  = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
+  name   = "${module.label.id}-autoscaler"
+  path   = "/"
+  policy = join("", data.aws_iam_policy_document.amazon_eks_worker_node_autoscaler_policy.*.json)
+}
+
 resource "aws_iam_role" "default" {
   count              = var.enabled ? 1 : 0
   name               = module.label.id
@@ -48,6 +76,12 @@ resource "aws_iam_role" "default" {
 resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {
   count      = var.enabled ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = join("", aws_iam_role.default.*.name)
+}
+
+resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_autoscaler_policy" {
+  count      = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
+  policy_arn = join("", aws_iam_policy.amazon_eks_worker_node_autoscaler_policy.*.arn)
   role       = join("", aws_iam_role.default.*.name)
 }
 
@@ -102,6 +136,7 @@ resource "aws_eks_node_group" "default" {
   # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
     aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only
   ]
