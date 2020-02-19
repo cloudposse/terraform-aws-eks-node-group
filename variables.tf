@@ -39,6 +39,12 @@ variable "enabled" {
   default     = true
 }
 
+variable "enable_cluster_autoscaler" {
+  type        = bool
+  description = "Whether to enable node group to scale the Auto Scaling Group"
+  default     = false
+}
+
 variable "cluster_name" {
   type        = string
   description = "The name of the EKS cluster"
