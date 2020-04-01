@@ -203,6 +203,7 @@ Available targets:
 | desired_size | Desired number of worker nodes | number | - | yes |
 | disk_size | Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided | number | `20` | no |
 | ec2_ssh_key | SSH key name that should be used to access the worker nodes | string | `null` | no |
+| enable_assume_all_roles | Whether to enable node group to assume every IAM role | bool | `false` | no |
 | enable_cluster_autoscaler | Whether to enable node group to scale the Auto Scaling Group | bool | `false` | no |
 | enabled | Whether to create the resources. Set to `false` to prevent the module from creating any resources | bool | `true` | no |
 | existing_workers_role_policy_arns | List of existing policy ARNs that will be attached to the workers default role on creation | list(string) | `<list>` | no |
@@ -291,6 +292,10 @@ We deliver 10x the value for a fraction of the cost of a full-time engineer. Our
 ## Slack Community
 
 Join our [Open Source Community][slack] on Slack. It's **FREE** for everyone! Our "SweetOps" community is where you get to talk with others who share a similar vision for how to rollout and manage infrastructure. This is the best place to talk shop, ask questions, solicit feedback, and work together as a community to build totally *sweet* infrastructure.
+
+## Discourse Forums
+
+Participate in our [Discourse Forums][discourse]. Here you'll find answers to commonly asked questions. Most questions will be related to the enormous number of projects we support on our GitHub. Come here to collaborate on answers, find solutions, and get ideas about the products and services we value. It only takes a minute to get started! Just sign in with SSO using your GitHub account.
 
 ## Newsletter
 
@@ -405,6 +410,7 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
   [testimonial]: https://cpco.io/leave-testimonial?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=testimonial
   [office_hours]: https://cloudposse.com/office-hours?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=office_hours
   [newsletter]: https://cpco.io/newsletter?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=newsletter
+  [discourse]: https://ask.sweetops.com/?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=discourse
   [email]: https://cpco.io/email?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=email
   [commercial_support]: https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support
   [we_love_open_source]: https://cpco.io/we-love-open-source?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=we_love_open_source
