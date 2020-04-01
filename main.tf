@@ -38,6 +38,21 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
+data "aws_iam_policy_document" "amazon_eks_worker_node_assume_all_roles_policy" {
+  count = (var.enabled && var.enable_assume_all_roles) ? 1 : 0
+  statement {
+    sid = "AllowToAssumeAllRoles"
+
+    actions = [
+      "sts:AssumeRole",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
   count = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
   statement {
@@ -59,6 +74,13 @@ data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
   }
 }
 
+resource "aws_iam_policy" "amazon_eks_worker_node_assume_all_roles_policy" {
+  count  = (var.enabled && var.enable_assume_all_roles) ? 1 : 0
+  name   = "${module.label.id}-assume-all-roles"
+  path   = "/"
+  policy = join("", data.aws_iam_policy_document.amazon_eks_worker_node_assume_all_roles_policy.*.json)
+}
+
 resource "aws_iam_policy" "amazon_eks_worker_node_autoscaler_policy" {
   count  = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
   name   = "${module.label.id}-autoscaler"
@@ -76,6 +98,12 @@ resource "aws_iam_role" "default" {
 resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {
   count      = var.enabled ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = join("", aws_iam_role.default.*.name)
+}
+
+resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_assume_all_roles_policy" {
+  count      = (var.enabled && var.enable_assume_all_roles) ? 1 : 0
+  policy_arn = join("", aws_iam_policy.amazon_eks_worker_node_assume_all_roles_policy.*.arn)
   role       = join("", aws_iam_role.default.*.name)
 }
 

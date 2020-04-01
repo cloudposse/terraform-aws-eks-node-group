@@ -39,6 +39,12 @@ variable "enabled" {
   default     = true
 }
 
+variable "enable_assume_all_roles" {
+  type        = bool
+  description = "Whether to enable node group to assume every IAM role"
+  default     = false
+}
+
 variable "enable_cluster_autoscaler" {
   type        = bool
   description = "Whether to enable node group to scale the Auto Scaling Group"
