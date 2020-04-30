@@ -19,6 +19,7 @@
 | kubernetes_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | string | `null` | no |
 | max_size | Maximum number of worker nodes | number | - | yes |
 | min_size | Minimum number of worker nodes | number | - | yes |
+| module_depends_on | Can be any value desired. Module will wait for this value to be computed before creating node group. | any | `null` | no |
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | `` | no |
 | source_security_group_ids | Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0) | list(string) | `<list>` | no |

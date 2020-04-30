@@ -138,6 +138,10 @@ resource "aws_eks_node_group" "default" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
-    aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only
+    aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+    # Also allow calling module to create an explicit dependency
+    # This is useful in conjunction with terraform-aws-eks-cluster to ensure
+    # the cluster is fully created and configured before creating any node groups
+    var.module_depends_on
   ]
 }
