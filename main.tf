@@ -24,7 +24,9 @@ module "label" {
   enabled    = var.enabled
 }
 
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+  count = var.enabled ? 1 : 0
+}
 
 data "aws_iam_policy_document" "assume_role" {
   count = var.enabled ? 1 : 0
@@ -77,7 +79,7 @@ resource "aws_iam_role" "default" {
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {
   count      = var.enabled ? 1 : 0
-  policy_arn = format("arn:%s:iam::aws:policy/AmazonEKSWorkerNodePolicy", data.aws_partition.current.partition)
+  policy_arn = format("arn:%s:iam::aws:policy/AmazonEKSWorkerNodePolicy", join("", data.aws_partition.current.*.partition))
   role       = join("", aws_iam_role.default.*.name)
 }
 
@@ -89,13 +91,13 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_autoscaler_pol
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_cni_policy" {
   count      = var.enabled ? 1 : 0
-  policy_arn = format("arn:%s:iam::aws:policy/AmazonEKS_CNI_Policy", data.aws_partition.current.partition)
+  policy_arn = format("arn:%s:iam::aws:policy/AmazonEKS_CNI_Policy", join("", data.aws_partition.current.*.partition))
   role       = join("", aws_iam_role.default.*.name)
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_only" {
   count      = var.enabled ? 1 : 0
-  policy_arn = format("arn:%s:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly", data.aws_partition.current.partition)
+  policy_arn = format("arn:%s:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly", join("", data.aws_partition.current.*.partition))
   role       = join("", aws_iam_role.default.*.name)
 }
 
