@@ -39,6 +39,12 @@ variable "enabled" {
   default     = true
 }
 
+variable "enable_cluster_autoscaler" {
+  type        = bool
+  description = "Whether to enable node group to scale the Auto Scaling Group"
+  default     = false
+}
+
 variable "cluster_name" {
   type        = string
   description = "The name of the EKS cluster"
@@ -121,4 +127,10 @@ variable "source_security_group_ids" {
   type        = list(string)
   default     = []
   description = "Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
+}
+
+variable "module_depends_on" {
+  type        = any
+  default     = null
+  description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
 }

@@ -10,6 +10,7 @@
 | desired_size | Desired number of worker nodes | number | - | yes |
 | disk_size | Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided | number | `20` | no |
 | ec2_ssh_key | SSH key name that should be used to access the worker nodes | string | `null` | no |
+| enable_cluster_autoscaler | Whether to enable node group to scale the Auto Scaling Group | bool | `false` | no |
 | enabled | Whether to create the resources. Set to `false` to prevent the module from creating any resources | bool | `true` | no |
 | existing_workers_role_policy_arns | List of existing policy ARNs that will be attached to the workers default role on creation | list(string) | `<list>` | no |
 | existing_workers_role_policy_arns_count | Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed` | number | `0` | no |
@@ -18,6 +19,7 @@
 | kubernetes_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | string | `null` | no |
 | max_size | Maximum number of worker nodes | number | - | yes |
 | min_size | Minimum number of worker nodes | number | - | yes |
+| module_depends_on | Can be any value desired. Module will wait for this value to be computed before creating node group. | any | `null` | no |
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | `` | no |
 | source_security_group_ids | Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0) | list(string) | `<list>` | no |
