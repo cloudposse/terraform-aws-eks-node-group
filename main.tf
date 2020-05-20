@@ -104,7 +104,7 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
 }
 
 resource "aws_eks_node_group" "default" {
-  count           = var.enabled ? 1 : 0
+  count           = (var.enabled && ! var.enable_cluster_autoscaler) ? 1 : 0
   cluster_name    = var.cluster_name
   node_group_name = module.label.id
   node_role_arn   = join("", aws_iam_role.default.*.arn)
@@ -143,5 +143,48 @@ resource "aws_eks_node_group" "default" {
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups
     var.module_depends_on
+  ]
+}
+
+resource "aws_eks_node_group" "autoscaled" {
+  count           = (var.enabled && var.enable_cluster_autoscaler) ? 1 : 0
+  cluster_name    = var.cluster_name
+  node_group_name = module.label.id
+  node_role_arn   = join("", aws_iam_role.default.*.arn)
+  subnet_ids      = var.subnet_ids
+  ami_type        = var.ami_type
+  disk_size       = var.disk_size
+  instance_types  = var.instance_types
+  labels          = var.kubernetes_labels
+  release_version = var.ami_release_version
+  version         = var.kubernetes_version
+
+  tags = module.label.tags
+
+  scaling_config {
+    desired_size = var.desired_size
+    max_size     = var.max_size
+    min_size     = var.min_size
+  }
+
+  lifecycle {
+    ignore_changes = [scaling_config.0.desired_size]
+  }
+
+  dynamic "remote_access" {
+    for_each = var.ec2_ssh_key != null && var.ec2_ssh_key != "" ? ["true"] : []
+    content {
+      ec2_ssh_key               = var.ec2_ssh_key
+      source_security_group_ids = var.source_security_group_ids
+    }
+  }
+
+  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
+  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
+  depends_on = [
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
+    aws_iam_role_policy_attachment.amazon_eks_cni_policy,
+    aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only
   ]
 }
