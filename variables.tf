@@ -53,6 +53,7 @@ variable "cluster_name" {
 variable "asg_name" {
   type        = string
   description = "The name of the ASG for node group"
+  default     = null
 }
 
 variable "ec2_ssh_key" {
