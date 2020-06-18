@@ -58,7 +58,7 @@ variable "ec2_ssh_key" {
 
 variable "desired_size" {
   type        = number
-  description = "Desired number of worker nodes"
+  description = "Desired number of worker nodes (external changes ignored)"
 }
 
 variable "max_size" {

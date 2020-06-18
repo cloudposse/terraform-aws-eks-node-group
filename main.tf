@@ -11,6 +11,7 @@ locals {
       "k8s.io/cluster-autoscaler/enabled" = "${var.enable_cluster_autoscaler}"
     }
   )
+  aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 }
 
 module "label" {
@@ -22,6 +23,11 @@ module "label" {
   attributes = compact(concat(var.attributes, ["workers"]))
   tags       = local.tags
   enabled    = var.enabled
+}
+
+
+data "aws_partition" "current" {
+  count = var.enabled ? 1 : 0
 }
 
 data "aws_iam_policy_document" "assume_role" {
@@ -75,7 +81,7 @@ resource "aws_iam_role" "default" {
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {
   count      = var.enabled ? 1 : 0
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  policy_arn = format("%s/%s", local.aws_policy_prefix, "AmazonEKSWorkerNodePolicy")
   role       = join("", aws_iam_role.default.*.name)
 }
 
@@ -87,13 +93,13 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_autoscaler_pol
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_cni_policy" {
   count      = var.enabled ? 1 : 0
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  policy_arn = format("%s/%s", local.aws_policy_prefix, "AmazonEKS_CNI_Policy")
   role       = join("", aws_iam_role.default.*.name)
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_only" {
   count      = var.enabled ? 1 : 0
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  policy_arn = format("%s/%s", local.aws_policy_prefix, "AmazonEC2ContainerRegistryReadOnly")
   role       = join("", aws_iam_role.default.*.name)
 }
 
@@ -144,4 +150,8 @@ resource "aws_eks_node_group" "default" {
     # the cluster is fully created and configured before creating any node groups
     var.module_depends_on
   ]
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
 }
