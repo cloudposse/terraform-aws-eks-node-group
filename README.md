@@ -42,7 +42,7 @@
 
 [![Cloud Posse][logo]](https://cpco.io/homepage)
 
-# terraform-aws-eks-node-group [![Codefresh Build Status](https://g.codefresh.io/api/badges/pipeline/cloudposse/terraform-modules%2Fterraform-aws-eks-node-group?type=cf-1)](https://g.codefresh.io/public/accounts/cloudposse/pipelines/5dead6c731a1a7177ed48f8e) [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg)](https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
+# terraform-aws-eks-node-group [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg)](https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
 
 
 Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
