@@ -1,4 +1,3 @@
----
 #
 # This is the canonical configuration for the `README.md`
 # Run `make readme` to rebuild the `README.md`
@@ -6,28 +5,21 @@
 
 # Name of this project
 name: terraform-aws-eks-node-group
-
 # Logo for this project
 #logo: docs/logo.png
 
 # License of this project
 license: "APACHE2"
-
 # Canonical GitHub repo
 github_repo: cloudposse/terraform-aws-eks-node-group
-
 # Badges to display
 badges:
-  - name: "Codefresh Build Status"
-    image: "https://g.codefresh.io/api/badges/pipeline/cloudposse/terraform-modules%2Fterraform-aws-eks-node-group?type=cf-1"
-    url: "https://g.codefresh.io/public/accounts/cloudposse/pipelines/5dead6c731a1a7177ed48f8e"
   - name: "Latest Release"
     image: "https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg"
     url: "https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest"
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
-
 related:
   - name: "terraform-aws-eks-cluster"
     description: "Terraform module to provision an EKS cluster on AWS"
@@ -62,17 +54,14 @@ related:
   - name: "terraform-aws-ec2-instance-group"
     description: "Terraform module for provisioning multiple general purpose EC2 hosts for stateful applications"
     url: "https://github.com/cloudposse/terraform-aws-ec2-instance-group"
-
 # Short description of this project
 description: |-
   Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
 
   Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
-
-introduction: |-
-
+introduction: ""
 # How to use this project
-usage: |-
+usage: |2-
 
   For a complete example, see [examples/complete](examples/complete).
 
@@ -156,11 +145,9 @@ usage: |-
         kubernetes_version        = var.kubernetes_version
       }
   ```
-
 include:
   - "docs/targets.md"
   - "docs/terraform.md"
-
 # Contributors to this project
 contributors:
   - name: "Erik Osterman"
