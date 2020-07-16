@@ -99,22 +99,22 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	eksClusterId := terraform.Output(t, terraformOptions, "eks_cluster_id")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-"+randId+"-cluster", eksClusterId)
+	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-cluster", eksClusterId)
 
 	// Run `terraform output` to get the value of an output variable
 	eksClusterSecurityGroupName := terraform.Output(t, terraformOptions, "eks_cluster_security_group_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-"+randId+"-cluster", eksClusterSecurityGroupName)
+	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-cluster", eksClusterSecurityGroupName)
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupId := terraform.Output(t, terraformOptions, "eks_node_group_id")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-"+randId+"-cluster:eg-test-eks-"+randId+"-workers", eksNodeGroupId)
+	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-cluster:eg-test-eks-node-group-"+randId+"-workers", eksNodeGroupId)
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupRoleName := terraform.Output(t, terraformOptions, "eks_node_group_role_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-"+randId+"-workers", eksNodeGroupRoleName)
+	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-workers", eksNodeGroupRoleName)
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupStatus := terraform.Output(t, terraformOptions, "eks_node_group_status")
@@ -129,7 +129,7 @@ func TestExamplesComplete(t *testing.T) {
 	// https://stackoverflow.com/questions/60547409/unable-to-obtain-kubeconfig-of-an-aws-eks-cluster-in-go-code/60573982#60573982
 	fmt.Println("Waiting for worker nodes to join the EKS cluster")
 
-	clusterName := "eg-test-eks-" + randId + "-cluster"
+	clusterName := "eg-test-eks-node-group-" + randId + "-cluster"
 	region := "us-east-2"
 
 	sess := session.Must(session.NewSession(&aws.Config{
