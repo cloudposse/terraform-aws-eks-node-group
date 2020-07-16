@@ -32,7 +32,7 @@ module "vpc" {
   stage      = var.stage
   name       = var.name
   attributes = var.attributes
-  cidr_block = var.vpc_cidr_block
+  cidr_block = "172.16.0.0/16"
   tags       = local.tags
 }
 
