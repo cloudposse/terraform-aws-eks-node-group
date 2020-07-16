@@ -13,6 +13,21 @@ output "vpc_cidr" {
   description = "VPC ID"
 }
 
+output "eks_cluster_security_group_id" {
+  description = "ID of the EKS cluster Security Group"
+  value       = module.eks_cluster.security_group_id
+}
+
+output "eks_cluster_security_group_arn" {
+  description = "ARN of the EKS cluster Security Group"
+  value       = module.eks_cluster.security_group_arn
+}
+
+output "eks_cluster_security_group_name" {
+  description = "Name of the EKS cluster Security Group"
+  value       = module.eks_cluster.security_group_name
+}
+
 output "eks_cluster_id" {
   description = "The name of the cluster"
   value       = module.eks_cluster.eks_cluster_id
@@ -36,6 +51,11 @@ output "eks_cluster_version" {
 output "eks_cluster_identity_oidc_issuer" {
   description = "The OIDC Identity issuer for the cluster"
   value       = module.eks_cluster.eks_cluster_identity_oidc_issuer
+}
+
+output "eks_cluster_managed_security_group_id" {
+  description = "Security Group ID that was created by EKS for the cluster. EKS creates a Security Group and applies it to ENI that is attached to EKS Control Plane master nodes and to any managed workloads"
+  value       = module.eks_cluster.eks_cluster_managed_security_group_id
 }
 
 output "eks_node_group_role_arn" {
