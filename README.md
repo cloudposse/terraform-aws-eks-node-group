@@ -146,7 +146,7 @@ For automated tests of the complete example using [bats](https://github.com/bats
       attributes                = var.attributes
       tags                      = var.tags
       subnet_ids                = module.subnets.public_subnet_ids
-      instance_type             = var.instance_type
+      instance_types            = var.instance_types
       desired_size              = var.desired_size
       min_size                  = var.min_size
       max_size                  = var.max_size
