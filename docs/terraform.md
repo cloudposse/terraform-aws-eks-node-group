@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
@@ -66,3 +67,4 @@
 | eks\_node\_group\_role\_name | Name of the worker nodes IAM role |
 | eks\_node\_group\_status | Status of the EKS Node Group |
 
+<!-- markdownlint-restore -->
