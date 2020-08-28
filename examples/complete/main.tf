@@ -5,6 +5,10 @@ provider "aws" {
 module "label" {
   source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
 
+  # This is the preferred way to add attributes. It will put "cluster" first
+  # before any attributes set in `var.attributes` or `context.attributes`.
+  # In this case, we do not care, because we are only using this instance
+  # of this module to create tags.
   attributes = ["cluster"]
 
   context = module.this.context

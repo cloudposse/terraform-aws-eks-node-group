@@ -19,7 +19,11 @@ locals {
 module "label" {
   source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
 
-  attributes = ["workers"]
+  # Using attributes = ["workers"] would put "workers" before any user-specified attributes.
+  # While that might be preferable (adding an attribute "blue" would create
+  # ...name-workers-blue instead of ...name-blue-workers), historically we forced "workers"
+  # to the end of the attribute list, so we do it again here to maintain compatibility.
+  attributes = compact(concat(module.this.attributes, ["workers"]))
   tags       = local.tags
 
   context = module.this.context
