@@ -121,7 +121,7 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
 
 resource "aws_launch_template" "default" {
   # We'll use this default if we aren't provided with a launch template during invocation
-  count = (var.enabled && (var.launch_template_id == null)) ? 1 : 0
+  count = (local.enabled && (var.launch_template_id == null)) ? 1 : 0
   block_device_mappings {
     device_name = "/dev/xvda"
 

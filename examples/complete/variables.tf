@@ -98,3 +98,21 @@ variable "min_size" {
   type        = number
   description = "The minimum size of the AutoScaling Group"
 }
+
+variable "launch_template_id" {
+  type        = string
+  description = "The ID of a custom launch template to use for the EKS node group."
+  default     = null
+}
+
+variable "launch_template_version" {
+  type        = string
+  description = "A specific version of the above specific launch template"
+  default     = null
+}
+
+variable "launch_template_user_data" {
+  type        = string
+  description = "Use this to override just the user_data script if you're not passing a full launch template."
+  default     = null
+}
