@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "label" {
-  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
+  source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
 
   attributes = ["cluster"]
 
@@ -25,7 +25,7 @@ locals {
 }
 
 module "vpc" {
-  source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.17.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.17.0"
 
   cidr_block = "172.16.0.0/16"
   tags       = local.tags
@@ -34,7 +34,7 @@ module "vpc" {
 }
 
 module "subnets" {
-  source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.28.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.28.0"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -48,7 +48,7 @@ module "subnets" {
 }
 
 module "eks_cluster" {
-  source                       = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.27.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.27.0"
 
   # Temporarily retain old styel, due to circular reference
   namespace                    = var.namespace
@@ -79,7 +79,7 @@ data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
 }
 
 module "eks_node_group" {
-  source             = "../../"
+  source = "../../"
 
   subnet_ids         = module.subnets.public_subnet_ids
   cluster_name       = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
