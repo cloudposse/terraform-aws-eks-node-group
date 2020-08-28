@@ -172,6 +172,7 @@ Available targets:
 
 ```
 <!-- markdownlint-restore -->
+<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
@@ -212,7 +213,7 @@ Available targets:
 | kubernetes\_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | `string` | `null` | no |
 | label\_order | The naming order of the id output and Name tag.<br>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br>You can omit any of the 5 elements, but at least one must be present. | `list(string)` | `null` | no |
 | launch\_template\_id | The ID of a custom launch template to use for the EKS node group. | `string` | `null` | no |
-| launch\_template\_user\_data | Unless explicitly providing a launch template, use this variable to override just the userdata script. | `string` | `null` | no |
+| launch\_template\_user\_data | Use this to override just the user\_data script if you're not passing a full launch template. | `string` | `null` | no |
 | launch\_template\_version | A specific version of the above specific launch template | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
 | min\_size | Minimum number of worker nodes | `number` | n/a | yes |
@@ -236,6 +237,7 @@ Available targets:
 | eks\_node\_group\_role\_name | Name of the worker nodes IAM role |
 | eks\_node\_group\_status | Status of the EKS Node Group |
 
+<!-- markdownlint-restore -->
 
 
 
