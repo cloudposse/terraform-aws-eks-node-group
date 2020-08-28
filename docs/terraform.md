@@ -1,10 +1,9 @@
-<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | terraform | >= 0.12.0, < 0.14.0 |
-| aws | >= 2.0, < 4.0 |
+| aws | ~> 3.0 |
 | local | ~> 1.3 |
 | template | ~> 2.0 |
 
@@ -12,7 +11,7 @@
 
 | Name | Version |
 |------|---------|
-| aws | >= 2.0, < 4.0 |
+| aws | ~> 3.0 |
 
 ## Inputs
 
@@ -34,10 +33,13 @@
 | existing\_workers\_role\_policy\_arns | List of existing policy ARNs that will be attached to the workers default role on creation | `list(string)` | `[]` | no |
 | existing\_workers\_role\_policy\_arns\_count | Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed` | `number` | `0` | no |
 | id\_length\_limit | Limit `id` to this many characters.<br>Set to `0` for unlimited length.<br>Set to `null` for default, which is `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
-| instance\_types | Set of instance types associated with the EKS Node Group. Defaults to ["t3.medium"]. Terraform will only perform drift detection if a configuration value is provided | `list(string)` | n/a | yes |
+| instance\_type | Instance type associated with the EKS Node Group. Defaults to "t3.medium". Terraform will only perform drift detection if a configuration value is provided | `string` | n/a | yes |
 | kubernetes\_labels | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed | `map(string)` | `{}` | no |
 | kubernetes\_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | `string` | `null` | no |
 | label\_order | The naming order of the id output and Name tag.<br>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br>You can omit any of the 5 elements, but at least one must be present. | `list(string)` | `null` | no |
+| launch\_template\_id | The ID of a custom launch template to use for the EKS node group. | `string` | `null` | no |
+| launch\_template\_user\_data | Unless explicitly providing a launch template, use this variable to override just the userdata script. | `string` | `null` | no |
+| launch\_template\_version | A specific version of the above specific launch template | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
 | min\_size | Minimum number of worker nodes | `number` | n/a | yes |
 | module\_depends\_on | Can be any value desired. Module will wait for this value to be computed before creating node group. | `any` | `null` | no |
@@ -60,4 +62,3 @@
 | eks\_node\_group\_role\_name | Name of the worker nodes IAM role |
 | eks\_node\_group\_status | Status of the EKS Node Group |
 
-<!-- markdownlint-restore -->

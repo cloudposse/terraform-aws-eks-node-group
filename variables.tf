@@ -59,9 +59,9 @@ variable "disk_size" {
   default     = 20
 }
 
-variable "instance_types" {
-  type        = list(string)
-  description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
+variable "instance_type" {
+  type        = string
+  description = "Instance type associated with the EKS Node Group. Defaults to \"t3.medium\". Terraform will only perform drift detection if a configuration value is provided"
 }
 
 variable "kubernetes_labels" {
@@ -92,4 +92,22 @@ variable "module_depends_on" {
   type        = any
   default     = null
   description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
+}
+
+variable "launch_template_id" {
+  type        = string
+  description = "The ID of a custom launch template to use for the EKS node group."
+  default     = null
+}
+
+variable "launch_template_version" {
+  type        = string
+  description = "A specific version of the above specific launch template"
+  default     = null
+}
+
+variable "launch_template_user_data" {
+  type        = string
+  description = "Use this to override just the user_data script if you're not passing a full launch template."
+  default     = null
 }

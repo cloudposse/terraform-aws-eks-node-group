@@ -137,7 +137,7 @@ usage: |2-
         attributes                = var.attributes
         tags                      = var.tags
         subnet_ids                = module.subnets.public_subnet_ids
-        instance_types            = var.instance_types
+        instance_type             = var.instance_type
         desired_size              = var.desired_size
         min_size                  = var.min_size
         max_size                  = var.max_size
