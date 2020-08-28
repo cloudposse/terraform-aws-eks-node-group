@@ -15,6 +15,15 @@ locals {
   )
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
+  userdata_vars = {
+    cluster_endpoint                = var.cluster_endpoint
+    cluster_name                    = var.cluster_name
+    bootstrap_extra_args            = var.bootstrap_extra_args
+    kubelet_extra_args              = var.kubelet_extra_args
+    before_cluster_joining_userdata = var.before_cluster_joining_userdata
+    after_cluster_joining_userdata  = var.after_cluster_joining_userdata
+  }
+
   # Use a custom launch_template if one was passed as an input
   # Otherwise, use the default in this project
   launch_template = {
@@ -130,7 +139,7 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  instance_type = var.instance_type
+  instance_type = var.instance_types[0]
 
   dynamic "tag_specifications" {
     for_each = ["instance", "volume", "elastic-gpu"]
@@ -140,9 +149,7 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  # Override the default userdata if input is provided
-  # If none is provided, this value defaults to 'null', which defaults to the typical EKS node group userdata
-  user_data = var.launch_template_user_data
+  user_data = base64encode(templatefile("${path.module}/userdata.tpl", local.userdata_vars))
 }
 
 resource "aws_eks_node_group" "default" {

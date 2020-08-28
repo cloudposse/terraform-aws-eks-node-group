@@ -18,7 +18,7 @@ enabled_cluster_log_types = ["audit"]
 
 cluster_log_retention_period = 7
 
-instance_type = "t3.small"
+instance_types = ["t3.small"]
 
 desired_size = 2
 
@@ -29,3 +29,11 @@ min_size = 2
 disk_size = 20
 
 kubernetes_labels = {}
+
+bootstrap_extra_args = "--use-max-pods=5"
+
+kubelet_extra_args = "--node-labels=purpose=ci-worker"
+
+before_cluster_joining_userdata = "echo foo"
+
+after_cluster_joining_userdata = "echo bar"

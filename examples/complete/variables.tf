@@ -73,9 +73,9 @@ variable "disk_size" {
   description = "Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided"
 }
 
-variable "instance_type" {
-  type        = string
-  description = "Instance type associated with the EKS Node Group. Defaults to \"t3.medium\". Terraform will only perform drift detection if a configuration value is provided"
+variable "instance_types" {
+  type        = list(string)
+  description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
 }
 
 variable "kubernetes_labels" {
@@ -111,8 +111,26 @@ variable "launch_template_version" {
   default     = null
 }
 
-variable "launch_template_user_data" {
+variable "bootstrap_extra_args" {
   type        = string
-  description = "Use this to override just the user_data script if you're not passing a full launch template."
-  default     = null
+  default     = ""
+  description = "Extra arguments to the `bootstrap.sh` script to enable `--enable-docker-bridge` or `--use-max-pods`"
+}
+
+variable "kubelet_extra_args" {
+  type        = string
+  default     = ""
+  description = "Extra arguments to pass to kubelet, like \"--register-with-taints=dedicated=ci-cd:NoSchedule --node-labels=purpose=ci-worker\""
+}
+
+variable "before_cluster_joining_userdata" {
+  type        = string
+  default     = ""
+  description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+}
+
+variable "after_cluster_joining_userdata" {
+  type        = string
+  default     = ""
+  description = "Additional commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
