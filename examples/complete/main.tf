@@ -74,7 +74,7 @@ module "eks_cluster" {
 data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
   inputs = {
     cluster_name             = module.eks_cluster.eks_cluster_id
-    cluster_endpoint         = module.eks_cluster.cluster_endpoint
+    cluster_endpoint         = module.eks_cluster.eks_cluster_endpoint
     kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
   }
 }
