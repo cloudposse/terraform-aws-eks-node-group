@@ -16,7 +16,6 @@ locals {
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
   userdata_vars = {
-    cluster_endpoint                = var.cluster_endpoint
     cluster_name                    = var.cluster_name
     bootstrap_extra_args            = var.bootstrap_extra_args
     kubelet_extra_args              = var.kubelet_extra_args
