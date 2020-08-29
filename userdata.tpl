@@ -14,7 +14,7 @@ ${before_cluster_joining_userdata}
 
 export KUBELET_EXTRA_ARGS="${kubelet_extra_args}"
 
-/etc/eks/bootstrap.sh --apiserver-endpoint '${cluster_endpoint}' ${bootstrap_extra_args} '${cluster_name}'
+/etc/eks/bootstrap.sh ${bootstrap_extra_args} '${cluster_name}'
 
 ${after_cluster_joining_userdata}
 
