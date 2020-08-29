@@ -39,7 +39,6 @@ module "label" {
   # ...name-workers-blue instead of ...name-blue-workers), historically we forced "workers"
   # to the end of the attribute list, so we do it again here to maintain compatibility.
   attributes = compact(concat(module.this.attributes, ["workers"]))
-  tags       = var.tags
 
   context = module.this.context
 }
