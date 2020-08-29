@@ -74,7 +74,6 @@ module "eks_cluster" {
 data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
   inputs = {
     cluster_name             = module.eks_cluster.eks_cluster_id
-    cluster_endpoint         = module.eks_cluster.eks_cluster_endpoint
     kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
   }
 }
@@ -84,7 +83,6 @@ module "eks_node_group" {
 
   subnet_ids         = module.subnets.public_subnet_ids
   cluster_name       = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
-  cluster_endpoint   = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_endpoint"]
   instance_types     = var.instance_types
   desired_size       = var.desired_size
   min_size           = var.min_size
