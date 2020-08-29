@@ -1,8 +1,8 @@
 locals {
   enabled = module.this.enabled
 
-  tags = merge(
-    var.tags,
+  node_group_tags = merge(
+    module.label.tags,
     {
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     },
@@ -14,6 +14,21 @@ locals {
     }
   )
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
+
+  userdata_vars = {
+    cluster_name                    = var.cluster_name
+    bootstrap_extra_args            = var.bootstrap_extra_args
+    kubelet_extra_args              = var.kubelet_extra_args
+    before_cluster_joining_userdata = var.before_cluster_joining_userdata
+    after_cluster_joining_userdata  = var.after_cluster_joining_userdata
+  }
+
+  # Use a custom launch_template if one was passed as an input
+  # Otherwise, use the default in this project
+  launch_template = {
+    id             = coalesce(var.launch_template_id, aws_launch_template.default[0].id)
+    latest_version = coalesce(var.launch_template_version, aws_launch_template.default[0].latest_version)
+  }
 }
 
 module "label" {
@@ -24,11 +39,9 @@ module "label" {
   # ...name-workers-blue instead of ...name-blue-workers), historically we forced "workers"
   # to the end of the attribute list, so we do it again here to maintain compatibility.
   attributes = compact(concat(module.this.attributes, ["workers"]))
-  tags       = local.tags
 
   context = module.this.context
 }
-
 
 data "aws_partition" "current" {
   count = local.enabled ? 1 : 0
@@ -113,6 +126,30 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
   role       = join("", aws_iam_role.default.*.name)
 }
 
+resource "aws_launch_template" "default" {
+  # We'll use this default if we aren't provided with a launch template during invocation
+  count = (local.enabled && (var.launch_template_id == null)) ? 1 : 0
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size = var.disk_size
+    }
+  }
+
+  instance_type = var.instance_types[0]
+
+  dynamic "tag_specifications" {
+    for_each = ["instance", "volume", "elastic-gpu"]
+    content {
+      resource_type = tag_specifications.value
+      tags          = local.node_group_tags
+    }
+  }
+
+  user_data = base64encode(templatefile("${path.module}/userdata.tpl", local.userdata_vars))
+}
+
 resource "aws_eks_node_group" "default" {
   count           = local.enabled ? 1 : 0
   cluster_name    = var.cluster_name
@@ -120,18 +157,21 @@ resource "aws_eks_node_group" "default" {
   node_role_arn   = join("", aws_iam_role.default.*.arn)
   subnet_ids      = var.subnet_ids
   ami_type        = var.ami_type
-  disk_size       = var.disk_size
-  instance_types  = var.instance_types
   labels          = var.kubernetes_labels
   release_version = var.ami_release_version
   version         = var.kubernetes_version
 
-  tags = module.label.tags
+  tags = local.node_group_tags
 
   scaling_config {
     desired_size = var.desired_size
     max_size     = var.max_size
     min_size     = var.min_size
+  }
+
+  launch_template {
+    id      = local.launch_template.id
+    version = local.launch_template.latest_version
   }
 
   dynamic "remote_access" {

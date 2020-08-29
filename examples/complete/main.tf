@@ -52,14 +52,8 @@ module "subnets" {
 }
 
 module "eks_cluster" {
-  source = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.27.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.28.0"
 
-  # Temporarily retain old styel, due to circular reference
-  namespace                    = var.namespace
-  stage                        = var.stage
-  name                         = var.name
-  attributes                   = var.attributes
-  tags                         = var.tags
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -68,6 +62,8 @@ module "eks_cluster" {
   oidc_provider_enabled        = var.oidc_provider_enabled
   enabled_cluster_log_types    = var.enabled_cluster_log_types
   cluster_log_retention_period = var.cluster_log_retention_period
+
+  context = module.this.context
 }
 
 # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
@@ -94,6 +90,12 @@ module "eks_node_group" {
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
+
+  bootstrap_extra_args = var.bootstrap_extra_args
+  kubelet_extra_args   = var.kubelet_extra_args
+
+  before_cluster_joining_userdata = var.before_cluster_joining_userdata
+  after_cluster_joining_userdata  = var.after_cluster_joining_userdata
 
   context = module.this.context
 }
