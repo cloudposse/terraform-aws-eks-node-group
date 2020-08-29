@@ -9,11 +9,6 @@ variable "cluster_name" {
   description = "The name of the EKS cluster"
 }
 
-variable "cluster_endpoint" {
-  type        = string
-  description = "EKS cluster endpoint"
-}
-
 variable "ec2_ssh_key" {
   type        = string
   description = "SSH key name that should be used to access the worker nodes"
