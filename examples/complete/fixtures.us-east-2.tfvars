@@ -30,10 +30,4 @@ disk_size = 20
 
 kubernetes_labels = {}
 
-bootstrap_extra_args = "--use-max-pods=5"
-
-kubelet_extra_args = "--node-labels=purpose=ci-worker"
-
 before_cluster_joining_userdata = "echo foo"
-
-after_cluster_joining_userdata = "echo bar"
