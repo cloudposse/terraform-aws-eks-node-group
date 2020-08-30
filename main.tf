@@ -16,11 +16,7 @@ locals {
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
   userdata_vars = {
-    cluster_name                    = var.cluster_name
-    bootstrap_extra_args            = var.bootstrap_extra_args
-    kubelet_extra_args              = var.kubelet_extra_args
     before_cluster_joining_userdata = var.before_cluster_joining_userdata
-    after_cluster_joining_userdata  = var.after_cluster_joining_userdata
   }
 
   # Use a custom launch_template if one was passed as an input

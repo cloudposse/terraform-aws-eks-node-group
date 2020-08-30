@@ -91,11 +91,7 @@ module "eks_node_group" {
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
 
-  bootstrap_extra_args = var.bootstrap_extra_args
-  kubelet_extra_args   = var.kubelet_extra_args
-
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
-  after_cluster_joining_userdata  = var.after_cluster_joining_userdata
 
   context = module.this.context
 }

@@ -111,26 +111,8 @@ variable "launch_template_version" {
   default     = null
 }
 
-variable "bootstrap_extra_args" {
-  type        = string
-  default     = ""
-  description = "Extra arguments to the `bootstrap.sh` script to enable `--enable-docker-bridge` or `--use-max-pods`"
-}
-
-variable "kubelet_extra_args" {
-  type        = string
-  default     = ""
-  description = "Extra arguments to pass to kubelet, like \"--register-with-taints=dedicated=ci-cd:NoSchedule --node-labels=purpose=ci-worker\""
-}
-
 variable "before_cluster_joining_userdata" {
   type        = string
   default     = ""
   description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
-}
-
-variable "after_cluster_joining_userdata" {
-  type        = string
-  default     = ""
-  description = "Additional commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
