@@ -15,8 +15,22 @@ locals {
   )
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
+  node_labels = [
+    for item in keys(var.kubernetes_labels):
+      join("=", [item, lookup(var.kubernetes_labels, item)])
+  ]
+
   userdata_vars = {
-    before_cluster_joining_userdata = var.before_cluster_joining_userdata
+    before_cluster_joining_userdata = var.before_cluster_joining_userdata,
+    kubelet_extra_args = replace(join(" ", var.kubelet_extra_args), "'", ""),
+    node_taints = replace(join(",", var.node_taints), "'", ""),
+    node_labels = replace(join(",", local.node_labels),"'", "")
+  }
+
+  userdata_ami_vars = {
+    cluster_name = var.cluster_name,
+    node_group_name = module.label.id,
+    ami_id = var.ami_id
   }
 
   # Use a custom launch_template if one was passed as an input
@@ -133,6 +147,8 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  image_id = var.ami_id
+
   instance_type = var.instance_types[0]
 
   dynamic "tag_specifications" {
@@ -143,7 +159,38 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  user_data = base64encode(templatefile("${path.module}/userdata.tpl", local.userdata_vars))
+  vpc_security_group_ids = concat(
+    [data.aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id],
+    var.source_security_group_ids,
+    aws_security_group.remote_access_security_group.*.id
+  )
+
+  key_name = var.ec2_ssh_key
+
+  user_data = base64encode(
+    format("%s%s",
+      templatefile("${path.module}/userdata.tpl", local.userdata_vars),
+      (var.ami_id != null ? templatefile("${path.module}/userdata_ami.tpl", local.userdata_ami_vars) : "")
+    )
+  )
+}
+
+data "aws_eks_cluster" "eks_cluster" {
+  name = var.cluster_name
+}
+
+resource "aws_security_group" "remote_access_security_group" {
+  count = var.ec2_ssh_key != null && length(var.source_security_group_ids) == 0 ? 1 : 0
+  name        = "eks-${var.cluster_name}-${module.label.id}-remote-access"
+  description = "Security group for all nodes in the nodeGroup to allow SSH access"
+  vpc_id      = data.aws_eks_cluster.eks_cluster.vpc_config[0].vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_eks_node_group" "default" {
@@ -152,9 +199,9 @@ resource "aws_eks_node_group" "default" {
   node_group_name = module.label.id
   node_role_arn   = join("", aws_iam_role.default.*.arn)
   subnet_ids      = var.subnet_ids
-  ami_type        = var.ami_type
+  ami_type        = var.ami_id == null ? var.ami_type : null
   labels          = var.kubernetes_labels
-  release_version = var.ami_release_version
+  release_version = var.ami_id == null ? var.kubernetes_version : null
   version         = var.kubernetes_version
 
   tags = local.node_group_tags
@@ -168,14 +215,6 @@ resource "aws_eks_node_group" "default" {
   launch_template {
     id      = local.launch_template.id
     version = local.launch_template.latest_version
-  }
-
-  dynamic "remote_access" {
-    for_each = var.ec2_ssh_key != null && var.ec2_ssh_key != "" ? ["true"] : []
-    content {
-      ec2_ssh_key               = var.ec2_ssh_key
-      source_security_group_ids = var.source_security_group_ids
-    }
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.

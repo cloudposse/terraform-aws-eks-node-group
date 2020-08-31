@@ -90,6 +90,7 @@ module "eks_node_group" {
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
+  node_taints        = var.node_taints
 
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
 

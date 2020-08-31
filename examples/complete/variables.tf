@@ -116,3 +116,21 @@ variable "before_cluster_joining_userdata" {
   default     = ""
   description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
+
+variable "ami_id" {
+  type        = string
+  default     = null
+  description = "Can be used to specify a custom Amazon Machine Image (AMI) id. If not specified the default AMI for the kubernetes version will be used"
+}
+
+variable "kubelet_extra_args" {
+  type        = list(string)
+  default     = []
+  description = "Can be used to specify additional kubelet arguments, other than taint and labels which are provided though other variables"
+}
+
+variable "node_taints" {
+  type        = list(string)
+  default     = []
+  description = "Can be used to specify node taints in the following format: key=value:effect, e.g: dedicated=special:NoSchedule"
+}

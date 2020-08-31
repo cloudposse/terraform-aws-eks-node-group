@@ -31,3 +31,5 @@ disk_size = 20
 kubernetes_labels = {}
 
 before_cluster_joining_userdata = "echo foo"
+
+node_taints = ["dedicated=special:NoSchedule"]
