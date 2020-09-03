@@ -26,19 +26,21 @@ locals {
     latest_version = coalesce(var.launch_template_version, aws_launch_template.default[0].latest_version)
   }
 
-  eks_node_group_resources = merge(aws_eks_node_group.default.*.resources,
-    {
-      "remote_access_security_group_id" = aws_security_group.remote_access.id
-    }
-  )
+  eks_node_group_resources = [for resource in aws_eks_node_group.default.*.resources :
+    [for i in resource :
+      merge(i, {
+        remote_access_security_group_id = join("", aws_security_group.remote_access.*.id)
+      })
+    ]
+  ]
 
   security_group_ids = concat(
     list(data.aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id),
-    var.ec2_ssh_key != null ? aws_security_group.remote_access[*].id : []
+    var.ec2_ssh_key != null ? aws_security_group.remote_access.*.id : []
   )
 
   # Tagging an elastic gpu on create is not yet supported in govcloud
-  tag_spec = compact(["instance", "volume", data.aws_partition.current[0].partition == "aws-us-gov" ? "" : "elastic-gpu"])
+  tag_spec = compact(["instance", "volume", join("", data.aws_partition.current.*.partition) == "aws-us-gov" ? "" : "elastic-gpu"])
 }
 
 module "label" {
@@ -224,7 +226,7 @@ resource "aws_security_group_rule" "public_ssh" {
   count             = local.enabled && var.ec2_ssh_key != null && length(var.source_security_group_ids) < 1 ? 1 : 0
   from_port         = 22
   protocol          = "tcp"
-  security_group_id = aws_security_group.remote_access[0].id
+  security_group_id = join("", aws_security_group.remote_access.*.id)
   to_port           = 22
   type              = "ingress"
 
