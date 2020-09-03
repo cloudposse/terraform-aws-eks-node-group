@@ -32,6 +32,11 @@ locals {
     }
   )
 
+  security_group_ids = concat(
+    list(data.aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id),
+    var.ec2_ssh_key != null ? aws_security_group.remote_access[*].id : []
+  )
+
   # Tagging an elastic gpu on create is not yet supported in govcloud
   tag_spec = compact(["instance", "volume", data.aws_partition.current[0].partition == "aws-us-gov" ? "" : "elastic-gpu"])
 }
@@ -68,6 +73,10 @@ data "aws_iam_policy_document" "assume_role" {
 
 data "aws_subnet" "default" {
   id = var.subnet_ids[0]
+}
+
+data "aws_eks_cluster" "eks_cluster" {
+  name = var.cluster_name
 }
 
 data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
@@ -148,7 +157,7 @@ resource "aws_launch_template" "default" {
 
   instance_type          = var.instance_types[0]
   key_name               = var.ec2_ssh_key
-  vpc_security_group_ids = var.ec2_ssh_key != null ? aws_security_group.remote_access[*].id : []
+  vpc_security_group_ids = local.security_group_ids
 
   dynamic "tag_specifications" {
     for_each = local.tag_spec
