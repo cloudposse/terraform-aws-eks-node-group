@@ -20,7 +20,7 @@ output "eks_node_group_arn" {
 
 output "eks_node_group_resources" {
   description = "List of objects containing information about underlying resources of the EKS Node Group"
-  value       = local.enabled ? aws_eks_node_group.default.*.resources : []
+  value       = local.enabled ? local.eks_node_group_resources : []
 }
 
 output "eks_node_group_status" {

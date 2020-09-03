@@ -25,6 +25,15 @@ locals {
     id             = coalesce(var.launch_template_id, aws_launch_template.default[0].id)
     latest_version = coalesce(var.launch_template_version, aws_launch_template.default[0].latest_version)
   }
+
+  eks_node_group_resources = merge(aws_eks_node_group.default.*.resources,
+    {
+      "remote_access_security_group_id" = aws_security_group.remote_access.id
+    }
+  )
+
+  # Tagging an elastic gpu on create is not yet supported in govcloud
+  tag_spec = compact(["instance", "volume", data.aws_partition.current[0].partition == "aws-us-gov" ? "" : "elastic-gpu"])
 }
 
 module "label" {
@@ -55,6 +64,10 @@ data "aws_iam_policy_document" "assume_role" {
       identifiers = ["ec2.amazonaws.com"]
     }
   }
+}
+
+data "aws_subnet" "default" {
+  id = var.subnet_ids[0]
 }
 
 data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
@@ -133,10 +146,12 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  instance_type = var.instance_types[0]
+  instance_type          = var.instance_types[0]
+  key_name               = var.ec2_ssh_key
+  vpc_security_group_ids = var.ec2_ssh_key != null ? aws_security_group.remote_access[*].id : []
 
   dynamic "tag_specifications" {
-    for_each = ["instance", "volume", "elastic-gpu"]
+    for_each = local.tag_spec
     content {
       resource_type = tag_specifications.value
       tags          = local.node_group_tags
@@ -170,14 +185,6 @@ resource "aws_eks_node_group" "default" {
     version = local.launch_template.latest_version
   }
 
-  dynamic "remote_access" {
-    for_each = var.ec2_ssh_key != null && var.ec2_ssh_key != "" ? ["true"] : []
-    content {
-      ec2_ssh_key               = var.ec2_ssh_key
-      source_security_group_ids = var.source_security_group_ids
-    }
-  }
-
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
   # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
@@ -194,4 +201,35 @@ resource "aws_eks_node_group" "default" {
   lifecycle {
     ignore_changes = [scaling_config[0].desired_size]
   }
+}
+
+resource "aws_security_group" "remote_access" {
+  count       = local.enabled && var.ec2_ssh_key != null ? 1 : 0
+  name        = "eks-${var.cluster_name}-${module.label.id}-remote-access"
+  description = "Security group for all nodes in the nodeGroup to allow SSH access"
+  vpc_id      = data.aws_subnet.default.vpc_id
+  tags        = module.label.tags
+}
+
+resource "aws_security_group_rule" "public_ssh" {
+  count             = local.enabled && var.ec2_ssh_key != null && length(var.source_security_group_ids) < 1 ? 1 : 0
+  from_port         = 22
+  protocol          = "tcp"
+  security_group_id = aws_security_group.remote_access[0].id
+  to_port           = 22
+  type              = "ingress"
+
+  cidr_blocks = [
+    "0.0.0.0/0"
+  ]
+}
+
+resource "aws_security_group_rule" "source_sgs_ssh" {
+  count                    = local.enabled && var.ec2_ssh_key != null ? length(var.source_security_group_ids) : 0
+  from_port                = 22
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.remote_access[0].id
+  to_port                  = 22
+  source_security_group_id = var.source_security_group_ids[count.index]
+  type                     = "ingress"
 }
