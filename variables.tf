@@ -9,6 +9,16 @@ variable "cluster_name" {
   description = "The name of the EKS cluster"
 }
 
+variable "create_before_destroy" {
+  type        = bool
+  default     = false
+  description = <<-EOT
+    Set true in order to create the new node group before destroying the old one.
+    If false, the old node group will be destroyed first, causing downtime.
+    Changing this setting will always cause node group to be replaced.
+    EOT
+}
+
 variable "ec2_ssh_key" {
   type        = string
   description = "SSH key name that should be used to access the worker nodes"

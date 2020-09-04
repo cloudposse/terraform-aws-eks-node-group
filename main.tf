@@ -255,8 +255,12 @@ resource "aws_eks_node_group" "default" {
     var.module_depends_on
   ]
 
-  lifecycle {
-    create_before_destroy = true
-    ignore_changes        = [scaling_config[0].desired_size]
+  dynamic "lifecycle" {
+    for_each = ["true"]
+    content {
+      create_before_destroy = var.create_before_destroy
+      ignore_changes = [
+      scaling_config[0].desired_size]
+    }
   }
 }
