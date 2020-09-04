@@ -1,31 +1,52 @@
 locals {
   enabled = module.this.enabled
 
-  node_group_tags = merge(
+  configured_launch_template_name    = var.launch_template_name == null ? "" : var.launch_template_name
+  configured_launch_template_version = length(local.configured_launch_template_name) > 0 && length(compact([var.launch_template_version])) > 0 ? var.launch_template_version : ""
+
+  configured_ami_image_id = var.ami_image_id == null ? "" : var.ami_image_id
+
+  # See https://aws.amazon.com/blogs/containers/introducing-launch-template-and-custom-ami-support-in-amazon-eks-managed-node-groups/
+  features_require_ami = local.need_bootstrap
+  need_ami_id          = local.features_require_ami && length(local.configured_ami_image_id) == 0
+
+  features_require_launch_template = length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami
+  generate_launch_template         = local.features_require_launch_template && length(local.configured_launch_template_name) == 0
+  use_launch_template              = local.features_require_launch_template || length(local.configured_launch_template_name) > 0
+
+  launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : null) : local.configured_ami_image_id
+
+  autoscaler_enabled_tags = {
+    "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+    "k8s.io/cluster-autoscaler/enabled"             = "true"
+  }
+  autoscaler_kubernetes_label_tags = {
+    for label, value in var.kubernetes_labels : format("k8s.io/cluster-autoscaler/node-template/label/%v", label) => value
+  }
+  autoscaler_kubernetes_taints_tags = {
+    for label, value in var.kubernetes_taints : format("k8s.io/cluster-autoscaler/node-template/taint/%v", label) => value
+  }
+  autoscaler_tags = merge(local.autoscaler_enabled_tags, local.autoscaler_kubernetes_label_tags, local.autoscaler_kubernetes_taints_tags)
+
+  node_tags = merge(
     module.label.tags,
     {
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    },
-    {
-      "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
-    },
-    {
-      "k8s.io/cluster-autoscaler/enabled" = "${var.enable_cluster_autoscaler}"
     }
   )
+  node_group_tags = merge(local.node_tags, var.enable_cluster_autoscaler ? local.autoscaler_tags : {})
+
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  userdata_vars = {
-    before_cluster_joining_userdata = var.before_cluster_joining_userdata
-  }
-
-  # Use a custom launch_template if one was passed as an input
-  # Otherwise, use the default in this project
-  launch_template = {
-    id             = coalesce(var.launch_template_id, aws_launch_template.default[0].id)
-    latest_version = coalesce(var.launch_template_version, aws_launch_template.default[0].latest_version)
-  }
+  get_cluster_data = local.enabled && (local.need_cluster_kubernetes_version || local.need_bootstrap)
 }
+
+data "aws_eks_cluster" "this" {
+  count = local.get_cluster_data ? 1 : 0
+  name  = var.cluster_name
+}
+
+
 
 module "label" {
   source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
@@ -124,7 +145,8 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
 
 resource "aws_launch_template" "default" {
   # We'll use this default if we aren't provided with a launch template during invocation
-  count = (local.enabled && (var.launch_template_id == null)) ? 1 : 0
+  count = (local.enabled && local.generate_launch_template) ? 1 : 0
+
   block_device_mappings {
     device_name = "/dev/xvda"
 
@@ -133,17 +155,28 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  name_prefix            = module.label.id
+  update_default_version = true
+
   instance_type = var.instance_types[0]
+  image_id      = local.launch_template_ami
 
   dynamic "tag_specifications" {
-    for_each = ["instance", "volume", "elastic-gpu"]
+    for_each = var.resources_to_tag
     content {
       resource_type = tag_specifications.value
-      tags          = local.node_group_tags
+      tags          = local.node_tags
     }
   }
 
-  user_data = base64encode(templatefile("${path.module}/userdata.tpl", local.userdata_vars))
+  user_data = local.userdata
+  tags      = local.node_group_tags
+}
+
+data "aws_launch_template" "this" {
+  count = local.enabled && length(local.configured_launch_template_name) > 0 ? 1 : 0
+
+  name = local.configured_launch_template_name
 }
 
 resource "aws_eks_node_group" "default" {
@@ -165,9 +198,14 @@ resource "aws_eks_node_group" "default" {
     min_size     = var.min_size
   }
 
-  launch_template {
-    id      = local.launch_template.id
-    version = local.launch_template.latest_version
+  dynamic "launch_template" {
+    for_each = local.use_launch_template ? ["true"] : []
+    content {
+      id = length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id
+      version = (length(local.configured_launch_template_version) > 0 ? local.configured_launch_template_version :
+        length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
+      )
+    }
   }
 
   dynamic "remote_access" {
@@ -192,6 +230,6 @@ resource "aws_eks_node_group" "default" {
   ]
 
   lifecycle {
-    ignore_changes = [scaling_config[0].desired_size]
+    ignore_changes        = [scaling_config[0].desired_size]
   }
 }
