@@ -14,6 +14,7 @@ locals {
   generate_launch_template         = local.features_require_launch_template && length(local.configured_launch_template_name) == 0
   use_launch_template              = local.features_require_launch_template || length(local.configured_launch_template_name) > 0
 
+  launch_template_id  = local.use_launch_template ? (length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id) : ""
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : null) : local.configured_ami_image_id
 
   autoscaler_enabled_tags = {
@@ -179,12 +180,36 @@ data "aws_launch_template" "this" {
   name = local.configured_launch_template_name
 }
 
+resource "random_pet" "default" {
+  count = local.enabled ? 1 : 0
+
+  separator = module.label.delimiter
+  length    = 1
+
+  keepers = {
+    ami_type       = var.ami_type
+    disk_size      = local.use_launch_template ? null : var.disk_size
+    instance_types = join(",", local.use_launch_template ? [] : var.instance_types)
+    node_role_arn  = join("", aws_iam_role.default.*.arn)
+
+    ec2_ssh_key               = var.ec2_ssh_key == null ? "" : var.ec2_ssh_key
+    source_security_group_ids = join(",", var.source_security_group_ids)
+    subnet_ids                = join(",", var.subnet_ids)
+
+    launch_template_id = local.launch_template_id
+  }
+
+  depends_on = [var.module_depends_on]
+}
+
 resource "aws_eks_node_group" "default" {
   count           = local.enabled ? 1 : 0
   cluster_name    = var.cluster_name
-  node_group_name = module.label.id
+  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.default.*.id))
   node_role_arn   = join("", aws_iam_role.default.*.arn)
   subnet_ids      = var.subnet_ids
+  disk_size       = local.use_launch_template ? null : var.disk_size
+  instance_types  = local.use_launch_template ? null : var.instance_types
   ami_type        = var.ami_type
   labels          = var.kubernetes_labels
   release_version = var.ami_release_version
@@ -201,7 +226,7 @@ resource "aws_eks_node_group" "default" {
   dynamic "launch_template" {
     for_each = local.use_launch_template ? ["true"] : []
     content {
-      id = length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id
+      id = local.launch_template_id
       version = (length(local.configured_launch_template_version) > 0 ? local.configured_launch_template_version :
         length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
       )
@@ -223,6 +248,7 @@ resource "aws_eks_node_group" "default" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+    aws_launch_template.default,
     # Also allow calling module to create an explicit dependency
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups
@@ -230,6 +256,7 @@ resource "aws_eks_node_group" "default" {
   ]
 
   lifecycle {
+    create_before_destroy = true
     ignore_changes        = [scaling_config[0].desired_size]
   }
 }
