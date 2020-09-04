@@ -54,7 +54,7 @@ variable "existing_workers_role_policy_arns" {
 variable "existing_workers_role_policy_arns_count" {
   type        = number
   default     = 0
-  description = "Count of existing policy ARNs that will be attached to the workers default role on creation. Needed to prevent Terraform error `count can't be computed`"
+  description = "Obsolete and ignored. Allowed for backward compatibility."
 }
 
 variable "ami_type" {

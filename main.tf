@@ -1,6 +1,20 @@
 locals {
   enabled = module.this.enabled
 
+  # The heavy use of the ternary operator `? :` is because it is one of the few ways to avoid
+  # evaluating expressions. The unused expression is not evaluated and so it does not have to be valid.
+  # This allows us to refer to resources that are only conditionally created and avoid creating
+  # dependencies on them that would not be avoided by using expressions like `join("",expr)`.
+  #
+  # The expression
+  #   length(compact([var.launch_template_version])) > 0
+  # is a shorter way of accomplishing the same test as
+  #   var.launch_template_version != null && var.launch_template_version != ""
+  # and as an idiom has the added benefit of being extensible:
+  #   length(compact([x, y])) > 0
+  # is the same as
+  #   x != null && x != "" && y != null && y != ""
+
   configured_launch_template_name    = var.launch_template_name == null ? "" : var.launch_template_name
   configured_launch_template_version = length(local.configured_launch_template_name) > 0 && length(compact([var.launch_template_version])) > 0 ? var.launch_template_version : ""
 
@@ -14,7 +28,14 @@ locals {
   generate_launch_template         = local.features_require_launch_template && length(local.configured_launch_template_name) == 0
   use_launch_template              = local.features_require_launch_template || length(local.configured_launch_template_name) > 0
 
-  launch_template_id  = local.use_launch_template ? (length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id) : ""
+  launch_template_id = local.use_launch_template ? (length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id) : ""
+  launch_template_version = local.use_launch_template ? (
+    length(local.configured_launch_template_version) > 0 ? local.configured_launch_template_version :
+    (
+      length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
+    )
+  ) : ""
+
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : null) : local.configured_ami_image_id
 
   autoscaler_enabled_tags = {
@@ -139,8 +160,8 @@ resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_on
 }
 
 resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_role" {
-  count      = local.enabled ? var.existing_workers_role_policy_arns_count : 0
-  policy_arn = var.existing_workers_role_policy_arns[count.index]
+  for_each   = local.enabled ? toset(var.existing_workers_role_policy_arns) : []
+  policy_arn = each.value
   role       = join("", aws_iam_role.default.*.name)
 }
 
@@ -181,7 +202,7 @@ data "aws_launch_template" "this" {
 }
 
 resource "random_pet" "default" {
-  count = local.enabled ? 1 : 0
+  count = local.enabled && var.create_before_destroy ? 1 : 0
 
   separator = module.label.delimiter
   length    = 1
@@ -202,42 +223,81 @@ resource "random_pet" "default" {
   depends_on = [var.module_depends_on]
 }
 
-resource "aws_eks_node_group" "default" {
-  count           = local.enabled ? 1 : 0
-  cluster_name    = var.cluster_name
-  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.default.*.id))
-  node_role_arn   = join("", aws_iam_role.default.*.arn)
-  subnet_ids      = var.subnet_ids
-  disk_size       = local.use_launch_template ? null : var.disk_size
-  instance_types  = local.use_launch_template ? null : var.instance_types
-  ami_type        = var.ami_type
-  labels          = var.kubernetes_labels
-  release_version = var.ami_release_version
-  version         = var.kubernetes_version
 
-  tags = local.node_group_tags
+# Support keeping 2 node groups in sync by extracting common variable settings
+locals {
+  ng = {
+    cluster_name    = var.cluster_name
+    node_role_arn   = join("", aws_iam_role.default.*.arn)
+    subnet_ids      = var.subnet_ids
+    disk_size       = local.use_launch_template ? null : var.disk_size
+    instance_types  = local.use_launch_template ? null : var.instance_types
+    ami_type        = var.ami_type
+    labels          = var.kubernetes_labels
+    release_version = var.ami_release_version
+    version         = var.kubernetes_version
+
+    tags = local.node_group_tags
+
+    scaling_config = {
+      desired_size = var.desired_size
+      max_size     = var.max_size
+      min_size     = var.min_size
+    }
+
+    ec2_ssh_key               = var.ec2_ssh_key == null ? "" : var.ec2_ssh_key
+    source_security_group_ids = var.source_security_group_ids
+  }
+}
+
+# Because create_before_destroy is such a dramatic change, we want to make it optional.
+# Because lifecycle must be static, the only way to make it optional is to create
+# two nearly identical resources and only enable the correct one.
+# See https://github.com/hashicorp/terraform/issues/24188
+#
+# WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
+# except for count, lifecycle, and node_group_name.
+resource "aws_eks_node_group" "default" {
+  count           = local.enabled && ! var.create_before_destroy ? 1 : 0
+  node_group_name = module.label.id
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes        = [scaling_config[0].desired_size]
+  }
+
+  # From here to end of resource should be identical in both node groups
+  cluster_name    = local.ng.cluster_name
+  node_role_arn   = local.ng.node_role_arn
+  subnet_ids      = local.ng.subnet_ids
+  disk_size       = local.ng.disk_size
+  instance_types  = local.ng.instance_types
+  ami_type        = local.ng.ami_type
+  labels          = local.ng.labels
+  release_version = local.ng.release_version
+  version         = local.ng.version
+
+  tags = local.ng.tags
 
   scaling_config {
-    desired_size = var.desired_size
-    max_size     = var.max_size
-    min_size     = var.min_size
+    desired_size = local.ng.scaling_config.desired_size
+    max_size     = local.ng.scaling_config.max_size
+    min_size     = local.ng.scaling_config.min_size
   }
 
   dynamic "launch_template" {
     for_each = local.use_launch_template ? ["true"] : []
     content {
-      id = local.launch_template_id
-      version = (length(local.configured_launch_template_version) > 0 ? local.configured_launch_template_version :
-        length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
-      )
+      id      = local.launch_template_id
+      version = local.launch_template_version
     }
   }
 
   dynamic "remote_access" {
-    for_each = var.ec2_ssh_key != null && var.ec2_ssh_key != "" ? ["true"] : []
+    for_each = length(local.ng.ec2_ssh_key) > 0 ? ["true"] : []
     content {
-      ec2_ssh_key               = var.ec2_ssh_key
-      source_security_group_ids = var.source_security_group_ids
+      ec2_ssh_key               = local.ng.ec2_ssh_key
+      source_security_group_ids = local.ng.source_security_group_ids
     }
   }
 
@@ -254,13 +314,65 @@ resource "aws_eks_node_group" "default" {
     # the cluster is fully created and configured before creating any node groups
     var.module_depends_on
   ]
+}
 
-  dynamic "lifecycle" {
-    for_each = ["true"]
+# WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
+# except for count, lifecycle, and node_group_name.
+resource "aws_eks_node_group" "cbd" {
+  count           = local.enabled && var.create_before_destroy ? 1 : 0
+  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.default.*.id))
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [scaling_config[0].desired_size]
+  }
+
+  # From here to end of resource should be identical in both node groups
+  cluster_name    = local.ng.cluster_name
+  node_role_arn   = local.ng.node_role_arn
+  subnet_ids      = local.ng.subnet_ids
+  disk_size       = local.ng.disk_size
+  instance_types  = local.ng.instance_types
+  ami_type        = local.ng.ami_type
+  labels          = local.ng.labels
+  release_version = local.ng.release_version
+  version         = local.ng.version
+
+  tags = local.ng.tags
+
+  scaling_config {
+    desired_size = local.ng.scaling_config.desired_size
+    max_size     = local.ng.scaling_config.max_size
+    min_size     = local.ng.scaling_config.min_size
+  }
+
+  dynamic "launch_template" {
+    for_each = local.use_launch_template ? ["true"] : []
     content {
-      create_before_destroy = var.create_before_destroy
-      ignore_changes = [
-      scaling_config[0].desired_size]
+      id      = local.launch_template_id
+      version = local.launch_template_version
     }
   }
+
+  dynamic "remote_access" {
+    for_each = length(local.ng.ec2_ssh_key) > 0 ? ["true"] : []
+    content {
+      ec2_ssh_key               = local.ng.ec2_ssh_key
+      source_security_group_ids = local.ng.source_security_group_ids
+    }
+  }
+
+  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
+  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
+  depends_on = [
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
+    aws_iam_role_policy_attachment.amazon_eks_cni_policy,
+    aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+    aws_launch_template.default,
+    # Also allow calling module to create an explicit dependency
+    # This is useful in conjunction with terraform-aws-eks-cluster to ensure
+    # the cluster is fully created and configured before creating any node groups
+    var.module_depends_on
+  ]
 }
