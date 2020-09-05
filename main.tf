@@ -36,7 +36,7 @@ locals {
     )
   ) : ""
 
-  launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : null) : local.configured_ami_image_id
+  launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
@@ -181,7 +181,7 @@ resource "aws_launch_template" "default" {
   update_default_version = true
 
   instance_type = var.instance_types[0]
-  image_id      = local.launch_template_ami
+  image_id      = local.launch_template_ami == "" ? null : local.launch_template_ami
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
@@ -232,10 +232,10 @@ locals {
     subnet_ids      = var.subnet_ids
     disk_size       = local.use_launch_template ? null : var.disk_size
     instance_types  = local.use_launch_template ? null : var.instance_types
-    ami_type        = var.ami_type
+    ami_type        = local.launch_template_ami == "" ? var.ami_type : null
     labels          = var.kubernetes_labels
-    release_version = var.ami_release_version
-    version         = var.kubernetes_version
+    release_version = local.launch_template_ami == "" ? var.ami_release_version : null
+    version         = length(compact([local.launch_template_ami, var.ami_release_version])) == 0 ? var.kubernetes_version : null
 
     tags = local.node_group_tags
 
