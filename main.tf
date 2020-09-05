@@ -201,7 +201,7 @@ data "aws_launch_template" "this" {
   name = local.configured_launch_template_name
 }
 
-resource "random_pet" "default" {
+resource "random_pet" "cbd" {
   count = local.enabled && var.create_before_destroy ? 1 : 0
 
   separator = module.label.delimiter
@@ -320,7 +320,7 @@ resource "aws_eks_node_group" "default" {
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "cbd" {
   count           = local.enabled && var.create_before_destroy ? 1 : 0
-  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.default.*.id))
+  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.cbd.*.id))
 
   lifecycle {
     create_before_destroy = true
