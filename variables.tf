@@ -196,13 +196,13 @@ variable "resources_to_tag" {
 variable "before_cluster_joining_userdata" {
   type        = string
   default     = ""
-  description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+  description = "Additional `bash` commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
 
 variable "after_cluster_joining_userdata" {
   type        = string
   default     = ""
-  description = "Additional commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+  description = "Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
 
 variable "bootstrap_additional_options" {
@@ -216,7 +216,7 @@ variable "userdata_override" {
   default     = null
   description = <<-EOT
     Many features of this module rely on the `bootstrap.sh` provided with Amazon Linux, and this module
-    may generate "user data" that expects to find that script. If you want to use an AMI that does is not
+    may generate "user data" that expects to find that script. If you want to use an AMI that is not
     compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override` to provide
     your own (Base64 encoded) user data. Use "" to prevent any user data from being set.
 
