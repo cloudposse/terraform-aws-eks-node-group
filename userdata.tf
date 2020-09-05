@@ -1,18 +1,18 @@
-# The userdata is built from the `userdata.tpl` file. It has a strict size limits,
-# so comments about the userdata are here, not in the tpl file.
+# The userdata is built from the `userdata.tpl` file. It is limited to ~16k bytes,
+# so comments about the userdata (~1k bytes) are here, not in the tpl file.
 #
-# userdata for EKS worker nodes to properly configure Kubernetes applications on EC2 instances
+# userdata for EKS worker nodes to configure Kubernetes applications on EC2 instances
 # In multipart MIME format so EKS can append to it. See:
-# https://aws.amazon.com/blogs/containers/introducing-launch-template-and-custom-ami-support-in-amazon-eks-managed-node-groups/
-# and note that the Base64 version of the example script is in multipart MIME format, and if you
-# just provide a #!/bin/bash script like you can do when you provide the entire userdata you get
+#     https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html#launch-template-user-data
+#     https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+# If you  just provide a #!/bin/bash script like you can do when you provide the entire userdata you get
 # an error at deploy time: Ec2LaunchTemplateInvalidConfiguration: User data was not in the MIME multipart format
 #
 # See also:
 # https://aws.amazon.com/premiumsupport/knowledge-center/execute-user-data-ec2/
 # https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 # https://aws.amazon.com/blogs/opensource/improvements-eks-worker-node-provisioning/
-# https://github.com/awslabs/amazon-eks-ami/blob/master/files/bootstrap.sh#L97
+# https://github.com/awslabs/amazon-eks-ami/blob/master/files/bootstrap.sh
 #
 
 locals {

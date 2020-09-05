@@ -1,7 +1,7 @@
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="//"
+Content-Type: multipart/mixed; boundary="/:/+++"
 
---//
+--/:/+++
 Content-Type: text/x-shellscript; charset="us-ascii"
 #!/bin/bash
 
@@ -18,4 +18,5 @@ export KUBELET_EXTRA_ARGS="${kubelet_extra_args}"
 
 ${after_cluster_joining_userdata}
 %{ endif }
---//
+
+--/:/+++--

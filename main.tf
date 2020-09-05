@@ -191,6 +191,15 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  # See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+  # and https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
+  # Note in particular:
+  #     If any containers that you deploy to the node group use the Instance Metadata Service Version 2,
+  #     then make sure to set the Metadata response hop limit to 2 in your launch template.
+  metadata_options {
+    http_put_response_hop_limit = 2
+  }
+
   user_data = local.userdata
   tags      = local.node_group_tags
 }
