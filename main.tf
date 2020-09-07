@@ -36,9 +36,10 @@ locals {
 
   security_group_ids = concat(
     list(data.aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id),
-    var.ec2_ssh_key != null ? aws_security_group.remote_access.*.id : []
+    local.ec2_ssh_key != null ? aws_security_group.remote_access.*.id : []
   )
 
+  ec2_ssh_key = var.ec2_ssh_key == "" ? : null ? var.ec2_ssh_key
   # Tagging an elastic gpu on create is not yet supported in govcloud
   tag_spec = compact(["instance", "volume", join("", data.aws_partition.current.*.partition) == "aws-us-gov" ? "" : "elastic-gpu"])
 }
