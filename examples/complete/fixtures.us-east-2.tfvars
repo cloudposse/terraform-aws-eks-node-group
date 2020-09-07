@@ -10,7 +10,7 @@ stage = "test"
 
 name = "eks-node-group"
 
-kubernetes_version = "1.15"
+kubernetes_version = "1.17"
 
 oidc_provider_enabled = true
 
@@ -30,4 +30,6 @@ disk_size = 20
 
 kubernetes_labels = {}
 
-before_cluster_joining_userdata = "echo foo"
+before_cluster_joining_userdata = <<-EOT
+  printf "\n\n###\nExample output from before_cluster_joining_userdata\n###\n\n"
+  EOT
