@@ -40,12 +40,13 @@ locals {
     cluster_name               = local.get_cluster_data ? data.aws_eks_cluster.this[0].name : null
   }
 
-  need_bootstrap = length(compact([local.kubelet_taint_args, var.kubelet_additional_options,
+  need_bootstrap = local.enabled ? length(compact([local.kubelet_taint_args, var.kubelet_additional_options,
     local.userdata_vars.bootstrap_extra_args,
     local.userdata_vars.after_cluster_joining_userdata]
-  )) > 0
+  )) > 0 : false
 
-  need_userdata = (var.userdata_override == null) && (length(local.userdata_vars.before_cluster_joining_userdata) > 0) || local.need_bootstrap
+  # If var.userdata_override = "" then we explicitly set userdata to ""
+  need_userdata = local.enabled && var.userdata_override == null ? (length(local.userdata_vars.before_cluster_joining_userdata) > 0) || local.need_bootstrap : false
 
   userdata = local.need_userdata ? base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data))) : var.userdata_override
 }
