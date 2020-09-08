@@ -41,7 +41,7 @@
 | existing\_workers\_role\_policy\_arns | List of existing policy ARNs that will be attached to the workers default role on creation | `list(string)` | `[]` | no |
 | existing\_workers\_role\_policy\_arns\_count | Obsolete and ignored. Allowed for backward compatibility. | `number` | `0` | no |
 | id\_length\_limit | Limit `id` to this many characters.<br>Set to `0` for unlimited length.<br>Set to `null` for default, which is `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
-| instance\_types | Single instance type to use for this node group, passed as a list. Defaults to [\"t3.medium\"].<br>It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
+| instance\_types | Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].<br>It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
 | kubelet\_additional\_options | Additional flags to pass to kubelet.<br>DO NOT include `--node-labels` or `--node-taints`,<br>use `kubernetes_labels` and `kubernetes_taints` to specify those." | `string` | `""` | no |
 | kubernetes\_labels | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument.<br>Other Kubernetes labels applied to the EKS Node Group will not be managed. | `map(string)` | `{}` | no |
 | kubernetes\_taints | Key-value mapping of Kubernetes taints. | `map(string)` | `{}` | no |

@@ -85,7 +85,7 @@ variable "instance_types" {
   type        = list(string)
   default     = ["t3.medium"]
   description = <<-EOT
-    Single instance type to use for this node group, passed as a list. Defaults to [\"t3.medium\"].
+    Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].
     It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group.
     EOT
   validation {
