@@ -46,6 +46,13 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
+  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ?
+    concat(
+      list(data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id),
+      var.launch_template_additional_security_group_ids
+    )
+  : null
+
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
     "k8s.io/cluster-autoscaler/enabled"             = "true"
@@ -68,15 +75,13 @@ locals {
 
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.generate_launch_template) : false
 }
 
 data "aws_eks_cluster" "this" {
   count = local.get_cluster_data ? 1 : 0
   name  = var.cluster_name
 }
-
-
 
 module "label" {
   source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
@@ -211,8 +216,9 @@ resource "aws_launch_template" "default" {
     http_endpoint = "enabled"
   }
 
-  user_data = local.userdata
-  tags      = local.node_group_tags
+  vpc_security_group_ids = local.launch_template_vpc_security_group_ids
+  user_data              = local.userdata
+  tags                   = local.node_group_tags
 }
 
 data "aws_launch_template" "this" {
