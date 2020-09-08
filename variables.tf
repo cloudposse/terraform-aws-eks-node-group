@@ -83,9 +83,11 @@ variable "disk_size" {
 
 variable "instance_types" {
   type        = list(string)
-  description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
   default     = ["t3.medium"]
-
+  description = <<-EOT
+    Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].
+    It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group.
+    EOT
   validation {
     condition = (
       length(var.instance_types) == 1
@@ -134,7 +136,7 @@ variable "ami_image_id" {
 
 variable "ami_release_version" {
   type        = string
-  description = "AMI version to use, e.g. \"1.16.13-20200821\" (no \"v\"). Defaults to latest version for Kubernetes version."
+  description = "EKS AMI version to use, e.g. \"1.16.13-20200821\" (no \"v\"). Defaults to latest version for Kubernetes version."
   default     = null
   validation {
     condition = (

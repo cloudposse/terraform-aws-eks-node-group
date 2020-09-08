@@ -11,7 +11,7 @@ locals {
   // 1. prefix of var.ami_release_version
   // 2. var.kubernetes_version
   // 3. data.eks_cluster.this.kubernetes_version
-  need_cluster_kubernetes_version = local.need_ami_id && length(compact([var.ami_release_version, var.kubernetes_version])) == 0
+  need_cluster_kubernetes_version = local.enabled ? local.need_ami_id && length(compact([var.ami_release_version, var.kubernetes_version])) == 0 : false
 
   ami_kubernetes_version = local.need_ami_id ? (local.need_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version :
     regex("^(\\d+\\.\\d+)", coalesce(var.ami_release_version, var.kubernetes_version))[0]

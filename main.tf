@@ -6,6 +6,14 @@ locals {
   # This allows us to refer to resources that are only conditionally created and avoid creating
   # dependencies on them that would not be avoided by using expressions like `join("",expr)`.
   #
+  # We use this pattern with enabled for every boolean that begins with `need_` even though
+  # it is sometimes redundant, to ensure that ever `need_` is false and every dependent
+  # expression is not evaluated when enabled is false. Avoiding expression evaluations
+  # is also why, even for boolean expressions, we use
+  #   local.enabled ? expression : false
+  # rather than
+  #   local.enabled && expression
+  #
   # The expression
   #   length(compact([var.launch_template_version])) > 0
   # is a shorter way of accomplishing the same test as
@@ -21,12 +29,12 @@ locals {
   configured_ami_image_id = var.ami_image_id == null ? "" : var.ami_image_id
 
   # See https://aws.amazon.com/blogs/containers/introducing-launch-template-and-custom-ami-support-in-amazon-eks-managed-node-groups/
-  features_require_ami = local.need_bootstrap
-  need_ami_id          = local.features_require_ami && length(local.configured_ami_image_id) == 0
+  features_require_ami = local.enabled && local.need_bootstrap
+  need_ami_id          = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
 
-  features_require_launch_template = length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami
-  generate_launch_template         = local.features_require_launch_template && length(local.configured_launch_template_name) == 0
-  use_launch_template              = local.features_require_launch_template || length(local.configured_launch_template_name) > 0
+  features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami : false
+  generate_launch_template         = local.enabled ? local.features_require_launch_template && length(local.configured_launch_template_name) == 0 : false
+  use_launch_template              = local.enabled ? local.features_require_launch_template || length(local.configured_launch_template_name) > 0 : false
 
   launch_template_id = local.use_launch_template ? (length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id) : ""
   launch_template_version = local.use_launch_template ? (
@@ -60,7 +68,7 @@ locals {
 
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  get_cluster_data = local.enabled && (local.need_cluster_kubernetes_version || local.need_bootstrap)
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap) : false
 }
 
 data "aws_eks_cluster" "this" {
@@ -220,16 +228,19 @@ resource "random_pet" "cbd" {
   length    = 1
 
   keepers = {
-    ami_type       = var.ami_type
-    disk_size      = local.use_launch_template ? null : var.disk_size
-    instance_types = join(",", local.use_launch_template ? [] : var.instance_types)
-    node_role_arn  = join("", aws_iam_role.default.*.arn)
+    ami_type            = var.ami_type
+    ami_release_version = var.ami_release_version
+    kubernetes_version  = var.kubernetes_version
+    disk_size           = local.use_launch_template ? null : var.disk_size
+    instance_types      = join(",", local.use_launch_template ? [] : var.instance_types)
+    node_role_arn       = join("", aws_iam_role.default.*.arn)
 
     ec2_ssh_key               = var.ec2_ssh_key == null ? "" : var.ec2_ssh_key
     source_security_group_ids = join(",", var.source_security_group_ids)
     subnet_ids                = join(",", var.subnet_ids)
 
-    launch_template_id = local.launch_template_id
+    launch_template_id  = local.launch_template_id
+    launch_template_ami = local.launch_template_ami
   }
 
   depends_on = [var.module_depends_on]
