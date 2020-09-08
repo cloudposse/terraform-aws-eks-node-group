@@ -10,20 +10,20 @@ output "eks_node_group_role_name" {
 
 output "eks_node_group_id" {
   description = "EKS Cluster name and EKS Node Group name separated by a colon"
-  value       = join("", aws_eks_node_group.default.*.id)
+  value       = join("", aws_eks_node_group.default.*.id, aws_eks_node_group.cbd.*.id)
 }
 
 output "eks_node_group_arn" {
   description = "Amazon Resource Name (ARN) of the EKS Node Group"
-  value       = join("", aws_eks_node_group.default.*.arn)
+  value       = join("", aws_eks_node_group.default.*.arn, aws_eks_node_group.cbd.*.arn)
 }
 
 output "eks_node_group_resources" {
   description = "List of objects containing information about underlying resources of the EKS Node Group"
-  value       = local.enabled ? local.eks_node_group_resources : []
+  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd.*.resources : aws_eks_node_group.default.*.resources) : []
 }
 
 output "eks_node_group_status" {
   description = "Status of the EKS Node Group"
-  value       = join("", aws_eks_node_group.default.*.status)
+  value       = join("", aws_eks_node_group.default.*.status, aws_eks_node_group.cbd.*.status)
 }
