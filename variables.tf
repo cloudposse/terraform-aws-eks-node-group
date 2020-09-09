@@ -186,7 +186,7 @@ variable "launch_template_version" {
 variable "launch_template_additional_security_group_ids" {
   type        = list(string)
   description = "Additional security groups to apply to the generated launch template"
-  default     = []
+  default     = null
 }
 
 variable "resources_to_tag" {
