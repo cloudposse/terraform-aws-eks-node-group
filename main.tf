@@ -46,12 +46,9 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
-  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ?
-    concat(
-      list(data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id),
-      var.launch_template_additional_security_group_ids
-    )
-  : null
+  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ? (
+    var.launch_template_additional_security_group_ids
+  ) : null
 
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
@@ -75,7 +72,7 @@ locals {
 
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.generate_launch_template) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap) : false
 }
 
 data "aws_eks_cluster" "this" {
