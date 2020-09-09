@@ -110,14 +110,6 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-data "aws_subnet" "default" {
-  id = var.subnet_ids[0]
-}
-
-data "aws_eks_cluster" "eks_cluster" {
-  name = var.cluster_name
-}
-
 data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
   count = (local.enabled && var.enable_cluster_autoscaler) ? 1 : 0
   statement {
