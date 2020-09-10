@@ -219,16 +219,16 @@ variable "bootstrap_additional_options" {
   description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_args` var instead."
 }
 
-variable "userdata_override" {
+variable "userdata_override_base64" {
   type        = string
   default     = null
   description = <<-EOT
     Many features of this module rely on the `bootstrap.sh` provided with Amazon Linux, and this module
     may generate "user data" that expects to find that script. If you want to use an AMI that is not
-    compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override` to provide
+    compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override_base64` to provide
     your own (Base64 encoded) user data. Use "" to prevent any user data from being set.
 
-    Setting `userdata_override` disables `kubernetes_taints`, `kubelet_additional_options`,
+    Setting `userdata_override_base64` disables `kubernetes_taints`, `kubelet_additional_options`,
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
 }
