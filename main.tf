@@ -389,7 +389,7 @@ resource "aws_eks_node_group" "cbd" {
   }
 
   dynamic "remote_access" {
-    for_each = length(local.ng.ec2_ssh_key) > 0 ? ["true"] : []
+    for_each = length(local.ng.ec2_ssh_key) > 0 && ! local.use_launch_template ? ["true"] : []
     content {
       ec2_ssh_key               = local.ng.ec2_ssh_key
       source_security_group_ids = local.ng.source_security_group_ids
