@@ -2,7 +2,7 @@
 
 resource "aws_security_group" "remote_access" {
   count       = local.launch_template_create_remote_access_sg ? 1 : 0
-  name        = "eks-${var.cluster_name}-${module.label.id}-remote-access"
+  name        = "${module.label.id}-remote-access"
   description = "Security group for all nodes in the nodeGroup to allow SSH access"
   vpc_id      = data.aws_subnet.default[0].vpc_id
   tags        = module.label.tags

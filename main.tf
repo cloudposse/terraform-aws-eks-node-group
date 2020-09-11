@@ -199,8 +199,7 @@ resource "aws_launch_template" "default" {
 
   instance_type = var.instance_types[0]
   image_id      = local.launch_template_ami == "" ? null : local.launch_template_ami
-
-  key_name = var.ec2_ssh_key
+  key_name      = var.ec2_ssh_key
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
