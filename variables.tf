@@ -183,12 +183,6 @@ variable "launch_template_version" {
   default     = null
 }
 
-variable "launch_template_additional_security_group_ids" {
-  type        = list(string)
-  description = "Additional security groups to apply to the generated launch template"
-  default     = null
-}
-
 variable "resources_to_tag" {
   type        = list(string)
   description = "List of auto-launched resource types to tag. Valid types are \"instance\", \"volume\", \"elastic-gpu\", \"spot-instances-request\"."
