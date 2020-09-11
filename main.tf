@@ -46,7 +46,10 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
-  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ? (
+  launch_template_create_remote_access_sg = local.enabled && var.ec2_ssh_key != null && local.generate_launch_template
+  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ? concat(
+    list(data.aws_eks_cluster.this[0].vpc_config[0].cluster_security_group_id),
+    aws_security_group.remote_access.*.id,
   ) : null
 
   autoscaler_enabled_tags = {
@@ -71,12 +74,17 @@ locals {
 
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.launch_template_create_remote_access_sg) : false
 }
 
 data "aws_eks_cluster" "this" {
   count = local.get_cluster_data ? 1 : 0
   name  = var.cluster_name
+}
+
+data "aws_subnet" "default" {
+  count = local.launch_template_create_remote_access_sg ? 1 : 0
+  id    = var.subnet_ids[0]
 }
 
 module "label" {
