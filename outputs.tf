@@ -28,7 +28,7 @@ output "eks_node_group_status" {
   value       = join("", aws_eks_node_group.default.*.status, aws_eks_node_group.cbd.*.status)
 }
 
-output "eks_node_group_launch_tempate_security_group_id" {
-  description = "The ID remote access security group assigned to the EKS Node Group's launch template"
+output "eks_node_group_remote_access_security_group_id" {
+  description = "The ID of the security group generated to allow SSH access to the nodes, if this module generated one"
   value       = join("", aws_security_group.remote_access.*.id)
 }

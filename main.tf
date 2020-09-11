@@ -27,6 +27,7 @@ locals {
   configured_launch_template_version = length(local.configured_launch_template_name) > 0 && length(compact([var.launch_template_version])) > 0 ? var.launch_template_version : ""
 
   configured_ami_image_id = var.ami_image_id == null ? "" : var.ami_image_id
+  have_ssh_key            = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
 
   # See https://aws.amazon.com/blogs/containers/introducing-launch-template-and-custom-ami-support-in-amazon-eks-managed-node-groups/
   features_require_ami = local.enabled && local.need_bootstrap
@@ -46,11 +47,11 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
-  launch_template_create_remote_access_sg = local.enabled && var.ec2_ssh_key != null && local.generate_launch_template
-  launch_template_vpc_security_group_ids = (local.enabled && local.generate_launch_template) ? concat(
-    list(data.aws_eks_cluster.this[0].vpc_config[0].cluster_security_group_id),
-    aws_security_group.remote_access.*.id,
-  ) : null
+  need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
+  launch_template_vpc_security_group_ids = (
+    local.need_remote_access_sg ?
+    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, aws_security_group.remote_access.*.id) : null
+  )
 
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
@@ -74,17 +75,12 @@ locals {
 
   aws_policy_prefix = format("arn:%s:iam::aws:policy", join("", data.aws_partition.current.*.partition))
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.launch_template_create_remote_access_sg) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
 }
 
 data "aws_eks_cluster" "this" {
   count = local.get_cluster_data ? 1 : 0
   name  = var.cluster_name
-}
-
-data "aws_subnet" "default" {
-  count = local.launch_template_create_remote_access_sg ? 1 : 0
-  id    = var.subnet_ids[0]
 }
 
 module "label" {
@@ -199,7 +195,7 @@ resource "aws_launch_template" "default" {
 
   instance_type = var.instance_types[0]
   image_id      = local.launch_template_ami == "" ? null : local.launch_template_ami
-  key_name      = var.ec2_ssh_key
+  key_name      = local.have_ssh_key ? var.ec2_ssh_key : null
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
@@ -224,6 +220,10 @@ resource "aws_launch_template" "default" {
   vpc_security_group_ids = local.launch_template_vpc_security_group_ids
   user_data              = local.userdata
   tags                   = local.node_group_tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 data "aws_launch_template" "this" {
@@ -250,11 +250,14 @@ resource "random_pet" "cbd" {
     source_security_group_ids = join(",", var.source_security_group_ids)
     subnet_ids                = join(",", var.subnet_ids)
 
-    launch_template_id  = local.launch_template_id
-    launch_template_ami = local.launch_template_ami
+    launch_template_id  = local.use_launch_template ? local.launch_template_id : null
+    launch_template_ami = local.use_launch_template ? local.launch_template_ami : null
   }
 
   depends_on = [var.module_depends_on]
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
@@ -279,7 +282,9 @@ locals {
       min_size     = var.min_size
     }
 
-    ec2_ssh_key               = var.ec2_ssh_key == null ? "" : var.ec2_ssh_key
+    # Configure remote access via Launch Template if we are using one
+    need_remote_access        = local.have_ssh_key && ! local.use_launch_template
+    ec2_ssh_key               = var.ec2_ssh_key
     source_security_group_ids = var.source_security_group_ids
   }
 }
@@ -328,7 +333,7 @@ resource "aws_eks_node_group" "default" {
   }
 
   dynamic "remote_access" {
-    for_each = length(local.ng.ec2_ssh_key) > 0 && ! local.use_launch_template ? ["true"] : []
+    for_each = local.ng.need_remote_access ? ["true"] : []
     content {
       ec2_ssh_key               = local.ng.ec2_ssh_key
       source_security_group_ids = local.ng.source_security_group_ids
@@ -389,7 +394,7 @@ resource "aws_eks_node_group" "cbd" {
   }
 
   dynamic "remote_access" {
-    for_each = length(local.ng.ec2_ssh_key) > 0 ? ["true"] : []
+    for_each = local.ng.need_remote_access ? ["true"] : []
     content {
       ec2_ssh_key               = local.ng.ec2_ssh_key
       source_security_group_ids = local.ng.source_security_group_ids

@@ -1,32 +1,33 @@
 # https://docs.aws.amazon.com/eks/latest/APIReference/API_RemoteAccessConfig.html
 
 resource "aws_security_group" "remote_access" {
-  count       = local.launch_template_create_remote_access_sg ? 1 : 0
-  name        = "${module.label.id}-remote-access"
-  description = "Security group for all nodes in the nodeGroup to allow SSH access"
-  vpc_id      = data.aws_subnet.default[0].vpc_id
+  count       = local.need_remote_access_sg ? 1 : 0
+  name        = format("%v%v%v", module.label.id, module.label.delimiter, "remoteAccess")
+  description = "Allow SSH access to all nodes in the nodeGroup"
+  vpc_id      = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
   tags        = module.label.tags
 }
 
 resource "aws_security_group_rule" "remote_access_public_ssh" {
-  count             = local.launch_template_create_remote_access_sg && length(var.source_security_group_ids) < 1 ? 1 : 0
-  from_port         = 22
-  protocol          = "tcp"
-  security_group_id = join("", aws_security_group.remote_access.*.id)
-  to_port           = 22
-  type              = "ingress"
+  count       = local.need_remote_access_sg && length(var.source_security_group_ids) == 0 ? 1 : 0
+  description = "Allow SSH access to nodes from anywhere"
+  type        = "ingress"
+  protocol    = "tcp"
+  from_port   = 22
+  to_port     = 22
+  cidr_blocks = ["0.0.0.0/0"]
 
-  cidr_blocks = [
-    "0.0.0.0/0"
-  ]
+  security_group_id = join("", aws_security_group.remote_access.*.id)
 }
 
 resource "aws_security_group_rule" "remote_access_source_sgs_ssh" {
-  count                    = local.launch_template_create_remote_access_sg ? length(var.source_security_group_ids) : 0
-  from_port                = 22
-  protocol                 = "tcp"
+  for_each    = local.need_remote_access_sg ? toset(var.source_security_group_ids) : []
+  description = "Allow SSH access to nodes from security group"
+  type        = "ingress"
+  protocol    = "tcp"
+  from_port   = 22
+  to_port     = 22
+
   security_group_id        = aws_security_group.remote_access[0].id
-  to_port                  = 22
-  source_security_group_id = var.source_security_group_ids[count.index]
-  type                     = "ingress"
+  source_security_group_id = each.value
 }
