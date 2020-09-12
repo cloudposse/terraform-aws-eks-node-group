@@ -27,3 +27,8 @@ output "eks_node_group_status" {
   description = "Status of the EKS Node Group"
   value       = join("", aws_eks_node_group.default.*.status, aws_eks_node_group.cbd.*.status)
 }
+
+output "eks_node_group_remote_access_security_group_id" {
+  description = "The ID of the security group generated to allow SSH access to the nodes, if this module generated one"
+  value       = join("", aws_security_group.remote_access.*.id)
+}

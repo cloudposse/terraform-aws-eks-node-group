@@ -45,8 +45,8 @@ locals {
     local.userdata_vars.after_cluster_joining_userdata]
   )) > 0 : false
 
-  # If var.userdata_override = "" then we explicitly set userdata to ""
-  need_userdata = local.enabled && var.userdata_override == null ? (length(local.userdata_vars.before_cluster_joining_userdata) > 0) || local.need_bootstrap : false
+  # If var.userdata_override_base64 = "" then we explicitly set userdata to ""
+  need_userdata = local.enabled && var.userdata_override_base64 == null ? (length(local.userdata_vars.before_cluster_joining_userdata) > 0) || local.need_bootstrap : false
 
-  userdata = local.need_userdata ? base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data))) : var.userdata_override
+  userdata = local.need_userdata ? base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data))) : var.userdata_override_base64
 }

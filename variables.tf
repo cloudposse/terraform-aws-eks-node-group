@@ -21,8 +21,14 @@ variable "create_before_destroy" {
 
 variable "ec2_ssh_key" {
   type        = string
-  description = "SSH key name that should be used to access the worker nodes"
+  description = "SSH key pair name to use to access the worker nodes"
   default     = null
+}
+
+variable "source_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) to the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
 
 variable "desired_size" {
@@ -158,12 +164,6 @@ variable "kubernetes_version" {
   }
 }
 
-variable "source_security_group_ids" {
-  type        = list(string)
-  default     = []
-  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
-}
-
 variable "module_depends_on" {
   type        = any
   default     = null
@@ -213,16 +213,16 @@ variable "bootstrap_additional_options" {
   description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_args` var instead."
 }
 
-variable "userdata_override" {
+variable "userdata_override_base64" {
   type        = string
   default     = null
   description = <<-EOT
     Many features of this module rely on the `bootstrap.sh` provided with Amazon Linux, and this module
     may generate "user data" that expects to find that script. If you want to use an AMI that is not
-    compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override` to provide
+    compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override_base64` to provide
     your own (Base64 encoded) user data. Use "" to prevent any user data from being set.
 
-    Setting `userdata_override` disables `kubernetes_taints`, `kubelet_additional_options`,
+    Setting `userdata_override_base64` disables `kubernetes_taints`, `kubelet_additional_options`,
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
 }
