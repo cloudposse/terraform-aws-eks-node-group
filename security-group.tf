@@ -1,11 +1,15 @@
 # https://docs.aws.amazon.com/eks/latest/APIReference/API_RemoteAccessConfig.html
 
+locals {
+  sg_name = format("%v%v%v", module.label.id, module.label.delimiter, "remoteAccess")
+}
+
 resource "aws_security_group" "remote_access" {
   count       = local.need_remote_access_sg ? 1 : 0
-  name        = format("%v%v%v", module.label.id, module.label.delimiter, "remoteAccess")
+  name        = local.sg_name
   description = "Allow SSH access to all nodes in the nodeGroup"
   vpc_id      = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
-  tags        = module.label.tags
+  tags        = merge(module.label.tags, { "Name" = local.sg_name })
 }
 
 resource "aws_security_group_rule" "remote_access_public_ssh" {

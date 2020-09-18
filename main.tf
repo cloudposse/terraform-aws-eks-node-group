@@ -58,6 +58,7 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
+  ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
   ng = {
     cluster_name    = var.cluster_name
     node_role_arn   = join("", aws_iam_role.default.*.arn)
@@ -78,9 +79,9 @@ locals {
     }
 
     # Configure remote access via Launch Template if we are using one
-    need_remote_access        = local.have_ssh_key && ! local.use_launch_template
-    ec2_ssh_key               = var.ec2_ssh_key
-    source_security_group_ids = var.source_security_group_ids
+    need_remote_access        = local.ng_needs_remote_access
+    ec2_ssh_key               = local.have_ssh_key ? var.ec2_ssh_key : "none"
+    source_security_group_ids = local.ng_needs_remote_access ? var.source_security_group_ids : []
   }
 }
 
@@ -103,7 +104,12 @@ resource "random_pet" "cbd" {
     ec2_ssh_key        = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
     # Any change in security groups requires a new node group, because you cannot delete a security group while it is in use
     # and it will not automatically disassociate itself from instances or network interfaces.
-    source_security_group_ids = join(",", local.ng.source_security_group_ids, local.launch_template_vpc_security_group_ids)
+    #
+    # TODO: Once https://github.com/hashicorp/terraform/issues/25631 is fixed,
+    #       actually track security groups by using
+    #       source_security_group_ids = join(",", local.ng.source_security_group_ids, aws_security_group.remote_access.*.id)
+    #
+    source_security_group_ids = local.need_remote_access_sg ? "generated for launch template" : join(",", local.ng.source_security_group_ids)
 
     launch_template_id = local.use_launch_template ? local.launch_template_id : "none"
   }
@@ -167,6 +173,7 @@ resource "aws_eks_node_group" "default" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+    aws_security_group.remote_access,
     # Also allow calling module to create an explicit dependency
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups
@@ -227,6 +234,7 @@ resource "aws_eks_node_group" "cbd" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
+    aws_security_group.remote_access,
     # Also allow calling module to create an explicit dependency
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups

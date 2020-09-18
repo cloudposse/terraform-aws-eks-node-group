@@ -177,7 +177,7 @@ Available targets:
 
 | Name | Version |
 |------|---------|
-| terraform | >= 0.13.0 |
+| terraform | >= 0.13.3 |
 | aws | >= 3.0 |
 | local | >= 1.3 |
 | random | >= 2.0 |
