@@ -187,7 +187,7 @@ variable "module_depends_on" {
 
 variable "launch_template_disk_encryption_enabled" {
   type        = bool
-  description = "Enable disk encryption if not providing `launch_template_name` of an existing template."
+  description = "Enable disk encryption for the created launch template (if we aren't provided with an existing launch template)"
   default     = false
 }
 
