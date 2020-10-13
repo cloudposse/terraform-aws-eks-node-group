@@ -185,7 +185,7 @@ variable "module_depends_on" {
   description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
 }
 
-variable "launch_template_disk_encryption" {
+variable "launch_template_disk_encryption_enabled" {
   type        = bool
   description = "Enable disk encryption if not providing `launch_template_name` of an existing template."
   default     = false
