@@ -186,9 +186,9 @@ variable "module_depends_on" {
 }
 
 variable "launch_template_disk_encryption" {
-  type = bool
+  type        = bool
   description = "Enable disk encryption if not providing `launch_template_name` of an existing template."
-  default = false
+  default     = false
 }
 
 variable "launch_template_name" {
