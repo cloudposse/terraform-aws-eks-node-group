@@ -222,6 +222,7 @@ Available targets:
 | kubernetes\_taints | Key-value mapping of Kubernetes taints. | `map(string)` | `{}` | no |
 | kubernetes\_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | `string` | `null` | no |
 | label\_order | The naming order of the id output and Name tag.<br>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br>You can omit any of the 5 elements, but at least one must be present. | `list(string)` | `null` | no |
+| launch\_template\_disk\_encryption\_enabled | Enable disk encryption for the created launch template (if we aren't provided with an existing launch template) | `bool` | `false` | no |
 | launch\_template\_name | The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id. | `string` | `null` | no |
 | launch\_template\_version | The version of the specified launch template to use. Defaults to latest version. | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |

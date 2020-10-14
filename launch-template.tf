@@ -62,6 +62,7 @@ resource "aws_launch_template" "default" {
 
     ebs {
       volume_size = var.disk_size
+      encrypted   = var.launch_template_disk_encryption_enabled
     }
   }
 

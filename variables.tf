@@ -185,6 +185,12 @@ variable "module_depends_on" {
   description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
 }
 
+variable "launch_template_disk_encryption_enabled" {
+  type        = bool
+  description = "Enable disk encryption for the created launch template (if we aren't provided with an existing launch template)"
+  default     = false
+}
+
 variable "launch_template_name" {
   type = string
   // Note: the aws_launch_template data source only accepts name, not ID, to specify the launch template, so we cannot support ID as input.
