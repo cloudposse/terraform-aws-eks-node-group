@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 0.13.3"
+  experiments = [variable_validation]
 
   required_providers {
     aws      = ">= 3.0"
