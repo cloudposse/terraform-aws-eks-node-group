@@ -170,7 +170,7 @@ resource "aws_eks_node_group" "default" {
   # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
     aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
-    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
     aws_security_group.remote_access,
@@ -231,7 +231,7 @@ resource "aws_eks_node_group" "cbd" {
   # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
     aws_iam_role_policy_attachment.amazon_eks_worker_node_policy,
-    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
+    aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscaler_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
     aws_security_group.remote_access,

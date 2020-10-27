@@ -10,7 +10,7 @@ variable "cluster_autoscaler_enabled" {
   default     = null
 }
 
-variable "worker_role_autoscale_iam_enabled" {
+variable "worker_role_autoscaler_iam_enabled" {
   type        = bool
   default     = false
   description = <<-EOT

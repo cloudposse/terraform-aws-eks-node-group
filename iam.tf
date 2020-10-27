@@ -20,8 +20,8 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-data "aws_iam_policy_document" "amazon_eks_worker_node_autoscale_policy" {
-  count = (local.enabled && var.worker_role_autoscale_iam_enabled) ? 1 : 0
+data "aws_iam_policy_document" "amazon_eks_worker_node_autoscaler_policy" {
+  count = (local.enabled && var.worker_role_autoscaler_iam_enabled) ? 1 : 0
   statement {
     sid = "AllowToScaleEKSNodeGroupAutoScalingGroup"
 
@@ -41,10 +41,10 @@ data "aws_iam_policy_document" "amazon_eks_worker_node_autoscale_policy" {
   }
 }
 
-resource "aws_iam_policy" "amazon_eks_worker_node_autoscale_policy" {
-  count  = (local.enabled && var.worker_role_autoscale_iam_enabled) ? 1 : 0
-  name   = "${module.label.id}-autoscale"
-  policy = join("", data.aws_iam_policy_document.amazon_eks_worker_node_autoscale_policy.*.json)
+resource "aws_iam_policy" "amazon_eks_worker_node_autoscaler_policy" {
+  count  = (local.enabled && var.worker_role_autoscaler_iam_enabled) ? 1 : 0
+  name   = "${module.label.id}-autoscaler"
+  policy = join("", data.aws_iam_policy_document.amazon_eks_worker_node_autoscaler_policy.*.json)
 }
 
 resource "aws_iam_role" "default" {
@@ -60,9 +60,9 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {
   role       = join("", aws_iam_role.default.*.name)
 }
 
-resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_autoscale_policy" {
-  count      = (local.enabled && var.worker_role_autoscale_iam_enabled) ? 1 : 0
-  policy_arn = join("", aws_iam_policy.amazon_eks_worker_node_autoscale_policy.*.arn)
+resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_autoscaler_policy" {
+  count      = (local.enabled && var.worker_role_autoscaler_iam_enabled) ? 1 : 0
+  policy_arn = join("", aws_iam_policy.amazon_eks_worker_node_autoscaler_policy.*.arn)
   role       = join("", aws_iam_role.default.*.name)
 }
 
