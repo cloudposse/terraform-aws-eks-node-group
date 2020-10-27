@@ -63,7 +63,7 @@
 | subnet\_ids | A list of subnet IDs to launch resources in | `list(string)` | n/a | yes |
 | tags | Additional tags (e.g. `map('BusinessUnit','XYZ')` | `map(string)` | `{}` | no |
 | userdata\_override\_base64 | Many features of this module rely on the `bootstrap.sh` provided with Amazon Linux, and this module<br>may generate "user data" that expects to find that script. If you want to use an AMI that is not<br>compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override_base64` to provide<br>your own (Base64 encoded) user data. Use "" to prevent any user data from being set.<br><br>Setting `userdata_override_base64` disables `kubernetes_taints`, `kubelet_additional_options`,<br>`before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`. | `string` | `null` | no |
-| worker\_role\_autoscale\_iam\_enabled | If true, the worker IAM role will be authorized to perform autoscaling operations. Not recommended.<br>Use [EKS IAM role for cluster autoscaler service account](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) instead. | `bool` | `false` | no |
+| worker\_role\_autoscaler\_iam\_enabled | If true, the worker IAM role will be authorized to perform autoscaling operations. Not recommended.<br>Use [EKS IAM role for cluster autoscaler service account](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) instead. | `bool` | `false` | no |
 
 ## Outputs
 
