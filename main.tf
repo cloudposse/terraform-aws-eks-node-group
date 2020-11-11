@@ -150,13 +150,13 @@ resource "aws_eks_node_group" "default" {
     min_size     = local.ng.scaling_config.min_size
   }
 
-  dynamic "launch_template" {
-    for_each = local.use_launch_template ? ["true"] : []
-    content {
-      id      = local.launch_template_id
-      version = local.launch_template_version
-    }
-  }
+  # dynamic "launch_template" {
+  #   for_each = local.use_launch_template ? ["true"] : []
+  #   content {
+  #     id      = local.launch_template_id
+  #     version = local.launch_template_version
+  #   }
+  # }
 
   dynamic "remote_access" {
     for_each = local.ng.need_remote_access ? ["true"] : []
@@ -211,13 +211,13 @@ resource "aws_eks_node_group" "cbd" {
     min_size     = local.ng.scaling_config.min_size
   }
 
-  dynamic "launch_template" {
-    for_each = local.use_launch_template ? ["true"] : []
-    content {
-      id      = local.launch_template_id
-      version = local.launch_template_version
-    }
-  }
+  # dynamic "launch_template" {
+  #   for_each = local.use_launch_template ? ["true"] : []
+  #   content {
+  #     id      = local.launch_template_id
+  #     version = local.launch_template_version
+  #   }
+  # }
 
   dynamic "remote_access" {
     for_each = local.ng.need_remote_access ? ["true"] : []
