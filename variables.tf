@@ -247,3 +247,9 @@ variable "userdata_override_base64" {
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
 }
+
+variable "permissions_boundary" {
+  description = "If provided, all IAM roles will be created with this permissions boundary attached."
+  type        = string
+  default     = null
+}
