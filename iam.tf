@@ -51,6 +51,7 @@ resource "aws_iam_role" "default" {
   count              = local.enabled ? 1 : 0
   name               = module.label.id
   assume_role_policy = join("", data.aws_iam_policy_document.assume_role.*.json)
+  permissions_boundary  = var.permissions_boundary
   tags               = module.label.tags
 }
 
