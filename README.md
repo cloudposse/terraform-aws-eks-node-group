@@ -1,4 +1,6 @@
+<!-- markdownlint-disable -->
 # terraform-aws-eks-node-group [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg)](https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
+<!-- markdownlint-restore -->
 
 [![README Header][readme_header_img]][readme_header_link]
 
@@ -209,6 +211,7 @@ Available targets:
 | delimiter | Delimiter to be used between `namespace`, `environment`, `stage`, `name` and `attributes`.<br>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | desired\_size | Initial desired number of worker nodes (external changes ignored) | `number` | n/a | yes |
 | disk\_size | Disk size in GiB for worker nodes. Defaults to 20. Ignored it `launch_template_id` is supplied.<br>Terraform will only perform drift detection if a configuration value is provided. | `number` | `20` | no |
+| disk\_type | If provided, will be used as volume type of created ebs disk on EC2 instances | `string` | `null` | no |
 | ec2\_ssh\_key | SSH key pair name to use to access the worker nodes | `string` | `null` | no |
 | enable\_cluster\_autoscaler | (Deprecated, use `cluster_autoscaler_enabled`) Set true to allow Kubernetes Cluster Auto Scaler to scale the node group | `bool` | `null` | no |
 | enabled | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
@@ -223,6 +226,7 @@ Available targets:
 | kubernetes\_version | Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided | `string` | `null` | no |
 | label\_order | The naming order of the id output and Name tag.<br>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br>You can omit any of the 5 elements, but at least one must be present. | `list(string)` | `null` | no |
 | launch\_template\_disk\_encryption\_enabled | Enable disk encryption for the created launch template (if we aren't provided with an existing launch template) | `bool` | `false` | no |
+| launch\_template\_disk\_encryption\_kms\_key\_id | Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true | `string` | `""` | no |
 | launch\_template\_name | The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id. | `string` | `null` | no |
 | launch\_template\_version | The version of the specified launch template to use. Defaults to latest version. | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
@@ -409,8 +413,10 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
 
 ### Contributors
 
+<!-- markdownlint-disable -->
 |  [![Erik Osterman][osterman_avatar]][osterman_homepage]<br/>[Erik Osterman][osterman_homepage] | [![Andriy Knysh][aknysh_avatar]][aknysh_homepage]<br/>[Andriy Knysh][aknysh_homepage] | [![Igor Rodionov][goruha_avatar]][goruha_homepage]<br/>[Igor Rodionov][goruha_homepage] |
 |---|---|---|
+<!-- markdownlint-restore -->
 
   [osterman_homepage]: https://github.com/osterman
   [osterman_avatar]: https://img.cloudposse.com/150x150/https://github.com/osterman.png
