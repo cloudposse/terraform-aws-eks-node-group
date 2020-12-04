@@ -100,7 +100,7 @@ resource "random_pet" "cbd" {
     ami_type        = local.ng.ami_type
     release_version = local.ng.release_version
     version         = local.ng.version
-    capacity_type  = local.ng.capacity_type    
+    capacity_type   = local.ng.capacity_type
 
     need_remote_access = local.ng.need_remote_access
     ec2_ssh_key        = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
@@ -144,7 +144,7 @@ resource "aws_eks_node_group" "default" {
   release_version = local.ng.release_version
   version         = local.ng.version
 
-  capacity_type  = local.ng.capacity_type
+  capacity_type = local.ng.capacity_type
 
   tags = local.ng.tags
 
@@ -207,7 +207,7 @@ resource "aws_eks_node_group" "cbd" {
   release_version = local.ng.release_version
   version         = local.ng.version
 
-  capacity_type  = local.ng.capacity_type
+  capacity_type = local.ng.capacity_type
 
   tags = local.ng.tags
 
