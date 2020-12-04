@@ -66,6 +66,7 @@ locals {
     disk_size       = local.use_launch_template ? null : var.disk_size
     instance_types  = local.use_launch_template ? null : var.instance_types
     ami_type        = local.launch_template_ami == "" ? var.ami_type : null
+    capacity_type   = var.capacity_type
     labels          = var.kubernetes_labels == null ? {} : var.kubernetes_labels
     release_version = local.launch_template_ami == "" ? var.ami_release_version : null
     version         = length(compact([local.launch_template_ami, var.ami_release_version])) == 0 ? var.kubernetes_version : null
@@ -99,6 +100,7 @@ resource "random_pet" "cbd" {
     ami_type        = local.ng.ami_type
     release_version = local.ng.release_version
     version         = local.ng.version
+    capacity_type  = local.ng.capacity_type    
 
     need_remote_access = local.ng.need_remote_access
     ec2_ssh_key        = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
@@ -141,6 +143,8 @@ resource "aws_eks_node_group" "default" {
   labels          = local.ng.labels
   release_version = local.ng.release_version
   version         = local.ng.version
+
+  capacity_type  = local.ng.capacity_type
 
   tags = local.ng.tags
 
@@ -202,6 +206,8 @@ resource "aws_eks_node_group" "cbd" {
   labels          = local.ng.labels
   release_version = local.ng.release_version
   version         = local.ng.version
+
+  capacity_type  = local.ng.capacity_type
 
   tags = local.ng.tags
 
