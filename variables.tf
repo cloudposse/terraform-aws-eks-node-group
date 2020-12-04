@@ -117,6 +117,15 @@ variable "instance_types" {
   }
 }
 
+variable "capacity_type" {
+  type        = string
+  default     = "ON_DEMAND"
+  description = <<-EOT
+  Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT. 
+  Terraform will only perform drift detection if a configuration value is provided.
+  EOT
+}
+
 variable "kubernetes_labels" {
   type        = map(string)
   description = <<-EOT
