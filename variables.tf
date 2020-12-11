@@ -21,8 +21,14 @@ variable "create_before_destroy" {
 
 variable "ec2_ssh_key" {
   type        = string
-  description = "SSH key name that should be used to access the worker nodes"
+  description = "SSH key pair name to use to access the worker nodes"
   default     = null
+}
+
+variable "source_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) to the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
 
 variable "desired_size" {
@@ -156,12 +162,6 @@ variable "kubernetes_version" {
     )
     error_message = "Var kubernetes_version, if supplied, must be like \"1.16\" (no patch level)."
   }
-}
-
-variable "source_security_group_ids" {
-  type        = list(string)
-  default     = []
-  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) from on the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
 
 variable "module_depends_on" {
