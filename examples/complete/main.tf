@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "label" {
-  source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
+  source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.22.0"
 
   # This is the preferred way to add attributes. It will put "cluster" first
   # before any attributes set in `var.attributes` or `context.attributes`.
