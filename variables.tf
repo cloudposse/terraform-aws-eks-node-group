@@ -1,7 +1,22 @@
 variable "enable_cluster_autoscaler" {
   type        = bool
-  description = "Set true to allow Kubernetes Cluster Auto Scaler to scale the node group"
+  description = "(Deprecated, use `cluster_autoscaler_enabled`) Set true to allow Kubernetes Cluster Auto Scaler to scale the node group"
+  default     = null
+}
+
+variable "cluster_autoscaler_enabled" {
+  type        = bool
+  description = "Set true to label the node group so that the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup) will discover and autoscale it"
+  default     = null
+}
+
+variable "worker_role_autoscale_iam_enabled" {
+  type        = bool
   default     = false
+  description = <<-EOT
+    If true, the worker IAM role will be authorized to perform autoscaling operations. Not recommended.
+    Use [EKS IAM role for cluster autoscaler service account](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) instead.
+    EOT
 }
 
 variable "cluster_name" {
@@ -102,6 +117,15 @@ variable "instance_types" {
   }
 }
 
+variable "capacity_type" {
+  type        = string
+  default     = "ON_DEMAND"
+  description = <<-EOT
+  Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT. 
+  Terraform will only perform drift detection if a configuration value is provided.
+  EOT
+}
+
 variable "kubernetes_labels" {
   type        = map(string)
   description = <<-EOT
@@ -170,6 +194,12 @@ variable "module_depends_on" {
   description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
 }
 
+variable "launch_template_disk_encryption_enabled" {
+  type        = bool
+  description = "Enable disk encryption for the created launch template (if we aren't provided with an existing launch template)"
+  default     = false
+}
+
 variable "launch_template_name" {
   type = string
   // Note: the aws_launch_template data source only accepts name, not ID, to specify the launch template, so we cannot support ID as input.
@@ -225,4 +255,10 @@ variable "userdata_override_base64" {
     Setting `userdata_override_base64` disables `kubernetes_taints`, `kubelet_additional_options`,
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
+}
+
+variable "permissions_boundary" {
+  description = "If provided, all IAM roles will be created with this permissions boundary attached."
+  type        = string
+  default     = null
 }
