@@ -148,7 +148,9 @@ For automated tests of the complete example using [bats](https://github.com/bats
     }
 
     module "eks_node_group" {
-      source                = "git::https://github.com/cloudposse/terraform-aws-eks-node-group.git?ref=master"
+      source = "cloudposse/eks-node-group/aws"
+      # Cloud Posse recommends pinning every module to a specific version
+      # version     = "x.x.x"
       namespace                 = var.namespace
       stage                     = var.stage
       name                      = var.name
