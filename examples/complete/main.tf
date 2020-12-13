@@ -3,7 +3,8 @@ provider "aws" {
 }
 
 module "label" {
-  source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.19.2"
+  source  = "cloudposse/label/null"
+  version = "0.22.0"
 
   # This is the preferred way to add attributes. It will put "cluster" first
   # before any attributes set in `var.attributes` or `context.attributes`.
@@ -29,7 +30,8 @@ locals {
 }
 
 module "vpc" {
-  source = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.17.0"
+  source  = "cloudposse/vpc/aws"
+  version = "0.17.0"
 
   cidr_block = "172.16.0.0/16"
   tags       = local.tags
@@ -38,7 +40,8 @@ module "vpc" {
 }
 
 module "subnets" {
-  source = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.28.0"
+  source  = "cloudposse/dynamic-subnets/aws"
+  version = "0.28.0"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -52,7 +55,8 @@ module "subnets" {
 }
 
 module "eks_cluster" {
-  source = "git::https://github.com/cloudposse/terraform-aws-eks-cluster.git?ref=tags/0.28.0"
+  source  = "cloudposse/eks-cluster/aws"
+  version = "0.28.0"
 
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
