@@ -262,3 +262,16 @@ variable "permissions_boundary" {
   type        = string
   default     = null
 }
+
+variable "disk_type" {
+  type        = string
+  default     = null
+  description = "If provided, will be used as volume type of created ebs disk on EC2 instances"
+}
+
+variable "launch_template_disk_encryption_kms_key_id" {
+  type        = string
+  default     = ""
+  description = "Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true"
+}
+
