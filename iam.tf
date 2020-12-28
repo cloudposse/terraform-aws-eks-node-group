@@ -48,10 +48,11 @@ resource "aws_iam_policy" "amazon_eks_worker_node_autoscale_policy" {
 }
 
 resource "aws_iam_role" "default" {
-  count              = local.enabled ? 1 : 0
-  name               = module.label.id
-  assume_role_policy = join("", data.aws_iam_policy_document.assume_role.*.json)
-  tags               = module.label.tags
+  count                = local.enabled ? 1 : 0
+  name                 = module.label.id
+  assume_role_policy   = join("", data.aws_iam_policy_document.assume_role.*.json)
+  permissions_boundary = var.permissions_boundary
+  tags                 = module.label.tags
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_eks_worker_node_policy" {

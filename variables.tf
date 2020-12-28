@@ -117,6 +117,15 @@ variable "instance_types" {
   }
 }
 
+variable "capacity_type" {
+  type        = string
+  default     = "ON_DEMAND"
+  description = <<-EOT
+  Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT. 
+  Terraform will only perform drift detection if a configuration value is provided.
+  EOT
+}
+
 variable "kubernetes_labels" {
   type        = map(string)
   description = <<-EOT
@@ -247,3 +256,22 @@ variable "userdata_override_base64" {
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
 }
+
+variable "permissions_boundary" {
+  description = "If provided, all IAM roles will be created with this permissions boundary attached."
+  type        = string
+  default     = null
+}
+
+variable "disk_type" {
+  type        = string
+  default     = null
+  description = "If provided, will be used as volume type of created ebs disk on EC2 instances"
+}
+
+variable "launch_template_disk_encryption_kms_key_id" {
+  type        = string
+  default     = ""
+  description = "Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true"
+}
+
