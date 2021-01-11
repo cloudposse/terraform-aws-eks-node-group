@@ -219,7 +219,7 @@ variable "resources_to_tag" {
   default     = []
   validation {
     condition = (
-      length(compact([for r in var.resources_to_tag : r if ! contains(["instance", "volume", "elastic-gpu", "spot-instances-request"], r)])) == 0
+      length(compact([for r in var.resources_to_tag : r if !contains(["instance", "volume", "elastic-gpu", "spot-instances-request"], r)])) == 0
     )
     error_message = "Invalid resource type in `resources_to_tag`. Valid types are \"instance\", \"volume\", \"elastic-gpu\", \"spot-instances-request\"."
   }
@@ -275,3 +275,11 @@ variable "launch_template_disk_encryption_kms_key_id" {
   description = "Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true"
 }
 
+variable "map_additional_assume_role_principals" {
+  description = "List of principals that should be added the assume role policy document."
+  type = list(object({
+    type        = string
+    identifiers = list(string)
+  }))
+  default = []
+}
