@@ -21,15 +21,14 @@ data "aws_iam_policy_document" "assume_role" {
 
   dynamic "statement" {
     for_each = var.map_additional_assume_role_principals
-    iterator = "principal"
 
     content {
       effect  = "Allow"
       actions = ["sts:AssumeRole"]
 
       principals {
-        type        = principal.value.type
-        identifiers = principal.value.identifiers
+        type        = statement.value.type
+        identifiers = statement.value.identifiers
       }
     }
   }
