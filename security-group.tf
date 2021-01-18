@@ -13,6 +13,7 @@ resource "aws_security_group" "remote_access" {
 }
 
 resource "aws_security_group_rule" "remote_access_public_ssh" {
+  #bridgecrew:skip=BC_AWS_NETWORKING_1:Skipping `Port Security 0.0.0.0:0 to 22` check because we want to allow SSH access to all nodes in the nodeGroup
   count       = local.need_remote_access_sg && length(var.source_security_group_ids) == 0 ? 1 : 0
   description = "Allow SSH access to nodes from anywhere"
   type        = "ingress"
