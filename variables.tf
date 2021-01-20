@@ -106,14 +106,14 @@ variable "instance_types" {
   type        = list(string)
   default     = ["t3.medium"]
   description = <<-EOT
-    Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].
-    It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group.
+    Instance types to use for this node group (up to 20). Defaults to ["t3.medium"].
+    Ignored when `launch_template_id` is supplied.
     EOT
   validation {
     condition = (
-      length(var.instance_types) == 1
+      length(var.instance_types) > 20
     )
-    error_message = "Per the EKS API, only a single instance type value is currently supported."
+    error_message = "Per the EKS API, up to 20 entries are supported"
   }
 }
 
