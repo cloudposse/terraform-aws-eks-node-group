@@ -96,7 +96,7 @@ variable "ami_type" {
 variable "disk_size" {
   type        = number
   description = <<-EOT
-    Disk size in GiB for worker nodes. Defaults to 20. Ignored it `launch_template_id` is supplied.
+    Disk size in GiB for worker nodes. Defaults to 20. Ignored when `launch_template_id` is supplied.
     Terraform will only perform drift detection if a configuration value is provided.
     EOT
   default     = 20
@@ -113,7 +113,7 @@ variable "instance_types" {
     condition = (
       length(var.instance_types) > 20
     )
-    error_message = "Per the EKS API, up to 20 entries are supported"
+    error_message = "Per the EKS API, up to 20 entries are supported."
   }
 }
 
