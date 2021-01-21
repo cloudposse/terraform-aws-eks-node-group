@@ -222,7 +222,7 @@ Available targets:
 | create\_before\_destroy | Set true in order to create the new node group before destroying the old one.<br>If false, the old node group will be destroyed first, causing downtime.<br>Changing this setting will always cause node group to be replaced. | `bool` | `false` | no |
 | delimiter | Delimiter to be used between `namespace`, `environment`, `stage`, `name` and `attributes`.<br>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | desired\_size | Initial desired number of worker nodes (external changes ignored) | `number` | n/a | yes |
-| disk\_size | Disk size in GiB for worker nodes. Defaults to 20. Ignored it `launch_template_id` is supplied.<br>Terraform will only perform drift detection if a configuration value is provided. | `number` | `20` | no |
+| disk\_size | Disk size in GiB for worker nodes. Defaults to 20. Ignored when `launch_template_id` is supplied.<br>Terraform will only perform drift detection if a configuration value is provided. | `number` | `20` | no |
 | disk\_type | If provided, will be used as volume type of created ebs disk on EC2 instances | `string` | `null` | no |
 | ec2\_ssh\_key | SSH key pair name to use to access the worker nodes | `string` | `null` | no |
 | enable\_cluster\_autoscaler | (Deprecated, use `cluster_autoscaler_enabled`) Set true to allow Kubernetes Cluster Auto Scaler to scale the node group | `bool` | `null` | no |
@@ -231,7 +231,7 @@ Available targets:
 | existing\_workers\_role\_policy\_arns | List of existing policy ARNs that will be attached to the workers default role on creation | `list(string)` | `[]` | no |
 | existing\_workers\_role\_policy\_arns\_count | Obsolete and ignored. Allowed for backward compatibility. | `number` | `0` | no |
 | id\_length\_limit | Limit `id` to this many characters.<br>Set to `0` for unlimited length.<br>Set to `null` for default, which is `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
-| instance\_types | Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].<br>It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
+| instance\_types | Instance types to use for this node group (up to 20). Defaults to ["t3.medium"].<br>Ignored when `launch_template_id` is supplied. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
 | kubelet\_additional\_options | Additional flags to pass to kubelet.<br>DO NOT include `--node-labels` or `--node-taints`,<br>use `kubernetes_labels` and `kubernetes_taints` to specify those." | `string` | `""` | no |
 | kubernetes\_labels | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument.<br>Other Kubernetes labels applied to the EKS Node Group will not be managed. | `map(string)` | `{}` | no |
 | kubernetes\_taints | Key-value mapping of Kubernetes taints. | `map(string)` | `{}` | no |
