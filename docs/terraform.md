@@ -54,6 +54,7 @@
 | launch\_template\_disk\_encryption\_kms\_key\_id | Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true | `string` | `""` | no |
 | launch\_template\_name | The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id. | `string` | `null` | no |
 | launch\_template\_version | The version of the specified launch template to use. Defaults to latest version. | `string` | `null` | no |
+| map\_additional\_assume\_role\_principals | List of principals that should be added to the assume role policy document. | <pre>list(object({<br>    type        = string<br>    identifiers = list(string)<br>  }))</pre> | `[]` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
 | min\_size | Minimum number of worker nodes | `number` | n/a | yes |
 | module\_depends\_on | Can be any value desired. Module will wait for this value to be computed before creating node group. | `any` | `null` | no |
