@@ -31,6 +31,8 @@ Terraform module to provision an EKS Node Group for [Elastic Container Service f
 
 Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
 
+**IMPORTANT:** This module provisions an `EKS Node Group` nodes globally accessible by SSH (22) port. Normally, AWS recommends that no security group allows unrestricted ingress access to port 22 .
+
 
 ---
 
