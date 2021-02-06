@@ -41,7 +41,7 @@ locals {
 
 module "label" {
   source  = "cloudposse/label/null"
-  version = "0.23.0"
+  version = "0.24.1"
 
   # Using attributes = ["workers"] would put "workers" before any user-specified attributes.
   # While that might be preferable (adding an attribute "blue" would create
