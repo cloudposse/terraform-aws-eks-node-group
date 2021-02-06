@@ -43,11 +43,7 @@ module "label" {
   source  = "cloudposse/label/null"
   version = "0.24.1"
 
-  # Using attributes = ["workers"] would put "workers" before any user-specified attributes.
-  # While that might be preferable (adding an attribute "blue" would create
-  # ...name-workers-blue instead of ...name-blue-workers), historically we forced "workers"
-  # to the end of the attribute list, so we do it again here to maintain compatibility.
-  attributes = compact(concat(module.this.attributes, ["workers"]))
+  attributes = ["workers"]
 
   context = module.this.context
 }
