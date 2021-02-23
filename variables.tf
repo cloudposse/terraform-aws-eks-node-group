@@ -202,7 +202,7 @@ variable "launch_template_disk_encryption_enabled" {
 
 variable "launch_template_name" {
   type = string
-  // Note: the aws_launch_template data source only accepts name, not ID, to specify the launch template, so we cannot support ID as input.
+  # Note: the aws_launch_template data source only accepts name, not ID, to specify the launch template, so we cannot support ID as input.
   description = "The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id."
   default     = null
 }
