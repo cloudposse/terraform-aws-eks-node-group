@@ -111,7 +111,7 @@ variable "instance_types" {
     EOT
   validation {
     condition = (
-      length(var.instance_types) > 20
+      length(var.instance_types) >= 1 && length(var.instance_types) <= 20
     )
     error_message = "Per the EKS API, up to 20 entries are supported."
   }
@@ -119,11 +119,15 @@ variable "instance_types" {
 
 variable "capacity_type" {
   type        = string
-  default     = "ON_DEMAND"
+  default     = null
   description = <<-EOT
-  Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT. 
-  Terraform will only perform drift detection if a configuration value is provided.
-  EOT
+    Type of capacity associated with the EKS Node Group. Valid values: "ON_DEMAND", "SPOT", or `null`.
+    Terraform will only perform drift detection if a configuration value is provided.
+    EOT
+  validation {
+    condition     = var.capacity_type == null ? true : contains(["ON_DEMAND", "SPOT"], var.capacity_type)
+    error_message = "Capacity type must be either `null`, \"ON_DEMAND\", or \"SPOT\"."
+  }
 }
 
 variable "kubernetes_labels" {

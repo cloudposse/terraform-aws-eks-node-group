@@ -71,9 +71,10 @@ resource "aws_launch_template" "default" {
   name_prefix            = module.label.id
   update_default_version = true
 
-  instance_type = var.instance_types[0]
-  image_id      = local.launch_template_ami == "" ? null : local.launch_template_ami
-  key_name      = local.have_ssh_key ? var.ec2_ssh_key : null
+  # Never include instance type in launch template because it is limited to just one
+  # https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
+  image_id = local.launch_template_ami == "" ? null : local.launch_template_ami
+  key_name = local.have_ssh_key ? var.ec2_ssh_key : null
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
