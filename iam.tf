@@ -18,6 +18,20 @@ data "aws_iam_policy_document" "assume_role" {
       identifiers = ["ec2.amazonaws.com"]
     }
   }
+
+  dynamic "statement" {
+    for_each = var.map_additional_assume_role_principals
+
+    content {
+      effect  = "Allow"
+      actions = ["sts:AssumeRole"]
+
+      principals {
+        type        = statement.value.type
+        identifiers = statement.value.identifiers
+      }
+    }
+  }
 }
 
 data "aws_iam_policy_document" "amazon_eks_worker_node_autoscale_policy" {
