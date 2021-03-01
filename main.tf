@@ -57,11 +57,16 @@ data "aws_eks_cluster" "this" {
 locals {
   ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
   ng = {
-    cluster_name    = var.cluster_name
-    node_role_arn   = join("", aws_iam_role.default.*.arn)
-    subnet_ids      = var.subnet_ids
-    disk_size       = local.use_launch_template ? null : var.disk_size
-    instance_types  = local.use_launch_template ? null : var.instance_types
+    cluster_name  = var.cluster_name
+    node_role_arn = join("", aws_iam_role.default.*.arn)
+    # Keep sorted so that change in order does not trigger replacement via random_pet
+    subnet_ids = sort(var.subnet_ids)
+    disk_size  = local.use_launch_template ? null : var.disk_size
+    # Always supply instance types via the node group, not the launch template,
+    # because node group supports up to 20 types but launch template does not.
+    # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
+    # Keep sorted so that change in order does not trigger replacement via random_pet
+    instance_types  = sort(var.instance_types)
     ami_type        = local.launch_template_ami == "" ? var.ami_type : null
     capacity_type   = var.capacity_type
     labels          = var.kubernetes_labels == null ? {} : var.kubernetes_labels
@@ -77,9 +82,10 @@ locals {
     }
 
     # Configure remote access via Launch Template if we are using one
-    need_remote_access        = local.ng_needs_remote_access
-    ec2_ssh_key               = local.have_ssh_key ? var.ec2_ssh_key : "none"
-    source_security_group_ids = local.ng_needs_remote_access ? var.source_security_group_ids : []
+    need_remote_access = local.ng_needs_remote_access
+    ec2_ssh_key        = local.have_ssh_key ? var.ec2_ssh_key : "none"
+    # Keep sorted so that change in order does not trigger replacement via random_pet
+    source_security_group_ids = local.ng_needs_remote_access ? sort(var.source_security_group_ids) : []
   }
 }
 
@@ -93,7 +99,7 @@ resource "random_pet" "cbd" {
     node_role_arn   = local.ng.node_role_arn
     subnet_ids      = join(",", local.ng.subnet_ids)
     disk_size       = local.ng.disk_size
-    instance_types  = local.ng.instance_types == null ? "" : local.ng.instance_types[0]
+    instance_types  = join(",", local.ng.instance_types)
     ami_type        = local.ng.ami_type
     release_version = local.ng.release_version
     version         = local.ng.version

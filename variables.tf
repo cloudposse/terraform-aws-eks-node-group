@@ -96,7 +96,7 @@ variable "ami_type" {
 variable "disk_size" {
   type        = number
   description = <<-EOT
-    Disk size in GiB for worker nodes. Defaults to 20. Ignored it `launch_template_id` is supplied.
+    Disk size in GiB for worker nodes. Defaults to 20. Ignored when `launch_template_id` is supplied.
     Terraform will only perform drift detection if a configuration value is provided.
     EOT
   default     = 20
@@ -106,24 +106,28 @@ variable "instance_types" {
   type        = list(string)
   default     = ["t3.medium"]
   description = <<-EOT
-    Single instance type to use for this node group, passed as a list. Defaults to ["t3.medium"].
-    It is a list because Launch Templates take a list, and it is a single type because EKS only supports a single type per node group.
+    Instance types to use for this node group (up to 20). Defaults to ["t3.medium"].
+    Ignored when `launch_template_id` is supplied.
     EOT
   validation {
     condition = (
-      length(var.instance_types) == 1
+      length(var.instance_types) >= 1 && length(var.instance_types) <= 20
     )
-    error_message = "Per the EKS API, only a single instance type value is currently supported."
+    error_message = "Per the EKS API, up to 20 entries are supported."
   }
 }
 
 variable "capacity_type" {
   type        = string
-  default     = "ON_DEMAND"
+  default     = null
   description = <<-EOT
-  Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT. 
-  Terraform will only perform drift detection if a configuration value is provided.
-  EOT
+    Type of capacity associated with the EKS Node Group. Valid values: "ON_DEMAND", "SPOT", or `null`.
+    Terraform will only perform drift detection if a configuration value is provided.
+    EOT
+  validation {
+    condition     = var.capacity_type == null ? true : contains(["ON_DEMAND", "SPOT"], var.capacity_type)
+    error_message = "Capacity type must be either `null`, \"ON_DEMAND\", or \"SPOT\"."
+  }
 }
 
 variable "kubernetes_labels" {
