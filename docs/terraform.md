@@ -81,6 +81,7 @@
 | launch\_template\_disk\_encryption\_kms\_key\_id | Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true | `string` | `""` | no |
 | launch\_template\_metadata\_options\_http\_endpoint | Whether the metadata service is available. Can be enabled or disabled | `string` | `"enabled"` | no |
 | launch\_template\_metadata\_options\_http\_put\_response\_hop\_limit | The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. Can be an integer from 1 to 64 | `number` | `2` | no |
+| launch\_template\_metadata\_options\_http\_tokens | Whether or not the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be optional or required | `string` | `"optional"` | no |
 | launch\_template\_name | The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id. | `string` | `null` | no |
 | launch\_template\_version | The version of the specified launch template to use. Defaults to latest version. | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
