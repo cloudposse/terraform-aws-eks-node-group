@@ -97,7 +97,7 @@ resource "aws_launch_template" "default" {
 
     http_endpoint               = var.launch_template_metadata_options_http_endpoint
     http_put_response_hop_limit = var.launch_template_metadata_options_http_put_response_hop_limit
-    http_tokens                 = var.launch_template_metadata_options_http_tokens
+    http_tokens                 = "required"
   }
 
   vpc_security_group_ids = local.launch_template_vpc_security_group_ids
