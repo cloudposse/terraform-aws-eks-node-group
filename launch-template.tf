@@ -45,6 +45,7 @@ locals {
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
 }
 
+
 resource "aws_launch_template" "default" {
   # We'll use this default if we aren't provided with a launch template during invocation
   # We need to generate a new launch template every time the security group list changes
@@ -90,10 +91,13 @@ resource "aws_launch_template" "default" {
   #     If any containers that you deploy to the node group use the Instance Metadata Service Version 2,
   #     then make sure to set the Metadata response hop limit to 2 in your launch template.
   metadata_options {
-    http_put_response_hop_limit = 2
+
     # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
     # We set it to the default setting of "enabled".
-    http_endpoint = "enabled"
+
+    http_endpoint               = var.launch_template_metadata_options_http_endpoint
+    http_put_response_hop_limit = var.launch_template_metadata_options_http_put_response_hop_limit
+    http_tokens                 = var.launch_template_metadata_options_http_tokens
   }
 
   vpc_security_group_ids = local.launch_template_vpc_security_group_ids
