@@ -91,7 +91,6 @@ resource "aws_launch_template" "default" {
   #     If any containers that you deploy to the node group use the Instance Metadata Service Version 2,
   #     then make sure to set the Metadata response hop limit to 2 in your launch template.
   metadata_options {
-
     # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
     # We set it to the default setting of "enabled".
 
