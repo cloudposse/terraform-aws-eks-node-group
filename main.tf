@@ -5,7 +5,7 @@ locals {
   features_require_ami               = local.enabled && local.need_bootstrap
   configured_ami_image_id            = var.ami_image_id == null ? "" : var.ami_image_id
   need_ami_id                        = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
-  need_imds_settings = var.launch_template_metadata_options_http_endpoint != "enabled" || var.launch_template_metadata_options_http_put_response_hop_limit != 1 || var.launch_template_metadata_options_http_tokens != "optional"
+  need_imds_settings = var.metadata_http_endpoint != "enabled" || var.metadata_http_put_response_hop_limit != 1 || var.metadata_http_tokens != "optional"
   features_require_launch_template   = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
 
   have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
