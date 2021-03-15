@@ -292,6 +292,7 @@ variable "launch_template_metadata_options_http_endpoint" {
 }
 
 variable "launch_template_metadata_options_http_tokens" {
+  default     = "required"
   type        = string
   description = "Whether or not the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be optional or required"
 }
