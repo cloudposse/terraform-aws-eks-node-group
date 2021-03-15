@@ -45,7 +45,6 @@ locals {
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
 }
 
-
 resource "aws_launch_template" "default" {
   # We'll use this default if we aren't provided with a launch template during invocation
   # We need to generate a new launch template every time the security group list changes
