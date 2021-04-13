@@ -39,7 +39,7 @@ locals {
   node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : {})
 
   # Extract the AZ for the placement, if specified.
-  placement_availability_zone = var.placement == null ? null: lookup(var.placement, "availability_zone", null)
+  placement_availability_zone = var.placement == null ? null : lookup(var.placement, "availability_zone", null)
 }
 
 module "label" {
@@ -69,9 +69,9 @@ locals {
     node_role_arn = join("", aws_iam_role.default.*.arn)
 
     # Keep sorted so that change in order does not trigger replacement via random_pet
-    subnet_ids = sort(local.placement_availability_zone == null ? var.subnet_ids: toset([for subnet in data.aws_subnet.private: subnet.id if subnet.availability_zone == local.placement_availability_zone]))
+    subnet_ids = sort(local.placement_availability_zone == null ? var.subnet_ids : toset([for subnet in data.aws_subnet.private : subnet.id if subnet.availability_zone == local.placement_availability_zone]))
 
-    disk_size  = local.use_launch_template ? null : var.disk_size
+    disk_size = local.use_launch_template ? null : var.disk_size
     # Always supply instance types via the node group, not the launch template,
     # because node group supports up to 20 types but launch template does not.
     # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
