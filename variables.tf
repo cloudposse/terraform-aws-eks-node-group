@@ -46,6 +46,12 @@ variable "source_security_group_ids" {
   description = "Set of EC2 Security Group IDs to allow SSH access (port 22) to the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
 
+variable "additional_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "Set of additional EC2 Security Group IDs that will be associated with the EKS Node Group"
+}
+
 variable "desired_size" {
   type        = number
   description = "Initial desired number of worker nodes (external changes ignored)"

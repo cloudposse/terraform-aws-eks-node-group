@@ -86,6 +86,7 @@ locals {
     ec2_ssh_key        = local.have_ssh_key ? var.ec2_ssh_key : "none"
     # Keep sorted so that change in order does not trigger replacement via random_pet
     source_security_group_ids = local.ng_needs_remote_access ? sort(var.source_security_group_ids) : []
+    additional_security_group_ids = sort(var.additional_security_group_ids)
   }
 }
 
@@ -114,7 +115,8 @@ resource "random_pet" "cbd" {
     #       actually track security groups by using
     #       source_security_group_ids = join(",", local.ng.source_security_group_ids, aws_security_group.remote_access.*.id)
     #
-    source_security_group_ids = local.need_remote_access_sg ? "generated for launch template" : join(",", local.ng.source_security_group_ids)
+    source_security_group_ids     = local.need_remote_access_sg ? "generated for launch template" : join(",", local.ng.source_security_group_ids)
+    additional_security_group_ids = join(",", local.ng.additional_security_group_ids)
 
     launch_template_id = local.use_launch_template ? local.launch_template_id : "none"
   }
