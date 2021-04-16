@@ -6,13 +6,13 @@ locals {
   configured_ami_image_id = var.ami_image_id == null ? "" : var.ami_image_id
   need_ami_id             = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
 
-  features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami : false
+  features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || length(var.additional_security_group_ids) > 0 : false
 
   have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
 
   need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg || length(var.additional_security_group_ids) > 0) : false
 
   autoscaler_enabled = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
   #

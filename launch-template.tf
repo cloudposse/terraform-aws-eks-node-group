@@ -40,7 +40,8 @@ locals {
   launch_template_vpc_security_group_ids = (
     concat(
       local.ng.additional_security_group_ids,
-      local.need_remote_access_sg ? concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, aws_security_group.remote_access.*.id) : []
+      data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id,
+      local.need_remote_access_sg ? aws_security_group.remote_access.*.id : []
     )
   )
 
