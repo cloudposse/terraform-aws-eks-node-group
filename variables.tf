@@ -64,6 +64,7 @@ variable "min_size" {
 variable "subnet_ids" {
   description = "A list of subnet IDs to launch resources in"
   type        = list(string)
+  default     = []
 }
 
 variable "existing_workers_role_policy_arns" {
