@@ -38,8 +38,11 @@ locals {
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
   launch_template_vpc_security_group_ids = (
-    local.need_remote_access_sg ?
-    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, aws_security_group.remote_access.*.id) : []
+    concat(
+      local.ng.additional_security_group_ids,
+      local.get_cluster_data ? data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id : [],
+      local.need_remote_access_sg ? aws_security_group.remote_access.*.id : []
+    )
   )
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
