@@ -4,7 +4,7 @@ provider "aws" {
 
 module "label" {
   source  = "cloudposse/label/null"
-  version = "0.22.0"
+  version = "0.24.1"
 
   # This is the preferred way to add attributes. It will put "cluster" first
   # before any attributes set in `var.attributes` or `context.attributes`.
@@ -31,7 +31,7 @@ locals {
 
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.17.0"
+  version = "0.21.1"
 
   cidr_block = "172.16.0.0/16"
   tags       = local.tags
@@ -41,7 +41,7 @@ module "vpc" {
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.28.0"
+  version = "0.39.0"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -56,7 +56,7 @@ module "subnets" {
 
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
-  version = "0.28.0"
+  version = "0.38.0"
 
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
