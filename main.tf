@@ -63,7 +63,7 @@ data "aws_subnet" "default" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  ng_needs_remote_access = local.have_ssh_key && !local.use_launch_template
+  ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = join("", aws_iam_role.default.*.arn)
@@ -138,7 +138,7 @@ resource "random_pet" "cbd" {
 # WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "default" {
-  count           = local.enabled && !var.create_before_destroy ? 1 : 0
+  count           = local.enabled && ! var.create_before_destroy ? 1 : 0
   node_group_name = module.label.id
 
   lifecycle {
