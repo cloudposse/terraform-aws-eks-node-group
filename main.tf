@@ -55,7 +55,7 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
+  ng_needs_remote_access = local.have_ssh_key && !local.use_launch_template
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = join("", aws_iam_role.default.*.arn)
@@ -84,8 +84,6 @@ locals {
     # Configure remote access via Launch Template if we are using one
     need_remote_access = local.ng_needs_remote_access
     ec2_ssh_key        = local.have_ssh_key ? var.ec2_ssh_key : "none"
-    # Keep sorted so that change in order does not trigger replacement via random_pet
-    source_security_group_ids = local.ng_needs_remote_access ? sort(var.source_security_group_ids) : []
   }
 }
 
@@ -96,27 +94,18 @@ resource "random_pet" "cbd" {
   length    = 1
 
   keepers = {
-    node_role_arn   = local.ng.node_role_arn
-    subnet_ids      = join(",", local.ng.subnet_ids)
-    disk_size       = local.ng.disk_size
-    instance_types  = join(",", local.ng.instance_types)
-    ami_type        = local.ng.ami_type
-    release_version = local.ng.release_version
-    version         = local.ng.version
-    capacity_type   = local.ng.capacity_type
-
-    need_remote_access = local.ng.need_remote_access
-    ec2_ssh_key        = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
-    # Any change in security groups requires a new node group, because you cannot delete a security group while it is in use
-    # and it will not automatically disassociate itself from instances or network interfaces.
-    #
-    # TODO: Once https://github.com/hashicorp/terraform/issues/25631 is fixed,
-    #       actually track security groups by using
-    #       source_security_group_ids = join(",", local.ng.source_security_group_ids, aws_security_group.remote_access.*.id)
-    #
-    source_security_group_ids = local.need_remote_access_sg ? "generated for launch template" : join(",", local.ng.source_security_group_ids)
-
-    launch_template_id = local.use_launch_template ? local.launch_template_id : "none"
+    node_role_arn             = local.ng.node_role_arn
+    subnet_ids                = join(",", local.ng.subnet_ids)
+    disk_size                 = local.ng.disk_size
+    instance_types            = join(",", local.ng.instance_types)
+    ami_type                  = local.ng.ami_type
+    release_version           = local.ng.release_version
+    version                   = local.ng.version
+    capacity_type             = local.ng.capacity_type
+    need_remote_access        = local.ng.need_remote_access
+    ec2_ssh_key               = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
+    launch_template_id        = local.use_launch_template ? local.launch_template_id : "none"
+    source_security_group_ids = local.ng_needs_remote_access ? concat(module.security_group.*.id, var.security_groups) : []
   }
 }
 
@@ -128,7 +117,7 @@ resource "random_pet" "cbd" {
 # WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "default" {
-  count           = local.enabled && ! var.create_before_destroy ? 1 : 0
+  count           = local.enabled && !var.create_before_destroy ? 1 : 0
   node_group_name = module.label.id
 
   lifecycle {

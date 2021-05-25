@@ -1,7 +1,17 @@
 # https://docs.aws.amazon.com/eks/latest/APIReference/API_RemoteAccessConfig.html
 
-locals {
-  sg_name = format("%v%v%v", module.label.id, module.label.delimiter, "remoteAccess")
+module "security_group" {
+  source  = "cloudposse/security-group/aws"
+  version = "0.3.1"
+
+  use_name_prefix = var.security_group_use_name_prefix
+  rules           = var.security_group_rules
+  description     = var.security_group_description
+  vpc_id          = var.vpc_id
+
+  enabled    = local.need_remote_access_sg
+  attributes = ["remote", "access"]
+  context    = module.this.context
 }
 
 resource "aws_security_group" "remote_access" {

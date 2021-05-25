@@ -87,3 +87,18 @@ output "eks_node_group_status" {
   description = "Status of the EKS Node Group"
   value       = module.eks_node_group.eks_node_group_status
 }
+
+output "eks_node_group_security_group_id" {
+  description = "ID of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.eks_node_group.security_group_id
+}
+
+output "eks_node_group_security_group_arn" {
+  description = "ARN of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.eks_node_group.security_group_arn
+}
+
+output "eks_node_group_security_group_name" {
+  description = "Name of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.eks_node_group.security_group_name
+}

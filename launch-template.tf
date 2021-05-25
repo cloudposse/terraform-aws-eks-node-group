@@ -39,7 +39,7 @@ locals {
 
   launch_template_vpc_security_group_ids = (
     local.need_remote_access_sg ?
-    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, aws_security_group.remote_access.*.id) : []
+    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, module.security_group.*.id, var.security_groups) : []
   )
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))

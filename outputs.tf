@@ -32,3 +32,18 @@ output "eks_node_group_remote_access_security_group_id" {
   description = "The ID of the security group generated to allow SSH access to the nodes, if this module generated one"
   value       = join("", aws_security_group.remote_access.*.id)
 }
+
+output "security_group_id" {
+  description = "ID of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.security_group.id
+}
+
+output "security_group_arn" {
+  description = "ARN of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.security_group.arn
+}
+
+output "security_group_name" {
+  description = "Name of the EKS cluster Security Group for remote access to EKS Node Group"
+  value       = module.security_group.name
+}
