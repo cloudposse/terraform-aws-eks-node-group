@@ -289,6 +289,9 @@ Available targets:
 | launch\_template\_name | The name (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id. | `string` | `null` | no |
 | launch\_template\_version | The version of the specified launch template to use. Defaults to latest version. | `string` | `null` | no |
 | max\_size | Maximum number of worker nodes | `number` | n/a | yes |
+| metadata\_http\_endpoint | Whether the metadata service is available. Can be enabled or disabled | `string` | `"enabled"` | no |
+| metadata\_http\_put\_response\_hop\_limit | The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. Can be an integer from 1 to 64 | `number` | `2` | no |
+| metadata\_http\_tokens | Whether or not the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be optional or required | `string` | `"optional"` | no |
 | min\_size | Minimum number of worker nodes | `number` | n/a | yes |
 | module\_depends\_on | Can be any value desired. Module will wait for this value to be computed before creating node group. | `any` | `null` | no |
 | name | Solution name, e.g. 'app' or 'jenkins' | `string` | `null` | no |
