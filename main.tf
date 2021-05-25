@@ -84,7 +84,7 @@ locals {
     # Configure remote access via Launch Template if we are using one
     need_remote_access        = local.ng_needs_remote_access
     ec2_ssh_key               = local.have_ssh_key ? var.ec2_ssh_key : "none"
-    source_security_group_ids = local.need_remote_access ? concat(module.security_group.*.id, var.security_groups) : []
+    source_security_group_ids = local.ng_needs_remote_access ? concat(module.security_group.*.id, var.security_groups) : []
   }
 }
 
