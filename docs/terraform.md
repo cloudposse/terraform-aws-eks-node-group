@@ -113,12 +113,11 @@
 |------|-------------|
 | <a name="output_eks_node_group_arn"></a> [eks\_node\_group\_arn](#output\_eks\_node\_group\_arn) | Amazon Resource Name (ARN) of the EKS Node Group |
 | <a name="output_eks_node_group_id"></a> [eks\_node\_group\_id](#output\_eks\_node\_group\_id) | EKS Cluster name and EKS Node Group name separated by a colon |
-| <a name="output_eks_node_group_remote_access_security_group_id"></a> [eks\_node\_group\_remote\_access\_security\_group\_id](#output\_eks\_node\_group\_remote\_access\_security\_group\_id) | The ID of the security group generated to allow SSH access to the nodes, if this module generated one |
+| <a name="output_eks_node_group_remote_access_security_group_arn"></a> [eks\_node\_group\_remote\_access\_security\_group\_arn](#output\_eks\_node\_group\_remote\_access\_security\_group\_arn) | ARN of the EKS cluster Security Group for remote access to EKS Node Group |
+| <a name="output_eks_node_group_remote_access_security_group_id"></a> [eks\_node\_group\_remote\_access\_security\_group\_id](#output\_eks\_node\_group\_remote\_access\_security\_group\_id) | ID of the EKS cluster Security Group for remote access to EKS Node Group |
+| <a name="output_eks_node_group_remote_access_security_group_name"></a> [eks\_node\_group\_remote\_access\_security\_group\_name](#output\_eks\_node\_group\_remote\_access\_security\_group\_name) | Name of the EKS cluster Security Group for remote access to EKS Node Group |
 | <a name="output_eks_node_group_resources"></a> [eks\_node\_group\_resources](#output\_eks\_node\_group\_resources) | List of objects containing information about underlying resources of the EKS Node Group |
 | <a name="output_eks_node_group_role_arn"></a> [eks\_node\_group\_role\_arn](#output\_eks\_node\_group\_role\_arn) | ARN of the worker nodes IAM role |
 | <a name="output_eks_node_group_role_name"></a> [eks\_node\_group\_role\_name](#output\_eks\_node\_group\_role\_name) | Name of the worker nodes IAM role |
 | <a name="output_eks_node_group_status"></a> [eks\_node\_group\_status](#output\_eks\_node\_group\_status) | Status of the EKS Node Group |
-| <a name="output_security_group_arn"></a> [security\_group\_arn](#output\_security\_group\_arn) | ARN of the EKS cluster Security Group for remote access to EKS Node Group |
-| <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the EKS cluster Security Group for remote access to EKS Node Group |
-| <a name="output_security_group_name"></a> [security\_group\_name](#output\_security\_group\_name) | Name of the EKS cluster Security Group for remote access to EKS Node Group |
 <!-- markdownlint-restore -->
