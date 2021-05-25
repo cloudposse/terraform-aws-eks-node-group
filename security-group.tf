@@ -12,4 +12,8 @@ module "security_group" {
   enabled    = local.need_remote_access_sg
   attributes = ["remote", "access"]
   context    = module.label.context
+
+  depends_on = [
+    data.aws_eks_cluster.this
+  ]
 }
