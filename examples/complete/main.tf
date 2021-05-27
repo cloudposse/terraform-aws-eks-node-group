@@ -54,6 +54,16 @@ module "subnets" {
   context = module.this.context
 }
 
+module "ssh_key_pair" {
+  source  = "cloudposse/key-pair/aws"
+  version = "0.18.0"
+
+  ssh_public_key_path = "/secrets"
+  generate_ssh_key    = "true"
+
+  context = module.this.context
+}
+
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
   version = "0.28.0"
@@ -94,6 +104,7 @@ module "eks_node_group" {
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
+  ec2_ssh_key        = module.ssh_key_pair.key_name
 
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
 
