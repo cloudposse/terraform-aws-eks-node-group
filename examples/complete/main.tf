@@ -105,9 +105,15 @@ module "eks_node_group" {
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
-  ec2_ssh_key        = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["ec2_ssh_key"]
+  ec2_ssh_key        = module.ssh_key_pair.key_name
 
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
 
   context = module.this.context
+
+  depends_on = [
+    module.ssh_key_pair,
+    module.eks_cluster,
+    data.null_data_source.wait_for_cluster_and_kubernetes_configmap
+  ]
 }
