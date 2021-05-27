@@ -89,6 +89,7 @@ data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
   inputs = {
     cluster_name             = module.eks_cluster.eks_cluster_id
     kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
+    ec2_ssh_key              = module.ssh_key_pair.key_name
   }
 }
 
@@ -104,7 +105,7 @@ module "eks_node_group" {
   kubernetes_version = var.kubernetes_version
   kubernetes_labels  = var.kubernetes_labels
   disk_size          = var.disk_size
-  ec2_ssh_key        = module.ssh_key_pair.key_name
+  ec2_ssh_key        = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["ec2_ssh_key"]
 
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
 
