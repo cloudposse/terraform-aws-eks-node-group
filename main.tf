@@ -8,7 +8,7 @@ locals {
   need_imds_settings               = var.metadata_http_endpoint != "enabled" || var.metadata_http_put_response_hop_limit != 1 || var.metadata_http_tokens != "optional"
   features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
 
-  have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
+  have_ssh_key = length(var.ec2_ssh_key) > 0
 
   need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
 
@@ -55,7 +55,7 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
+  ng_needs_remote_access = local.have_ssh_key && !local.use_launch_template
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = join("", aws_iam_role.default.*.arn)
@@ -125,7 +125,7 @@ resource "random_pet" "cbd" {
 # WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "default" {
-  count           = local.enabled && ! var.create_before_destroy ? 1 : 0
+  count           = local.enabled && !var.create_before_destroy ? 1 : 0
   node_group_name = module.label.id
 
   lifecycle {
