@@ -34,6 +34,12 @@ variable "create_before_destroy" {
     EOT
 }
 
+variable "remote_access_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable remote access to EKS node group, requires `ec2_ssh_key` to be defined."
+}
+
 variable "ec2_ssh_key" {
   type        = string
   description = "SSH key pair name to use to access the worker nodes"
@@ -262,7 +268,7 @@ variable "resources_to_tag" {
   default     = []
   validation {
     condition = (
-      length(compact([for r in var.resources_to_tag : r if ! contains(["instance", "volume", "elastic-gpu", "spot-instances-request"], r)])) == 0
+      length(compact([for r in var.resources_to_tag : r if !contains(["instance", "volume", "elastic-gpu", "spot-instances-request"], r)])) == 0
     )
     error_message = "Invalid resource type in `resources_to_tag`. Valid types are \"instance\", \"volume\", \"elastic-gpu\", \"spot-instances-request\"."
   }

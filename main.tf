@@ -7,14 +7,10 @@ locals {
   need_ami_id                      = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
   need_imds_settings               = var.metadata_http_endpoint != "enabled" || var.metadata_http_put_response_hop_limit != 1 || var.metadata_http_tokens != "optional"
   features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
-
-  have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
-
-  need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
-
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
-
-  autoscaler_enabled = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
+  remote_access_enabled            = local.enabled && var.remote_access_enabled
+  need_remote_access_sg            = local.generate_launch_template && local.remote_access_enabled
+  get_cluster_data                 = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
+  autoscaler_enabled               = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
   #
   # Set up tags for autoscaler and other resources
   #
@@ -37,6 +33,9 @@ locals {
     }
   )
   node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : {})
+
+  # hack to prevent failure when var.remote_access_enabled is false
+  vpc_id = try(data.aws_eks_cluster.this[0].vpc_config[0].vpc_id, null)
 }
 
 module "label" {
@@ -55,7 +54,7 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  ng_needs_remote_access = local.have_ssh_key && !local.use_launch_template
+  ng_needs_remote_access = local.remote_access_enabled && !local.use_launch_template
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = join("", aws_iam_role.default.*.arn)
@@ -83,7 +82,7 @@ locals {
 
     # Configure remote access via Launch Template if we are using one
     need_remote_access        = local.ng_needs_remote_access
-    ec2_ssh_key               = local.have_ssh_key ? var.ec2_ssh_key : "none"
+    ec2_ssh_key               = local.remote_access_enabled ? var.ec2_ssh_key : "none"
     source_security_group_ids = local.ng_needs_remote_access ? sort(concat(module.security_group.*.id, var.security_groups)) : []
   }
 }

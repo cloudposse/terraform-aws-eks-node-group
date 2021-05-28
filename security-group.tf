@@ -7,7 +7,7 @@ module "security_group" {
   use_name_prefix = var.security_group_use_name_prefix
   rules           = var.security_group_rules
   description     = var.security_group_description
-  vpc_id          = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
+  vpc_id          = local.vpc_id
 
   enabled    = local.need_remote_access_sg
   attributes = ["remote", "access"]

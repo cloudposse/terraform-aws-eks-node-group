@@ -33,3 +33,5 @@ kubernetes_labels = {}
 before_cluster_joining_userdata = <<-EOT
   printf "\n\n###\nExample output from before_cluster_joining_userdata\n###\n\n"
   EOT
+
+remote_access_enabled = true

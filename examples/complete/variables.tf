@@ -116,3 +116,8 @@ variable "before_cluster_joining_userdata" {
   default     = ""
   description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
+
+variable "remote_access_enabled" {
+  type        = bool
+  description = "Whether to enable remote access to EKS node group, requires `ec2_ssh_key` to be defined."
+}
