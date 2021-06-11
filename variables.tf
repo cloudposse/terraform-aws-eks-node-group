@@ -294,3 +294,20 @@ variable "launch_template_disk_encryption_kms_key_id" {
   description = "Custom KMS Key ID to encrypt EBS volumes on EC2 instances, applicable only if `launch_template_disk_encryption_enabled` is set to true"
 }
 
+variable "metadata_http_put_response_hop_limit" {
+  default     = 2
+  type        = number
+  description = "The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. Can be an integer from 1 to 64"
+}
+
+variable "metadata_http_endpoint" {
+  default     = "enabled"
+  type        = string
+  description = "Whether the metadata service is available. Can be enabled or disabled"
+}
+
+variable "metadata_http_tokens" {
+  default     = "optional"
+  type        = string
+  description = "Whether or not the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be optional or required"
+}
