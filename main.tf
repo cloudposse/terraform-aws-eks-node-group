@@ -7,14 +7,10 @@ locals {
   need_ami_id                      = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
   need_imds_settings               = var.metadata_http_endpoint != "enabled" || var.metadata_http_put_response_hop_limit != 1 || var.metadata_http_tokens != "optional"
   features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
-
-  have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
-
-  need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
-
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
-
-  autoscaler_enabled = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
+  remote_access_enabled            = local.enabled && var.remote_access_enabled
+  need_remote_access_sg            = local.generate_launch_template && local.remote_access_enabled
+  get_cluster_data                 = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
+  autoscaler_enabled               = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
   #
   # Set up tags for autoscaler and other resources
   #
@@ -37,6 +33,9 @@ locals {
     }
   )
   node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : {})
+
+  # hack to prevent failure when var.remote_access_enabled is false
+  vpc_id = try(data.aws_eks_cluster.this[0].vpc_config[0].vpc_id, null)
 }
 
 module "label" {
@@ -55,7 +54,7 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  ng_needs_remote_access = local.have_ssh_key && ! local.use_launch_template
+  ng_needs_remote_access = local.remote_access_enabled && ! local.use_launch_template
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = join("", aws_iam_role.default.*.arn)
@@ -82,10 +81,9 @@ locals {
     }
 
     # Configure remote access via Launch Template if we are using one
-    need_remote_access = local.ng_needs_remote_access
-    ec2_ssh_key        = local.have_ssh_key ? var.ec2_ssh_key : "none"
-    # Keep sorted so that change in order does not trigger replacement via random_pet
-    source_security_group_ids = local.ng_needs_remote_access ? sort(var.source_security_group_ids) : []
+    need_remote_access        = local.ng_needs_remote_access
+    ec2_ssh_key               = local.remote_access_enabled ? var.ec2_ssh_key : "none"
+    source_security_group_ids = local.ng_needs_remote_access ? sort(concat(module.security_group.*.id, var.security_groups)) : []
   }
 }
 
@@ -96,15 +94,14 @@ resource "random_pet" "cbd" {
   length    = 1
 
   keepers = {
-    node_role_arn   = local.ng.node_role_arn
-    subnet_ids      = join(",", local.ng.subnet_ids)
-    disk_size       = local.ng.disk_size
-    instance_types  = join(",", local.ng.instance_types)
-    ami_type        = local.ng.ami_type
-    release_version = local.ng.release_version
-    version         = local.ng.version
-    capacity_type   = local.ng.capacity_type
-
+    node_role_arn      = local.ng.node_role_arn
+    subnet_ids         = join(",", local.ng.subnet_ids)
+    disk_size          = local.ng.disk_size
+    instance_types     = join(",", local.ng.instance_types)
+    ami_type           = local.ng.ami_type
+    release_version    = local.ng.release_version
+    version            = local.ng.version
+    capacity_type      = local.ng.capacity_type
     need_remote_access = local.ng.need_remote_access
     ec2_ssh_key        = local.ng.need_remote_access ? local.ng.ec2_ssh_key : "handled by launch template"
     # Any change in security groups requires a new node group, because you cannot delete a security group while it is in use
@@ -115,8 +112,7 @@ resource "random_pet" "cbd" {
     #       source_security_group_ids = join(",", local.ng.source_security_group_ids, aws_security_group.remote_access.*.id)
     #
     source_security_group_ids = local.need_remote_access_sg ? "generated for launch template" : join(",", local.ng.source_security_group_ids)
-
-    launch_template_id = local.use_launch_template ? local.launch_template_id : "none"
+    launch_template_id        = local.use_launch_template ? local.launch_template_id : "none"
   }
 }
 
@@ -180,7 +176,7 @@ resource "aws_eks_node_group" "default" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
-    aws_security_group.remote_access,
+    module.security_group,
     # Also allow calling module to create an explicit dependency
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups
@@ -243,7 +239,7 @@ resource "aws_eks_node_group" "cbd" {
     aws_iam_role_policy_attachment.amazon_eks_worker_node_autoscale_policy,
     aws_iam_role_policy_attachment.amazon_eks_cni_policy,
     aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only,
-    aws_security_group.remote_access,
+    module.security_group,
     # Also allow calling module to create an explicit dependency
     # This is useful in conjunction with terraform-aws-eks-cluster to ensure
     # the cluster is fully created and configured before creating any node groups

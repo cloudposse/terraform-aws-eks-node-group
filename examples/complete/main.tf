@@ -54,6 +54,16 @@ module "subnets" {
   context = module.this.context
 }
 
+module "ssh_key_pair" {
+  source  = "cloudposse/key-pair/aws"
+  version = "0.18.0"
+
+  ssh_public_key_path = "./"
+  generate_ssh_key    = "true"
+
+  context = module.this.context
+}
+
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
   version = "0.28.0"
@@ -79,23 +89,31 @@ data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
   inputs = {
     cluster_name             = module.eks_cluster.eks_cluster_id
     kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
+    ec2_ssh_key              = module.ssh_key_pair.key_name
   }
 }
 
 module "eks_node_group" {
   source = "../../"
 
-  subnet_ids         = module.subnets.public_subnet_ids
-  cluster_name       = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
-  instance_types     = var.instance_types
-  desired_size       = var.desired_size
-  min_size           = var.min_size
-  max_size           = var.max_size
-  kubernetes_version = var.kubernetes_version
-  kubernetes_labels  = var.kubernetes_labels
-  disk_size          = var.disk_size
-
+  subnet_ids                      = module.subnets.public_subnet_ids
+  cluster_name                    = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
+  instance_types                  = var.instance_types
+  desired_size                    = var.desired_size
+  min_size                        = var.min_size
+  max_size                        = var.max_size
+  kubernetes_version              = var.kubernetes_version
+  kubernetes_labels               = var.kubernetes_labels
+  disk_size                       = var.disk_size
+  ec2_ssh_key                     = module.ssh_key_pair.key_name
+  remote_access_enabled           = var.remote_access_enabled
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
 
   context = module.this.context
+
+  depends_on = [
+    module.ssh_key_pair,
+    module.eks_cluster,
+    data.null_data_source.wait_for_cluster_and_kubernetes_configmap
+  ]
 }

@@ -34,16 +34,16 @@ variable "create_before_destroy" {
     EOT
 }
 
+variable "remote_access_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable remote access to EKS node group, requires `ec2_ssh_key` to be defined."
+}
+
 variable "ec2_ssh_key" {
   type        = string
   description = "SSH key pair name to use to access the worker nodes"
   default     = null
-}
-
-variable "source_security_group_ids" {
-  type        = list(string)
-  default     = []
-  description = "Set of EC2 Security Group IDs to allow SSH access (port 22) to the worker nodes. If you specify `ec2_ssh_key`, but do not specify this configuration when you create an EKS Node Group, port 22 on the worker nodes is opened to the Internet (0.0.0.0/0)"
 }
 
 variable "desired_size" {
@@ -64,6 +64,51 @@ variable "min_size" {
 variable "subnet_ids" {
   description = "A list of subnet IDs to launch resources in"
   type        = list(string)
+}
+
+variable "security_group_description" {
+  type        = string
+  default     = "Allow SSH access to all nodes in the nodeGroup"
+  description = "The Security Group description."
+}
+
+variable "security_group_use_name_prefix" {
+  type        = bool
+  default     = false
+  description = "Whether to create a default Security Group with unique name beginning with the normalized prefix."
+}
+
+variable "security_group_rules" {
+  type = list(any)
+  default = [
+    {
+      type        = "egress"
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "Allow all outbound traffic"
+    },
+    {
+      type        = "ingress"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "Allow SSH access to nodes from anywhere"
+    }
+  ]
+  description = <<-EOT
+    A list of maps of Security Group rules. 
+    The values of map is fully complated with `aws_security_group_rule` resource. 
+    To get more info see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule .
+  EOT
+}
+
+variable "security_groups" {
+  description = "A list of Security Group IDs to associate with EKS node group."
+  type        = list(string)
+  default     = []
 }
 
 variable "existing_workers_role_policy_arns" {
