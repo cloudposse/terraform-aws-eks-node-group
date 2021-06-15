@@ -6,7 +6,7 @@ locals {
   configured_ami_image_id          = var.ami_image_id == null ? "" : var.ami_image_id
   need_ami_id                      = local.enabled ? local.features_require_ami && length(local.configured_ami_image_id) == 0 : false
   need_imds_settings               = var.metadata_http_endpoint != "enabled" || var.metadata_http_put_response_hop_limit != 1 || var.metadata_http_tokens != "optional"
-  features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings || length(var.additional_security_group_ids) : false
+  features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
 
   have_ssh_key = var.ec2_ssh_key != null && var.ec2_ssh_key != ""
 
