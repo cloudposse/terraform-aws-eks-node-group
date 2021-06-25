@@ -341,3 +341,30 @@ variable "metadata_http_tokens" {
   type        = string
   description = "Whether or not the metadata service requires session tokens, also referred to as Instance Metadata Service Version 2 (IMDSv2). Can be optional or required"
 }
+
+variable "create_timeout" {
+  default     = "60m"
+  type        = string
+  description = <<EOT
+  If provided, it will increase or decrease the timeout for creation the node group https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#timeouts"
+  It would be necessary on node groups with a lot of nodes. Because the changing this node groups would take a lot of time
+  EOT
+}
+
+variable "update_timeout" {
+  default     = "60m"
+  type        = string
+  description = <<EOT
+  If provided, it will increase or decrease the timeout for creation the node group https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#timeouts"
+  It would be necessary on node groups with a lot of nodes. Because the changing this node groups would take a lot of time
+  EOT
+}
+
+variable "delete_timeout" {
+  default     = "60m"
+  type        = string
+  description = <<EOT
+  If provided, it will increase or decrease the timeout for creation the node group https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#timeouts"
+  It would be necessary on node groups with a lot of nodes. Because the changing this node groups would take a lot of time
+  EOT
+}
