@@ -80,6 +80,16 @@ locals {
       min_size     = var.min_size
     }
 
+    # Configure timeouts with large number of instances. When you need to manage node groups with a lot of instances
+    # you need to increase the timeout time when you want to replace the node group with the option create_before_detroy=true
+    # beacuse this replacement will take more than 60 minutes that are the default values
+    # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#timeouts
+    timeouts = {
+      create_timeout = var.create_timeout
+      update_timeout = var.update_timeout
+      delete_timeout = var.delete_timeout
+    }
+
     # Configure remote access via Launch Template if we are using one
     need_remote_access        = local.ng_needs_remote_access
     ec2_ssh_key               = local.remote_access_enabled ? var.ec2_ssh_key : "none"
@@ -153,6 +163,12 @@ resource "aws_eks_node_group" "default" {
     min_size     = local.ng.scaling_config.min_size
   }
 
+  timeouts {
+    create = local.ng.timeouts.create_timeout
+    delete = local.ng.timeouts.update_timeout
+    update = local.ng.timeouts.delete_timeout
+  }
+
   dynamic "launch_template" {
     for_each = local.use_launch_template ? ["true"] : []
     content {
@@ -214,6 +230,12 @@ resource "aws_eks_node_group" "cbd" {
     desired_size = local.ng.scaling_config.desired_size
     max_size     = local.ng.scaling_config.max_size
     min_size     = local.ng.scaling_config.min_size
+  }
+
+  timeouts {
+    create = local.ng.timeouts.create_timeout
+    delete = local.ng.timeouts.update_timeout
+    update = local.ng.timeouts.delete_timeout
   }
 
   dynamic "launch_template" {
