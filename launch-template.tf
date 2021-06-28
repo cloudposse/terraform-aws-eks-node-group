@@ -96,6 +96,7 @@ resource "aws_launch_template" "default" {
     http_put_response_hop_limit = var.launch_template_http_put_response_hop_limit
     # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
     # We set it to the default setting of "enabled".
+    http_tokens = var.launch_template_http_tokens
     http_endpoint = "enabled"
   }
 

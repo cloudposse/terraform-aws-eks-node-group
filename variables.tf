@@ -290,3 +290,9 @@ variable "launch_template_http_put_response_hop_limit" {
   default     = 2
   description = "The desired HTTP PUT response hop limit for instance metadata requests"
 }
+
+variable "launch_template_http_tokens" {
+  type        = string
+  default     = "optional"
+  description = "Whether or not the metadata service requires session tokens"
+}
