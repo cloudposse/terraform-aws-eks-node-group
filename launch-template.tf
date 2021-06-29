@@ -68,6 +68,17 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  dynamic "placement" {
+    for_each = var.placement != null ? [var.placement] : []
+    content {
+      affinity          = lookup(placement.value, "affinity", null)
+      availability_zone = lookup(placement.value, "availability_zone", null)
+      group_name        = lookup(placement.value, "group_name", null)
+      host_id           = lookup(placement.value, "host_id", null)
+      tenancy           = lookup(placement.value, "tenancy", null)
+    }
+  }
+
   name_prefix            = module.label.id
   update_default_version = true
 

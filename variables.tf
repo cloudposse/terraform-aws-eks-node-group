@@ -64,6 +64,7 @@ variable "min_size" {
 variable "subnet_ids" {
   description = "A list of subnet IDs to launch resources in"
   type        = list(string)
+  default     = []
 }
 
 variable "security_group_description" {
@@ -173,6 +174,20 @@ variable "capacity_type" {
     condition     = var.capacity_type == null ? true : contains(["ON_DEMAND", "SPOT"], var.capacity_type)
     error_message = "Capacity type must be either `null`, \"ON_DEMAND\", or \"SPOT\"."
   }
+}
+
+variable "placement" {
+  description = "The placement specifications of the instances"
+
+  type = object({
+    affinity          = string
+    availability_zone = string
+    group_name        = string
+    host_id           = string
+    tenancy           = string
+  })
+
+  default = null
 }
 
 variable "kubernetes_labels" {
