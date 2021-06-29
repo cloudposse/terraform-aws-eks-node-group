@@ -121,6 +121,21 @@ func TestExamplesComplete(t *testing.T) {
 	// Verify we're getting back the outputs we expect
 	assert.Equal(t, "ACTIVE", eksNodeGroupStatus)
 
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupSecurityGroupName := terraform.Output(t, terraformOptions, "eks_node_group_security_group_name")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-workers-remote-access", eksNodeGroupSecurityGroupName)
+
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupSecurityGroupID := terraform.Output(t, terraformOptions, "eks_node_group_security_group_id")
+	// Verify we're getting back the outputs we expect
+	assert.Contains(t, eksNodeGroupSecurityGroupID, "sg-", "SG ID should contains substring 'sg-'")
+
+	// Run `terraform output` to get the value of an output variable
+	eksNodeGroupSecurityGroupARN := terraform.Output(t, terraformOptions, "eks_node_group_security_group_arn")
+	// Verify we're getting back the outputs we expect
+	assert.Contains(t, eksNodeGroupSecurityGroupARN, "arn:aws:ec2", "SG ID should contains substring 'arn:aws:ec2'")
+
 	// Wait for the worker nodes to join the cluster
 	// https://github.com/kubernetes/client-go
 	// https://www.rushtehrani.com/post/using-kubernetes-api
