@@ -58,7 +58,7 @@ resource "aws_launch_template" "default" {
   #for_each = (local.enabled && local.generate_launch_template) ? toset([local.launch_template_key]) : toset([])
 
   block_device_mappings {
-    device_name = "/dev/xvda"
+    device_name = var.launch_template_disk_device_name
 
     ebs {
       volume_size = var.disk_size

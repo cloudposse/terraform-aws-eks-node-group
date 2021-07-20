@@ -249,6 +249,12 @@ variable "launch_template_disk_encryption_enabled" {
   default     = false
 }
 
+variable "launch_template_disk_device_name" {
+  type        = string
+  description = "The name of the instance storage device to which the volume created by the launch template gets attached to."
+  default     = "/dev/xvda"
+}
+
 variable "launch_template_name" {
   type = string
   # Note: the aws_launch_template data source only accepts name, not ID, to specify the launch template, so we cannot support ID as input.
