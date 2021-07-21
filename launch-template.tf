@@ -43,7 +43,7 @@ locals {
   )
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
-  
+
   launch_template_block_device_mappings = length(var.launch_template_block_device_mappings) > 0 ? var.launch_template_block_device_mappings : [
     {
       "device_name"           = "/dev/xvda"
