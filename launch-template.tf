@@ -43,6 +43,17 @@ locals {
   )
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
+  
+  launch_template_block_device_mappings = length(var.launch_template_block_device_mappings) > 0 ? var.launch_template_block_device_mappings : [
+    {
+      "device_name"           = "/dev/xvda"
+      "volume_size"           = var.disk_size
+      "volume_type"           = "gp2"
+      "encrypted"             = var.launch_template_disk_encryption_enabled
+      "kms_key_id"            = var.launch_template_disk_encryption_enabled && length(var.launch_template_disk_encryption_kms_key_id) > 0 ? var.launch_template_disk_encryption_kms_key_id : null
+      "delete_on_termination" = true
+    }
+  ]
 }
 
 resource "aws_launch_template" "default" {
@@ -57,14 +68,17 @@ resource "aws_launch_template" "default" {
   #count = (local.enabled && local.generate_launch_template) ? 1 : 0
   #for_each = (local.enabled && local.generate_launch_template) ? toset([local.launch_template_key]) : toset([])
 
-  block_device_mappings {
-    device_name = "/dev/xvda"
-
-    ebs {
-      volume_size = var.disk_size
-      volume_type = var.disk_type
-      kms_key_id  = var.launch_template_disk_encryption_enabled && length(var.launch_template_disk_encryption_kms_key_id) > 0 ? var.launch_template_disk_encryption_kms_key_id : null
-      encrypted   = var.launch_template_disk_encryption_enabled
+  dynamic "block_device_mappings" {
+    for_each = local.launch_template_block_device_mappings
+    content {
+      device_name = block_device_mappings.value.device_name
+      ebs {
+        encrypted             = block_device_mappings.value.encrypted
+        kms_key_id            = block_device_mappings.value.kms_key_id
+        volume_size           = block_device_mappings.value.volume_size
+        volume_type           = block_device_mappings.value.volume_type
+        delete_on_termination = block_device_mappings.value.delete_on_termination
+      }
     }
   }
 

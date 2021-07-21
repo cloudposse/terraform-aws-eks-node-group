@@ -262,6 +262,19 @@ variable "launch_template_version" {
   default     = null
 }
 
+variable "launch_template_block_device_mappings" {
+  type = list(object({
+    device_name           = string
+    volume_size           = number
+    volume_type           = string
+    kms_key_id            = string
+    encrypted             = bool
+    delete_on_termination = bool
+  }))
+  description = "List of block device mappings created by the launch template."
+  default     = []
+}
+
 variable "resources_to_tag" {
   type        = list(string)
   description = "List of auto-launched resource types to tag. Valid types are \"instance\", \"volume\", \"elastic-gpu\", \"spot-instances-request\"."
