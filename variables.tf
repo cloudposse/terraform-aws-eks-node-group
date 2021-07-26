@@ -301,7 +301,7 @@ variable "userdata_override_base64" {
     compatible with the Amazon Linux `bootstrap.sh` initialization, then use `userdata_override_base64` to provide
     your own (Base64 encoded) user data. Use "" to prevent any user data from being set.
 
-    Setting `userdata_override_base64` disables `kubernetes_taints`, `kubelet_additional_options`,
+    Setting `userdata_override_base64` disables `kubelet_additional_options`,
     `before_cluster_joining_userdata`, `after_cluster_joining_userdata`, and `bootstrap_additional_options`.
     EOT
 }
