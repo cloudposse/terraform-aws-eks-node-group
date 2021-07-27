@@ -186,7 +186,7 @@ variable "kubernetes_labels" {
 
 variable "kubernetes_taints" {
   type        = map(string)
-  description = "Key-value mapping of Kubernetes taints."
+  description = "Key-value mapping of Kubernetes taints in the form of `<key>=<value>:<effect>`."
   default     = {}
 }
 

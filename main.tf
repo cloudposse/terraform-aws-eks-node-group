@@ -96,7 +96,10 @@ locals {
     source_security_group_ids = local.ng_needs_remote_access ? sort(concat(module.security_group.*.id, var.security_groups)) : []
 
     # Configure taints
-    taints = length(var.kubernetes_taints) > 0 ? { for k, v in var.kubernetes_taints : k => v } : {}
+    taints = length(var.kubernetes_taints) > 0 ? { for k, v in var.kubernetes_taints : k => {
+      value  = length(split(":", v)) > 1 ? element(split(":", v), 0) : null
+      effect = try(element(split(":", v), 1), v)
+    } } : {}
     taint_lookup_map = {
       NoSchedule       = "NO_SCHEDULE"
       NoExecute        = "NO_EXECUTE"
@@ -197,7 +200,8 @@ resource "aws_eks_node_group" "default" {
     for_each = local.ng.taints
     content {
       key    = taint.key
-      effect = local.ng.taint_lookup_map[taint.value]
+      value  = taint.value.value
+      effect = local.ng.taint_lookup_map[taint.value.effect]
     }
   }
 
