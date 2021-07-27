@@ -35,3 +35,8 @@ before_cluster_joining_userdata = <<-EOT
   EOT
 
 remote_access_enabled = true
+
+kubernetes_taints = {
+  "test"        = "true:PreferNoSchedule"
+  "testNoValue" = "PreferNoSchedule"
+}

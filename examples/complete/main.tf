@@ -104,6 +104,7 @@ module "eks_node_group" {
   max_size                        = var.max_size
   kubernetes_version              = var.kubernetes_version
   kubernetes_labels               = var.kubernetes_labels
+  kubernetes_taints               = var.kubernetes_taints
   disk_size                       = var.disk_size
   ec2_ssh_key                     = module.ssh_key_pair.key_name
   remote_access_enabled           = var.remote_access_enabled

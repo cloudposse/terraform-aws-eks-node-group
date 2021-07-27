@@ -190,4 +190,33 @@ func TestExamplesComplete(t *testing.T) {
 		fmt.Println(msg)
 		assert.Fail(t, msg)
 	}
+
+	// List nodegroups (should only be 1)
+	// Describe nodegroup returned by list
+	// For each Taint struct in Taints attribute in Nodegroup struct, create map: Taint.Key => Taint
+	// Validate each Taint is assigned correctly using Taint.Key against the var.kubernetes_taints map
+	listNgInput := &eks.ListNodegroupsInput{
+		ClusterName: aws.String(clusterName),
+		MaxResults: func(i int64) *int64 { return &i }(1),
+	}
+	listNgResult, err := eksSvc.ListNodegroups(listNgInput)
+	assert.NoError(t, err)
+
+	describeNgInput := &eks.DescribeNodegroupInput{
+		ClusterName: aws.String(clusterName),
+		NodegroupName: aws.String(*listNgResult.Nodegroups[0]),
+	}
+	describeNgResult, err := eksSvc.DescribeNodegroup(describeNgInput)
+	assert.NoError(t, err)
+
+	m := make(map[string]map[string]string)
+	for _, t := range describeNgResult.Nodegroup.Taints {
+		m[*t.Key] = map[string]string{
+			"key": *t.Key,
+			"value": *t.Value,
+			"effect": *t.Effect,
+		}
+	}
+	assert.Equal(t, map[string]string{"key":"test","value":"true","effect":"PREFER_NO_SCHEDULE"}, m["test"])
+	assert.Equal(t, map[string]string{"key":"testNoValue","value":"","effect":"PREFER_NO_SCHEDULE"}, m["testNoValue"])
 }

@@ -121,3 +121,9 @@ variable "remote_access_enabled" {
   type        = bool
   description = "Whether to enable remote access to EKS node group, requires `ec2_ssh_key` to be defined."
 }
+
+variable "kubernetes_taints" {
+  type        = map(string)
+  description = "Key-value mapping of Kubernetes taints in the form of `<key>=<value>:<effect>`."
+  default     = {}
+}
