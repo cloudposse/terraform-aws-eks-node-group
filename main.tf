@@ -278,7 +278,8 @@ resource "aws_eks_node_group" "cbd" {
     for_each = local.ng.taints
     content {
       key    = taint.key
-      effect = local.ng.taint_lookup_map[taint.value]
+      value  = taint.value.value
+      effect = local.ng.taint_lookup_map[taint.value.effect]
     }
   }
 
