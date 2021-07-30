@@ -37,10 +37,16 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
-  launch_template_vpc_security_group_ids = (
-    local.need_remote_access_sg ?
-    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, module.security_group.*.id, var.security_groups) : []
-  )
+  launch_template_vpc_security_group_ids = distinct(concat(
+    (
+      local.need_remote_access_sg ?
+      concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, module.security_group.*.id) : []
+    ),
+    (
+      local.add_sgs_to_cluster_default ?
+      concat(var.security_groups, data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id) : []
+    )
+  ))
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
 }

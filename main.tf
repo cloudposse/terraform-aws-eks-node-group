@@ -9,7 +9,8 @@ locals {
   features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
   remote_access_enabled            = local.enabled && var.remote_access_enabled
   need_remote_access_sg            = local.generate_launch_template && local.remote_access_enabled
-  get_cluster_data                 = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg) : false
+  add_sgs_to_cluster_default       = local.enabled && length(var.security_groups) > 0 ? true : false
+  get_cluster_data                 = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg || local.add_sgs_to_cluster_default) : false
   autoscaler_enabled               = var.enable_cluster_autoscaler != null ? var.enable_cluster_autoscaler : var.cluster_autoscaler_enabled == true
   #
   # Set up tags for autoscaler and other resources
