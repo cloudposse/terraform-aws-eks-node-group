@@ -19,6 +19,15 @@ variable "worker_role_autoscale_iam_enabled" {
     EOT
 }
 
+variable "worker_role_cni_iam_enabled" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    If true, the worker IAM role will be authorized to perform CNI operations. Defaults to true for ease of use.
+    Recommended to use [EKS IAM role for aws-node service account](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html) instead.
+    EOT
+}
+
 variable "cluster_name" {
   type        = string
   description = "The name of the EKS cluster"
