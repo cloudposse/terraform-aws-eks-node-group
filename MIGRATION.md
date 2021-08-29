@@ -30,13 +30,19 @@ be needed and node groups will likely need to be recreated. We strongly recommen
 enabling `create_before_destroy` if you have not already, as in general
 it provides a better upgrade path whenever an upgrade or change in confguration requires an node group to be replaced.
 
+### Terraform Version
+
+Terraform version 1.0 is out. Before that, there was Terraform version 0.15, then 0.14, then 0.13 and so on. The v0.25.0 release of this module allows you to try to use it with Terraform 0.13, but if it fails, we are not going to do anything about it. That version is old and has lots of known issues. There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to the latest Terraform version before raising any issues about this module.
+
 ### Behavoir changes
 
-- Previously, EBS volumes were left with the default value of `delete_on_termination`, which is `false`. Now the default EBS volume has it set to `true`. 
+- Previously, EBS volumes were left with the default value of `delete_on_termination`, which is `true` for EKS AMI root volumes. Now the default EBS volume has it set to `true` explicitly.
 - Previously, the Instance Metadata Service v1 (IMDSv1) was enabled by default, which is considered a security risk. Now it is disabled by default. Set `metadata_http_tokens_required` to `false` to leave IMDSv1 enabled.
 - Previously, a launch template was only generated and used if the settings required a launch template to set them. Now a launch template is alway generated (unless a launch template ID is provided) and used, and anything that can be set in the launch template is set there rather than in the node group configuration.
-- When a launch template is generated, a special security group to allow `ssh` access is also created if an `ssh` access key is specified. The name of this security group has changed from previous versions, to be consistent with Cloud Posse naming conventions. This will cause any previously created security group to be deleted, which will require the node group to be updated. 
+- When a launch template is generated, a special security group to allow `ssh` access is also created if an `ssh` access key is specified. The name of this security group has changed from previous versions, to be consistent with Cloud Posse naming conventions. This will cause any previously created security group to be deleted, which will require the node group to be updated. 
 - Previously, if a launch template ID was specified, the `instance_types` input was ignored. Now it is up to the user to make sure that the instance type is specified in the launch tempate or in `instance_types` but not both.
+- Did you want to exercise more control over where instances are placed? You can now specify placement groups and more via `placement`.
+- Are you using Nitro instances? You can now enable Nitro enclaves with `enclave_enabled`. 
 
 
 
@@ -44,7 +50,7 @@ it provides a better upgrade path whenever an upgrade or change in confguration 
 
 - `enable_cluster_autoscaler` removed. Use `cluster_autoscaler_enabled` instead.
 
-- `worker_role_autoscale_iam_enabled` removed. Use an [EKS IAM role for service account](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for the cluster autoscaler service account instead.
+- `worker_role_autoscale_iam_enabled` removed. Use an [EKS IAM role for service account](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for the cluster autoscaler service account instead, or add the policy back in via `node_role_policy_arns`.
 
 - `source_security_group_ids` renamed `ssh_access_security_group_ids` to reflect that the specified security groups will be given `ssh` access (TCP port 22) to the nodes. 
 
@@ -88,4 +94,95 @@ it provides a better upgrade path whenever an upgrade or change in confguration 
 - `kubelet_additional_options` was changed from `string` to `list(string)` but can contain multiple values, allowing you to specify options individually rather than requiring that you join them into one string (which you may still do if you prefer to).
 
   
+
+## Migration Tasks
+
+In most cases, the changes you need to make are pretty easy. 
+
+#### Review behavior changes and new features
+
+- Do you want node group instance EBS volumes deleted on termination? You can disable that now.
+- Do you want Instance Metadata Service v1 available? This module now disables it by default, and EKS and Kubernetes all handle that fine, but you might have scripts that `curl` the instance metadata endpoint that need it.
+- Did you have the "create before destroy" behavior disabled? The migration to v0.25.0 of this module is going to cause your node group to be destroyed and recreated anyway, so take the opportunity to enable it. It will save you and outage some day.
+- Were you supplying your own launch template, and stuck having to put an instance type in it because the earlier versions of this module would not let you do otherwise? Well, now you can leave the instance type out of your launch template and supply a set of types via the node group to enable a spot fleet.
+- Were you unhappy with the way the IAM Role for the nodes was configured? Now you can configure a role exactly the way you like and pass it in.
+- Were you frustrated that you had to copy a bunch of rules from one security group to the node group's security group? Now you can just associate the other security groups directly with the node group.
+- Were you experiencing timeouts creating or updating large node groups? Now you can set Terraform timeouts explicitly, and also control the pace of upgrades with `update_config`.
+
+#### Rename variables
+
+Review the "Input variable changes" section above and rename any of the variables you are using that were simply renamed.
+
+#### Convert optional variables to lists
+
+The biggest number of changes is in the optional variables. We used to determine whether or note a variable was set by looking at its value: `null` or the empty string was "not set" and any other value was "set". Unforutnately, Terraform does not work that way. So we now take optional variables as a list with zero or one item. If the list is empty (zero items), the variable is not set; if the list has an item, the variable is set. 
+
+For compatibility, you may want to keep your root module variables strings and then adapt them when calling the node group module. Take care that you do not just take your existing variable and put it in a list:
+
+```hcl
+# WRONG, Do not do this:
+kubernetes_version = [var.kubernetes_version]
+```
+
+If you do that and `kubernetes_version` is `null`, you will get an error. You know how you were setting the value and whether you were using `null`, `""`, or maybe both to indicate "use the default", and you have to test for that if you are not going to convert your `kubernetes_version` to `list(string)` .
+
+```hcl
+# RIGHT: Do this:
+kubernetes_version = length(compact([var.kubernetes_version])) == 0 ? [] :[var.kubernetes_version]
+```
+
+Note that this only works when you are sure `var.kubernetes_version` is supplied a value known at "plan" time. If you are writing a module where the input might be derived, you should switch your input to list format.
+
+#### Convert simple variables
+
+A couple of variables were converted just for consistency with other Cloud Posse modules. They are easy to convert.
+
+```hcl
+metadata_http_tokens_required = var.metadata_http_tokens != "optional"
+metadata_http_endpoint_enabled = var.metadata_http_endpoint != "disabled"
+```
+
+
+
+#### Convert complex varables
+
+##### `launch_template_name`
+
+The `launch_template_name` input was replaced with `launch_template_id`. This is intended to reduce confusion as launch templates can be deleted and recreated with the same name but will have different IDs. If you have the ID available, then this is an easy switch. If you do not have it available, you can use the `aws_launch_template` Data Source to get the `id` from the `name`.
+
+##### `kubernetes_taints`
+
+The structure of `kubernetes_taints` changed. It used to be a map of `<key> = <value>:<effect>`. Now it is an object. You can do the conversion like this
+
+```hcl
+new_taints = [for k, v in var.old_taints : {
+  key    = k
+  value  = split(":", v)[0]
+  effect = split(":", v)[1]
+}]
+```
+
+##### `block_device_mappings`
+
+Any variable that configured something inside a block device mapping was removed. Now you specify the full block device mapping the way you want it, and can specify multiple devices if you want to. In general you will probably want to do something like this:
+
+```hcl
+locals {
+  block_device = {
+    device_name           = "/dev/xvda"
+    volume_size           = var.disk_size
+    volume_type           = "gp2"
+    encrypted             = var.disk_encryption_enabled
+    delete_on_termination = true
+  }
+}
+
+module "node_group" {
+  ...
+  block_device_mappings = [local.block_device]
+  ...
+}
+```
+
+
 
