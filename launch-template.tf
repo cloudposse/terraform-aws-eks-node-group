@@ -37,16 +37,10 @@ locals {
 
   launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
 
-  launch_template_vpc_security_group_ids = distinct(concat(
-    (
-      local.need_remote_access_sg ?
-      concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, module.security_group.*.id) : []
-    ),
-    (
-      local.add_sgs_to_cluster_default ?
-      concat(var.security_groups, data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id) : []
-    )
-  ))
+  launch_template_vpc_security_group_ids = (
+    local.need_remote_access_sg ?
+    concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, aws_security_group.remote_access.*.id) : []
+  )
 
   # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
 }
@@ -80,7 +74,7 @@ resource "aws_launch_template" "default" {
   # Never include instance type in launch template because it is limited to just one
   # https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
   image_id = local.launch_template_ami == "" ? null : local.launch_template_ami
-  key_name = local.remote_access_enabled ? var.ec2_ssh_key : null
+  key_name = local.have_ssh_key ? var.ec2_ssh_key : null
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
