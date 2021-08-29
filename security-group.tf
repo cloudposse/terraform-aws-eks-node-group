@@ -1,38 +1,31 @@
 # https://docs.aws.amazon.com/eks/latest/APIReference/API_RemoteAccessConfig.html
 
-locals {
-  sg_name = format("%v%v%v", module.label.id, module.label.delimiter, "remoteAccess")
-}
+module "ssh_access" {
+  count   = local.need_remote_access_sg ? 1 : 0
+  source  = "cloudposse/security-group/aws"
+  version = "0.4.0"
 
-resource "aws_security_group" "remote_access" {
-  count       = local.need_remote_access_sg ? 1 : 0
-  name        = local.sg_name
-  description = "Allow SSH access to all nodes in the nodeGroup"
-  vpc_id      = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
-  tags        = merge(module.label.tags, { "Name" = local.sg_name })
-}
+  attributes = ["ssh"]
 
-resource "aws_security_group_rule" "remote_access_public_ssh" {
-  #bridgecrew:skip=BC_AWS_NETWORKING_1:Skipping `Port Security 0.0.0.0:0 to 22` check because we want to allow SSH access to all nodes in the nodeGroup
-  count       = local.need_remote_access_sg && length(var.source_security_group_ids) == 0 ? 1 : 0
-  description = "Allow SSH access to nodes from anywhere"
-  type        = "ingress"
-  protocol    = "tcp"
-  from_port   = 22
-  to_port     = 22
-  cidr_blocks = ["0.0.0.0/0"]
+  security_group_description = "Allow SSH access to nodes"
+  create_before_destroy      = true
 
-  security_group_id = join("", aws_security_group.remote_access.*.id)
-}
+  rule_matrix = [{
+    key                       = "ssh"
+    source_security_group_ids = var.ssh_access_security_group_ids
+    #bridgecrew:skip=BC_AWS_NETWORKING_1:Skipping `Port Security 0.0.0.0:0 to 22` check because we want to allow SSH access to all nodes in the nodeGroup
+    cidr_blocks = length(var.ssh_access_security_group_ids) == 0 ? ["0.0.0.0/0"] : []
+    rules = [{
+      key         = "ssh"
+      type        = "ingress"
+      protocol    = "tcp"
+      from_port   = 22
+      to_port     = 22
+      description = "Allow SSH ingress"
+    }]
+  }]
 
-resource "aws_security_group_rule" "remote_access_source_sgs_ssh" {
-  for_each    = local.need_remote_access_sg ? toset(var.source_security_group_ids) : []
-  description = "Allow SSH access to nodes from security group"
-  type        = "ingress"
-  protocol    = "tcp"
-  from_port   = 22
-  to_port     = 22
+  vpc_id = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
 
-  security_group_id        = aws_security_group.remote_access[0].id
-  source_security_group_id = each.value
+  context = module.this.context
 }
