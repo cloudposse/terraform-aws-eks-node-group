@@ -157,7 +157,7 @@ module "eks_node_group" {
 
   # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
   # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
-  depends_on            = [module.eks_cluster.kubernetes_config_map_id]
+  depends_on = [module.eks_cluster.kubernetes_config_map_id]
 
   create_before_destroy = true
 
