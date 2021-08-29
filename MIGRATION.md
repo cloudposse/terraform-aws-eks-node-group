@@ -28,13 +28,13 @@ of v0.25.0 we are making significant, breaking changes in order to bring
 this module up to current Cloud Posse standards. Code changes will likely
 be needed and node groups will likely need to be recreated. We strongly recommend
 enabling `create_before_destroy` if you have not already, as in general
-it provides a better upgrade path whenever an upgrade or change in confguration requires an node group to be replaced.
+it provides a better upgrade path whenever an upgrade or change in configuration requires a node group to be replaced.
 
 ### Terraform Version
 
-Terraform version 1.0 is out. Before that, there was Terraform version 0.15, then 0.14, then 0.13 and so on. The v0.25.0 release of this module allows you to try to use it with Terraform 0.13, but if it fails, we are not going to do anything about it. That version is old and has lots of known issues. There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to the latest Terraform version before raising any issues about this module.
+Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on. The v0.25.0 release of this module allows you to try to use it with Terraform 0.13, but if it fails, we are not going to do anything about it. That version is old and has lots of known issues. There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to the latest Terraform version before raising any issues about this module.
 
-### Behavoir changes
+### Behavior changes
 
 - Previously, EBS volumes were left with the default value of `delete_on_termination`, which is `true` for EKS AMI root volumes. Now the default EBS volume has it set to `true` explicitly.
 - Previously, the Instance Metadata Service v1 (IMDSv1) was enabled by default, which is considered a security risk. Now it is disabled by default. Set `metadata_http_tokens_required` to `false` to leave IMDSv1 enabled.
@@ -68,7 +68,7 @@ Terraform version 1.0 is out. Before that, there was Terraform version 0.15, the
 
 - `launch_template_name` replaced with `launch_template_id`. Use `data "aws_launch_template"` to get the `id` from the `name` if you need to.
 
-- `launch_template_disk_encryption_enabled` removed. Set  via `block_device_mappings`. Default mapping has value `true`. 
+- `launch_template_disk_encryption_enabled` removed. Set via `block_device_mappings`. Default mapping has value `true`. 
 
 - `launch_template_disk_encryption_kms_key_id` removed. Set  via `block_device_mappings`. Default mapping has value `null`. 
 
@@ -115,20 +115,20 @@ Review the "Input variable changes" section above and rename any of the variable
 
 #### Convert optional variables to lists
 
-The biggest number of changes is in the optional variables. We used to determine whether or note a variable was set by looking at its value: `null` or the empty string was "not set" and any other value was "set". Unforutnately, Terraform does not work that way. So we now take optional variables as a list with zero or one item. If the list is empty (zero items), the variable is not set; if the list has an item, the variable is set. 
+The biggest number of changes is in the optional variables. We used to determine whether or note a variable was set by looking at its value: `null` or the empty string was "not set" and any other value was "set". Unfortunately, Terraform does not work that way. So we now take optional variables as a list with zero or one item. If the list is empty (zero items), the variable is not set; if the list has an item, the variable is set. 
 
-For compatibility, you may want to keep your root module variables strings and then adapt them when calling the node group module. Take care that you do not just take your existing variable and put it in a list:
+For compatibility, you may want to keep your root module variables as strings and then adapt them when calling the node group module. Take care that you do not just take your existing variable and put it in a list, for example:
 
 ```hcl
 # WRONG, Do not do this:
 kubernetes_version = [var.kubernetes_version]
 ```
 
-If you do that and `kubernetes_version` is `null`, you will get an error. You know how you were setting the value and whether you were using `null`, `""`, or maybe both to indicate "use the default", and you have to test for that if you are not going to convert your `kubernetes_version` to `list(string)` .
+If you do that and `kubernetes_version` is `null`, you will get an error. You know how you were setting the value and whether you were using `null`, `""`, or maybe both to indicate "use the default", and you have to test for that if you are not going to convert your `kubernetes_version` to `list(string)`.
 
 ```hcl
 # RIGHT: Do this:
-kubernetes_version = length(compact([var.kubernetes_version])) == 0 ? [] :[var.kubernetes_version]
+kubernetes_version = length(compact([var.kubernetes_version])) == 0 ? [] : [var.kubernetes_version]
 ```
 
 Note that this only works when you are sure `var.kubernetes_version` is supplied a value known at "plan" time. If you are writing a module where the input might be derived, you should switch your input to list format.
