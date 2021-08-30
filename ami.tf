@@ -11,21 +11,14 @@ locals {
   # 1. prefix of var.ami_release_version
   # 2. var.kubernetes_version
   # 3. data.eks_cluster.this.kubernetes_version
-  need_cluster_kubernetes_version = local.enabled ? local.need_ami_id && length(compact([var.ami_release_version, var.kubernetes_version])) == 0 : false
+  need_cluster_kubernetes_version = local.enabled ? local.need_ami_id && length(concat(var.ami_release_version, var.kubernetes_version)) == 0 : false
 
   ami_kubernetes_version = local.need_ami_id ? (local.need_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version :
-    regex("^(\\d+\\.\\d+)", coalesce(var.ami_release_version, var.kubernetes_version))[0]
+    regex("^(\\d+\\.\\d+)", coalesce(try(var.ami_release_version[0], null), try(var.kubernetes_version[0], null)))[0]
   ) : ""
 
-  # Note: the expression:
-  #   length(compact([x])) > 0
-  # is a clean way to evaluate `x` and return false if x is null or an empty string.
-  # All string functions return an error when an argument is null, so the alternative
-  #   (x != null) && (x != "")
-  # length(compact([var.ami_release_version])) > 0
-  # (var.ami_release_version != null) && (var.ami_release_version != "")
-  ami_version_regex = local.need_ami_id ? (length(compact([var.ami_release_version])) > 0 ?
-    replace(var.ami_release_version, "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
+  ami_version_regex = local.need_ami_id ? (length(var.ami_release_version) == 1 ?
+    replace(var.ami_release_version[0], "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
     "${local.ami_kubernetes_version}-*"
   ) : ""
 

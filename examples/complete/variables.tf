@@ -8,9 +8,14 @@ variable "availability_zones" {
   description = "List of availability zones"
 }
 
+variable "vpc_cidr_block" {
+  type        = string
+  description = "CIDR for the VPC"
+}
+
 variable "kubernetes_version" {
   type        = string
-  default     = "1.15"
+  default     = "1.20"
   description = "Desired Kubernetes master version. If you do not specify a value, the latest available version is used"
 }
 
@@ -78,10 +83,36 @@ variable "instance_types" {
   description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
 }
 
+variable "update_config" {
+  type        = list(map(number))
+  default     = []
+  description = <<-EOT
+    Configuration for the `eks_node_group` [`update_config` Configuration Block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#update_config-configuration-block).
+    Specify exactly one of `max_unavailable` (node count) or `max_unavailable_percentage` (percentage of nodes).
+    EOT
+}
+
 variable "kubernetes_labels" {
   type        = map(string)
-  description = "Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed"
+  description = <<-EOT
+    Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument.
+    Other Kubernetes labels applied to the EKS Node Group will not be managed.
+    EOT
   default     = {}
+}
+
+variable "kubernetes_taints" {
+  type = list(object({
+    key    = string
+    value  = string
+    effect = string
+  }))
+  description = <<-EOT
+    List of `key`, `value`, `effect` objects representing Kubernetes taints.
+    `effect` must be one of `NO_SCHEDULE`, `NO_EXECUTE`, or `PREFER_NO_SCHEDULE`.
+    `key` and `effect` are required, `value` may be null.
+    EOT
+  default     = []
 }
 
 variable "desired_size" {
@@ -117,7 +148,14 @@ variable "before_cluster_joining_userdata" {
   description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
 
-variable "remote_access_enabled" {
-  type        = bool
-  description = "Whether to enable remote access to EKS node group, requires `ec2_ssh_key` to be defined."
+variable "ec2_ssh_key_name" {
+  type        = list(string)
+  default     = []
+  description = "SSH key pair name to use to access the worker nodes"
+  validation {
+    condition = (
+      length(var.ec2_ssh_key_name) < 2
+    )
+    error_message = "You may not specify more than one `ec2_ssh_key_name`."
+  }
 }

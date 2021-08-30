@@ -4,10 +4,10 @@ provider "aws" {
 
 module "label" {
   source  = "cloudposse/label/null"
-  version = "0.22.0"
+  version = "0.25.0"
 
-  # This is the preferred way to add attributes. It will put "cluster" first
-  # before any attributes set in `var.attributes` or `context.attributes`.
+  # This is the preferred way to add attributes. It will put "cluster" last
+  # after any attributes set in `var.attributes` or `context.attributes`.
   # In this case, we do not care, because we are only using this instance
   # of this module to create tags.
   attributes = ["cluster"]
@@ -27,13 +27,37 @@ locals {
   # otherwise will be used the first version of Kubernetes supported by AWS (v1.11) for EKS workers but
   # EKS control plane will use the version specified by kubernetes_version variable.
   eks_worker_ami_name_filter = "amazon-eks-node-${var.kubernetes_version}*"
+
+  allow_all_ingress_rule = {
+    key              = "allow_all_ingress"
+    type             = "ingress"
+    from_port        = 0
+    to_port          = 0 # [sic] from and to port ignored when protocol is "-1", warning if not zero
+    protocol         = "-1"
+    description      = "Allow all ingress"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  allow_http_ingress_rule = {
+    key              = "http"
+    type             = "ingress"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    description      = "Allow HTTP ingress"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  extra_policy_arn = "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"
 }
 
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.17.0"
+  version = "0.25.0"
 
-  cidr_block = "172.16.0.0/16"
+  cidr_block = var.vpc_cidr_block
   tags       = local.tags
 
   context = module.this.context
@@ -41,7 +65,7 @@ module "vpc" {
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.28.0"
+  version = "0.39.4"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -54,19 +78,43 @@ module "subnets" {
   context = module.this.context
 }
 
-module "ssh_key_pair" {
-  source  = "cloudposse/key-pair/aws"
-  version = "0.18.0"
+module "ssh_source_access" {
+  source  = "cloudposse/security-group/aws"
+  version = "0.4.0"
 
-  ssh_public_key_path = "./"
-  generate_ssh_key    = "true"
+  attributes                 = ["ssh", "source"]
+  security_group_description = "Test source security group ssh access only"
+  create_before_destroy      = true
+  allow_all_egress           = true
 
-  context = module.this.context
+  rules = [local.allow_all_ingress_rule]
+  # rules_map = { ssh_source = [local.allow_all_ingress_rule] }
+
+  vpc_id = module.vpc.vpc_id
+
+  context = module.label.context
 }
+
+module "https_sg" {
+  source  = "cloudposse/security-group/aws"
+  version = "0.4.0"
+
+  attributes                 = ["http"]
+  security_group_description = "Allow http access"
+  create_before_destroy      = true
+  allow_all_egress           = true
+
+  rules = [local.allow_http_ingress_rule]
+
+  vpc_id = module.vpc.vpc_id
+
+  context = module.label.context
+}
+
 
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
-  version = "0.28.0"
+  version = "0.43.2"
 
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
@@ -77,43 +125,45 @@ module "eks_cluster" {
   enabled_cluster_log_types    = var.enabled_cluster_log_types
   cluster_log_retention_period = var.cluster_log_retention_period
 
-  context = module.this.context
-}
+  # data auth has problems destroying the auth-map
+  kube_data_auth_enabled = false
+  kube_exec_auth_enabled = true
 
-# Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
-# Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
-# Otherwise, EKS will create the ConfigMap first and add the managed node role ARNs to it,
-# and the kubernetes provider will throw an error that the ConfigMap already exists (because it can't update the map, only create it).
-# If we create the ConfigMap first (to add additional roles/users/accounts), EKS will just update it by adding the managed node role ARNs.
-data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
-  inputs = {
-    cluster_name             = module.eks_cluster.eks_cluster_id
-    kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
-    ec2_ssh_key              = module.ssh_key_pair.key_name
-  }
+  context = module.this.context
 }
 
 module "eks_node_group" {
   source = "../../"
 
-  subnet_ids                      = module.subnets.public_subnet_ids
-  cluster_name                    = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
-  instance_types                  = var.instance_types
-  desired_size                    = var.desired_size
-  min_size                        = var.min_size
-  max_size                        = var.max_size
-  kubernetes_version              = var.kubernetes_version
-  kubernetes_labels               = var.kubernetes_labels
-  disk_size                       = var.disk_size
-  ec2_ssh_key                     = module.ssh_key_pair.key_name
-  remote_access_enabled           = var.remote_access_enabled
-  before_cluster_joining_userdata = var.before_cluster_joining_userdata
+  subnet_ids         = module.subnets.public_subnet_ids
+  cluster_name       = module.eks_cluster.eks_cluster_id
+  instance_types     = var.instance_types
+  desired_size       = var.desired_size
+  min_size           = var.min_size
+  max_size           = var.max_size
+  kubernetes_version = [var.kubernetes_version]
+  kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
+  kubernetes_taints  = var.kubernetes_taints
+  # disk_size          = var.disk_size
+  ec2_ssh_key_name              = var.ec2_ssh_key_name
+  ssh_access_security_group_ids = [module.ssh_source_access.id]
+  associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
+  node_role_policy_arns         = [local.extra_policy_arn]
+  update_config                 = var.update_config
+
+  before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
   context = module.this.context
 
-  depends_on = [
-    module.ssh_key_pair,
-    module.eks_cluster,
-    data.null_data_source.wait_for_cluster_and_kubernetes_configmap
-  ]
+  # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
+  # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
+  depends_on = [module.eks_cluster.kubernetes_config_map_id]
+
+  create_before_destroy = true
+
+  node_group_terraform_timeouts = [{
+    create = "40m"
+    update = null
+    delete = "20m"
+  }]
 }

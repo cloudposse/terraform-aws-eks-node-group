@@ -29,16 +29,11 @@ output "eks_node_group_status" {
 }
 
 output "eks_node_group_remote_access_security_group_id" {
-  description = "ID of the EKS cluster Security Group for remote access to EKS Node Group"
-  value       = module.security_group.id
+  description = "The ID of the security group generated to allow SSH access to the nodes, if this module generated one"
+  value       = join("", module.ssh_access.*.id)
 }
 
-output "eks_node_group_remote_access_security_group_arn" {
-  description = "ARN of the EKS cluster Security Group for remote access to EKS Node Group"
-  value       = module.security_group.arn
-}
-
-output "eks_node_group_remote_access_security_group_name" {
-  description = "Name of the EKS cluster Security Group for remote access to EKS Node Group"
-  value       = module.security_group.name
+output "eks_node_group_cbd_pet_name" {
+  description = "The pet name of this node group, if this module generated one"
+  value       = join("", random_pet.cbd.*.id)
 }

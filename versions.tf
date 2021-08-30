@@ -1,10 +1,12 @@
 terraform {
-  required_version = ">= 0.13.3"
+  required_version = ">= 0.14.11"
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 3.0"
+      source = "hashicorp/aws"
+      # retrieve launch template by ID starts at 3.21.0
+      # update_config starts at 3.56
+      version = ">= 3.56"
     }
     template = {
       source  = "hashicorp/template"

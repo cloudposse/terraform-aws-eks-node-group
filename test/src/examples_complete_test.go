@@ -108,8 +108,10 @@ func TestExamplesComplete(t *testing.T) {
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupId := terraform.Output(t, terraformOptions, "eks_node_group_id")
+	eksNodeGroupCbdPetName := terraform.Output(t, terraformOptions, "eks_node_group_cbd_pet_name")
+	expectedEksNodeGroupId := "eg-test-eks-node-group-"+randId+"-cluster:eg-test-eks-node-group-"+randId+"-workers-"+eksNodeGroupCbdPetName
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-cluster:eg-test-eks-node-group-"+randId+"-workers", eksNodeGroupId)
+	assert.Equal(t, expectedEksNodeGroupId, eksNodeGroupId)
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupRoleName := terraform.Output(t, terraformOptions, "eks_node_group_role_name")
@@ -120,21 +122,6 @@ func TestExamplesComplete(t *testing.T) {
 	eksNodeGroupStatus := terraform.Output(t, terraformOptions, "eks_node_group_status")
 	// Verify we're getting back the outputs we expect
 	assert.Equal(t, "ACTIVE", eksNodeGroupStatus)
-
-	// Run `terraform output` to get the value of an output variable
-	eksNodeGroupSecurityGroupName := terraform.Output(t, terraformOptions, "eks_node_group_security_group_name")
-	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-workers-remote-access", eksNodeGroupSecurityGroupName)
-
-	// Run `terraform output` to get the value of an output variable
-	eksNodeGroupSecurityGroupID := terraform.Output(t, terraformOptions, "eks_node_group_security_group_id")
-	// Verify we're getting back the outputs we expect
-	assert.Contains(t, eksNodeGroupSecurityGroupID, "sg-", "SG ID should contains substring 'sg-'")
-
-	// Run `terraform output` to get the value of an output variable
-	eksNodeGroupSecurityGroupARN := terraform.Output(t, terraformOptions, "eks_node_group_security_group_arn")
-	// Verify we're getting back the outputs we expect
-	assert.Contains(t, eksNodeGroupSecurityGroupARN, "arn:aws:ec2", "SG ID should contains substring 'arn:aws:ec2'")
 
 	// Wait for the worker nodes to join the cluster
 	// https://github.com/kubernetes/client-go

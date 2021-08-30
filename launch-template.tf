@@ -21,56 +21,52 @@ locals {
   # is the same as
   #   x != null && x != "" && y != null && y != ""
 
-  configured_launch_template_name    = var.launch_template_name == null ? "" : var.launch_template_name
-  configured_launch_template_version = length(local.configured_launch_template_name) > 0 && length(compact([var.launch_template_version])) > 0 ? var.launch_template_version : ""
+  # We now always use a launch template. The only question is whether or not we generate one.
+  launch_template_configured = length(var.launch_template_id) == 1
+  generate_launch_template   = local.enabled && local.launch_template_configured == false
+  fetch_launch_template      = local.enabled && local.launch_template_configured
 
-  generate_launch_template = local.enabled ? local.features_require_launch_template && length(local.configured_launch_template_name) == 0 : false
-  use_launch_template      = local.enabled ? local.features_require_launch_template || length(local.configured_launch_template_name) > 0 : false
+  launch_template_id = local.enabled ? (local.fetch_launch_template ? var.launch_template_id[0] : aws_launch_template.default[0].id) : ""
+  launch_template_version = local.enabled ? (length(var.launch_template_version) == 1 ? var.launch_template_version[0] : (
+    local.fetch_launch_template ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
+  )) : null
 
-  launch_template_id = local.use_launch_template ? (length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].id : aws_launch_template.default[0].id) : ""
-  launch_template_version = local.use_launch_template ? (
-    length(local.configured_launch_template_version) > 0 ? local.configured_launch_template_version :
-    (
-      length(local.configured_launch_template_name) > 0 ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
-    )
-  ) : ""
+  launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : var.ami_image_id[0]
 
-  launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
-
-  launch_template_vpc_security_group_ids = distinct(concat(
-    (
-      local.need_remote_access_sg ?
-      concat(data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id, module.security_group.*.id) : []
-    ),
-    (
-      local.add_sgs_to_cluster_default ?
-      concat(var.security_groups, data.aws_eks_cluster.this[0].vpc_config[*].cluster_security_group_id) : []
-    )
-  ))
-
-  # launch_template_key = join(":", coalescelist(local.launch_template_vpc_security_group_ids, ["closed"]))
+  launch_template_vpc_security_group_ids = sort(compact(concat(
+    data.aws_eks_cluster.this[*].vpc_config[0].cluster_security_group_id,
+    module.ssh_access[*].id,
+    var.associated_security_group_ids
+  )))
 }
 
 resource "aws_launch_template" "default" {
-  # We'll use this default if we aren't provided with a launch template during invocation
-  # We need to generate a new launch template every time the security group list changes
+  # We'll use this default if we aren't provided with a launch template during invocation.
+  # We would like to generate a new launch template every time the security group list changes
   # so that we can detach the network interfaces from the security groups that we no
-  # longer need, so that the security groups can then be deleted.
+  # longer need, so that the security groups can then be deleted, but we cannot guarantee
+  # that because the security group IDs are not available at plan time. So instead
+  # we have to rely on `create_before_destroy` and `depends_on` to arrange things properly.
 
-  # As a workaround for https://github.com/hashicorp/terraform/issues/26166 we
-  # always create a launch template. Commented out code will be restored when the bug is fixed.
-  count = local.enabled ? 1 : 0
-  #count = (local.enabled && local.generate_launch_template) ? 1 : 0
-  #for_each = (local.enabled && local.generate_launch_template) ? toset([local.launch_template_key]) : toset([])
+  count = local.generate_launch_template ? 1 : 0
 
-  block_device_mappings {
-    device_name = "/dev/xvda"
+  dynamic "block_device_mappings" {
+    for_each = var.block_device_mappings
 
-    ebs {
-      volume_size = var.disk_size
-      volume_type = var.disk_type
-      kms_key_id  = var.launch_template_disk_encryption_enabled && length(var.launch_template_disk_encryption_kms_key_id) > 0 ? var.launch_template_disk_encryption_kms_key_id : null
-      encrypted   = var.launch_template_disk_encryption_enabled
+    content {
+      device_name = block_device_mappings.value.device_name
+
+      ebs {
+
+        delete_on_termination = lookup(block_device_mappings.value, "delete_on_termination", null)
+        encrypted             = lookup(block_device_mappings.value, "encrypted", null)
+        iops                  = lookup(block_device_mappings.value, "iops", null)
+        kms_key_id            = lookup(block_device_mappings.value, "kms_key_id", null)
+        snapshot_id           = lookup(block_device_mappings.value, "snapshot_id", null)
+        throughput            = lookup(block_device_mappings.value, "throughput", null)
+        volume_size           = lookup(block_device_mappings.value, "volume_size", null)
+        volume_type           = lookup(block_device_mappings.value, "volume_type", null)
+      }
     }
   }
 
@@ -80,7 +76,7 @@ resource "aws_launch_template" "default" {
   # Never include instance type in launch template because it is limited to just one
   # https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
   image_id = local.launch_template_ami == "" ? null : local.launch_template_ami
-  key_name = local.remote_access_enabled ? var.ec2_ssh_key : null
+  key_name = local.ec2_ssh_key_name
 
   dynamic "tag_specifications" {
     for_each = var.resources_to_tag
@@ -94,23 +90,47 @@ resource "aws_launch_template" "default" {
   # and https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html
   # Note in particular:
   #     If any containers that you deploy to the node group use the Instance Metadata Service Version 2,
-  #     then make sure to set the Metadata response hop limit to 2 in your launch template.
+  #     then make sure to set the Metadata response hop limit to at least 2 in your launch template.
   metadata_options {
     # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
     # We set it to the default setting of "enabled".
 
-    http_endpoint               = var.metadata_http_endpoint
+    http_endpoint               = var.metadata_http_endpoint_enabled ? "enabled" : "disabled"
     http_put_response_hop_limit = var.metadata_http_put_response_hop_limit
-    http_tokens                 = var.metadata_http_tokens
+    http_tokens                 = var.metadata_http_tokens_required ? "required" : "optional"
   }
 
   vpc_security_group_ids = local.launch_template_vpc_security_group_ids
   user_data              = local.userdata
   tags                   = local.node_group_tags
+
+  dynamic "placement" {
+    for_each = var.placement
+
+    content {
+      affinity                = lookup(placement.value, "affinity", null)
+      availability_zone       = lookup(placement.value, "availability_zone", null)
+      group_name              = lookup(placement.value, "group_name", null)
+      host_id                 = lookup(placement.value, "host_id", null)
+      host_resource_group_arn = lookup(placement.value, "host_resource_group_arn", null)
+      spread_domain           = lookup(placement.value, "spread_domain", null)
+      tenancy                 = lookup(placement.value, "tenancy", null)
+      partition_number        = lookup(placement.value, "partition_number", null)
+    }
+  }
+
+  dynamic "enclave_options" {
+    for_each = var.enclave_enabled ? ["true"] : []
+
+    content {
+      enabled = true
+    }
+  }
+
 }
 
 data "aws_launch_template" "this" {
-  count = local.enabled && length(local.configured_launch_template_name) > 0 ? 1 : 0
+  count = local.fetch_launch_template ? 1 : 0
 
-  name = local.configured_launch_template_name
+  id = var.launch_template_id[0]
 }

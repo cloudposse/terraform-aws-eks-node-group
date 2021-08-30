@@ -10,7 +10,7 @@ stage = "test"
 
 name = "eks-node-group"
 
-kubernetes_version = "1.17"
+kubernetes_version = "1.19"
 
 oidc_provider_enabled = true
 
@@ -28,10 +28,19 @@ min_size = 2
 
 disk_size = 20
 
-kubernetes_labels = {}
+kubernetes_labels = {
+  terratest = "true"
+}
 
 before_cluster_joining_userdata = <<-EOT
   printf "\n\n###\nExample output from before_cluster_joining_userdata\n###\n\n"
   EOT
 
-remote_access_enabled = true
+update_config = [{ max_unavailable = 2 }]
+
+kubernetes_taints = [
+  {
+    key    = "test"
+    value  = null
+    effect = "PREFER_NO_SCHEDULE"
+}]
