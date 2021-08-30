@@ -116,8 +116,7 @@ For automated tests of the complete example using [bats](https://github.com/bats
 ### Terraform Version
 
 Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on.
-The v0.25.0 release of this module allows you to try to use it with Terraform 0.13,
-but if it fails, we are not going to do anything about it. That version is old and has lots of known issues.
+The v0.25.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
 There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to
 the latest Terraform version before raising any issues about this module.
 
@@ -248,7 +247,7 @@ Available targets:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.3 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.11 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.56 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 1.3 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 2.0 |

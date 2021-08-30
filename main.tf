@@ -104,7 +104,7 @@ resource "random_pet" "cbd" {
 # WARNING TO MAINTAINERS: both node groups should be kept exactly in sync
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "default" {
-  count           = local.enabled && ! var.create_before_destroy ? 1 : 0
+  count           = local.enabled && !var.create_before_destroy ? 1 : 0
   node_group_name = module.label.id
 
   lifecycle {

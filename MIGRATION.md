@@ -32,7 +32,10 @@ it provides a better upgrade path whenever an upgrade or change in configuration
 
 ### Terraform Version
 
-Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on. The v0.25.0 release of this module allows you to try to use it with Terraform 0.13, but if it fails, we are not going to do anything about it. That version is old and has lots of known issues. There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to the latest Terraform version before raising any issues about this module.
+Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on.
+The v0.25.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
+There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to
+the latest Terraform version before raising any issues about this module.
 
 ### Behavior changes
 
