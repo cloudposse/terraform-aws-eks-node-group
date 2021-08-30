@@ -155,8 +155,8 @@ variable "block_device_mappings" {
   type        = list(any)
   description = <<-EOT
     List of block device mappings for the launch template.
-    Each list element is an object with a `device_name` key and any keys
-    supported by the `ebs` block of `launch_template`.
+    Each list element is an object with a `device_name` key and
+    any keys supported by the `ebs` block of `launch_template`.
     EOT
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#ebs
   default = [{
@@ -262,7 +262,7 @@ variable "module_depends_on" {
 variable "launch_template_id" {
   type        = list(string)
   default     = []
-  description = "The ID (not ID) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image id."
+  description = "The ID (not name) of a custom launch template to use for the EKS node group. If provided, it must specify the AMI image ID."
   validation {
     condition = (
       length(var.launch_template_id) < 2
@@ -384,7 +384,7 @@ variable "placement" {
   description = <<-EOT
     Configuration for the [`placement` Configuration Block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#placement) of the launch template.
     Leave list empty for defaults. Pass list with single object with attributes matching the `placement` block to configure it.
-    Note this this configures the launch template only. Some elements will be ignored by the Auto Scaling Group
+    Note that this configures the launch template only. Some elements will be ignored by the Auto Scaling Group
     that actually launches instances. Consult AWS documentation for details.
     EOT
 }

@@ -31,7 +31,6 @@ locals {
     local.fetch_launch_template ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
   )) : null
 
-
   launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : var.ami_image_id[0]
 
   launch_template_vpc_security_group_ids = sort(compact(concat(
@@ -47,7 +46,7 @@ resource "aws_launch_template" "default" {
   # so that we can detach the network interfaces from the security groups that we no
   # longer need, so that the security groups can then be deleted, but we cannot guarantee
   # that because the security group IDs are not available at plan time. So instead
-  # we have to rely on `create_before_delete` and `depends_on` to arrange things properly.
+  # we have to rely on `create_before_destroy` and `depends_on` to arrange things properly.
 
   count = local.generate_launch_template ? 1 : 0
 
