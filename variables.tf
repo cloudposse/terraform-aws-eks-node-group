@@ -123,6 +123,12 @@ variable "ami_type" {
   }
 }
 
+variable "custom_ami_regex" {
+  type        = string
+  description = "The regular expression to match a custom EKS AMI"
+  default     = null
+}
+
 variable "instance_types" {
   type        = list(string)
   default     = ["t3.medium"]

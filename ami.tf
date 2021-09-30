@@ -22,7 +22,10 @@ locals {
     "${local.ami_kubernetes_version}-*"
   ) : ""
 
-  ami_regex = local.need_ami_id ? format("amazon-eks%s-node-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  ami_regex = local.need_ami_id ? (var.custom_ami_regex != null ?
+    var.custom_ami_regex :
+    format("amazon-eks%s-node-%s", local.arch_label_map[var.ami_type], local.ami_version_regex)
+  ) : ""
 }
 
 data "aws_ami" "selected" {
