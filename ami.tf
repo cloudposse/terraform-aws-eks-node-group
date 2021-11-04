@@ -29,7 +29,7 @@ data "aws_ami" "selected" {
   count = local.enabled && local.need_ami_id ? 1 : 0
 
   most_recent = true
-  name_regex  = coalesce(var.ami_name_regex, local.ami_regex)
+  name_regex  = coalesce(one(var.ami_name_regex), local.ami_regex)
 
   owners = ["amazon"]
 }
