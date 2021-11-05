@@ -28,8 +28,8 @@ locals {
 
   ami_kubernetes_version = local.need_ami_id ? {
     "AL2" : (local.need_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version :
-    regex("^(\\d+\\.\\d+)", coalesce(try(var.ami_release_version[0], null), try(var.kubernetes_version[0], null)))[0]
-  ),
+      regex("^(\\d+\\.\\d+)", coalesce(try(var.ami_release_version[0], null), try(var.kubernetes_version[0], null)))[0]
+    ),
     "BOTTLEROCKET" : var.kubernetes_version[0],
   } : {}
 
@@ -45,7 +45,7 @@ locals {
     #   prefex the ami release version with the letter v
     # if not, use an asterisk
     "BOTTLEROCKET" : (length(var.ami_release_version) == 1 ?
-      format("v%s", var.ami_release_version[0]) : "*"),
+    format("v%s", var.ami_release_version[0]) : "*"),
   } : {}
 
   ami_regex = local.need_ami_id ? {
