@@ -8,7 +8,7 @@ locals {
     "BOTTLEROCKET_x86_64" : "x86_64"
     "BOTTLEROCKET_ARM_64" : "aarch64"
   }
-  
+
   ami_format = {
     # amazon-eks{arch_label}-node-{ami_kubernetes_version}-v{ami_version}
     # e.g. amazon-eks-arm64-node-1.21-v20211013
@@ -17,7 +17,7 @@ locals {
     # e.g. bottlerocket-aws-k8s-1.21-x86_64-v1.3.0
     "BOTTLETROCKET" : "bottlerocket-aws-k8s-%s-%s"
   }
-  
+
   ami_type_kind = split("_", var.ami_type)[0]
 
   # Kubernetes version priority (first one to be set wins)
