@@ -5,7 +5,20 @@ locals {
     "AL2_x86_64" : "",
     "AL2_x86_64_GPU" : "-gpu",
     "AL2_ARM_64" : "-arm64",
+    "BOTTLEROCKET_x86_64" : "x86_64"
+    "BOTTLEROCKET_ARM_64" : "aarch64"
   }
+  
+  ami_format = {
+    # amazon-eks{arch_label}-node-{ami_kubernetes_version}-v{ami_version}
+    # e.g. amazon-eks-arm64-node-1.21-v20211013
+    "AL2" : "amazon-eks%s-node-%s-%s"
+    # bottlerocket-aws-k8s-{ami_kubernetes_version}-{arch_label}-v{ami_version}
+    # e.g. bottlerocket-aws-k8s-1.21-x86_64-v1.3.0
+    "BOTTLETROCKET" : "bottlerocket-aws-k8s-%s-%s"
+  }
+  
+  ami_type_kind = split("_", var.ami_type)[0]
 
   # Kubernetes version priority (first one to be set wins)
   # 1. prefix of var.ami_release_version
@@ -22,7 +35,7 @@ locals {
     "${local.ami_kubernetes_version}-*"
   ) : ""
 
-  ami_regex = local.need_ami_id ? format("amazon-eks%s-node-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  ami_regex = local.need_ami_id ? format(local.ami_format[local.ami_type_kind], local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
 }
 
 data "aws_ami" "selected" {
