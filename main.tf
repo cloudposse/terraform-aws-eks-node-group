@@ -11,7 +11,7 @@ locals {
 
   need_remote_access_sg = local.enabled && local.have_ssh_key && local.generate_launch_template
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg || length(var.associated_security_group_ids) > 0) : false
+  get_cluster_data = local.enabled ? (local.use_cluster_kubernetes_version || local.need_bootstrap || local.need_remote_access_sg || length(var.associated_security_group_ids) > 0) : false
 
   autoscaler_enabled = var.cluster_autoscaler_enabled
   #
