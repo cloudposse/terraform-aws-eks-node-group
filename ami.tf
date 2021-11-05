@@ -18,7 +18,7 @@ locals {
     "BOTTLEROCKET" : "bottlerocket-aws-k8s-%s-%s-%s"
   }
 
-  ami_type_kind = split("_", var.ami_type)[0]
+  ami_kind = split("_", var.ami_type)[0]
 
   # Kubernetes version priority (first one to be set wins)
   # 1. prefix of var.ami_release_version
@@ -40,7 +40,7 @@ locals {
     # if not, use the kubernetes version
     "AL2" : (length(var.ami_release_version) == 1 ?
       replace(var.ami_release_version[0], "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
-    "${local.ami_kubernetes_version[local.ami_type_kind]}-*"),
+    "${local.ami_kubernetes_version[local.ami_kind]}-*"),
     # if ami_release_version = "1.2.0-ccf1b754"
     #   prefex the ami release version with the letter v
     # if not, use an asterisk
@@ -49,8 +49,8 @@ locals {
   } : {}
 
   ami_regex = local.need_ami_id ? {
-    "AL2" : format(local.ami_format["AL2"], local.arch_label_map[var.ami_type], local.ami_version_regex[local.ami_type_kind]),
-    "BOTTLEROCKET" : format(local.ami_format["BOTTLEROCKET"], local.ami_kubernetes_version[local.ami_type_kind], local.arch_label_map[var.ami_type], local.ami_version_regex[local.ami_type_kind]),
+    "AL2" : format(local.ami_format["AL2"], local.arch_label_map[var.ami_type], local.ami_version_regex[local.ami_kind]),
+    "BOTTLEROCKET" : format(local.ami_format["BOTTLEROCKET"], local.ami_kubernetes_version[local.ami_kind], local.arch_label_map[var.ami_type], local.ami_version_regex[local.ami_kind]),
   } : {}
 }
 
@@ -58,7 +58,7 @@ data "aws_ami" "selected" {
   count = local.enabled && local.need_ami_id ? 1 : 0
 
   most_recent = true
-  name_regex  = local.ami_regex[local.ami_type_kind]
+  name_regex  = local.ami_regex[local.ami_kind]
 
   owners = ["amazon"]
 }
