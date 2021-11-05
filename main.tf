@@ -56,7 +56,7 @@ data "aws_eks_cluster" "this" {
 locals {
   ng = {
     cluster_name  = var.cluster_name
-    node_role_arn = local.create_role ? join("", aws_iam_role.default.*.arn) : var.node_role_arn[0]
+    node_role_arn = local.create_role ? join("", aws_iam_role.default.*.arn) : try(var.node_role_arn[0], null)
     # Keep sorted so that change in order does not trigger replacement via random_pet
     subnet_ids = sort(var.subnet_ids)
     # Always supply instance types via the node group, not the launch template,
