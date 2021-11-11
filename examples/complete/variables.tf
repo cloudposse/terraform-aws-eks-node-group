@@ -159,3 +159,42 @@ variable "ec2_ssh_key_name" {
     error_message = "You may not specify more than one `ec2_ssh_key_name`."
   }
 }
+
+variable "ami_type" {
+  type        = string
+  description = <<-EOT
+    Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
+    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, `BOTTLEROCKET_x86_64`, and `BOTTLEROCKET_ARM_64`.
+    EOT
+  default     = "AL2_x86_64"
+  validation {
+    condition = (
+      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64"], var.ami_type)
+    )
+    error_message = "Var ami_type must be one of \"AL2_x86_64\", \"AL2_x86_64_GPU\", \"AL2_ARM_64\", \"BOTTLEROCKET_x86_64\", and \"BOTTLEROCKET_ARM_64\"."
+  }
+}
+
+variable "ami_release_version" {
+  type        = list(string)
+  default     = []
+  description = "EKS AMI version to use, e.g. \"1.16.13-20200821\" (no \"v\"). Defaults to latest version for Kubernetes version."
+  validation {
+    condition = (
+      length(var.ami_release_version) == 0 ? true : length(regexall("^\\d+\\.\\d+\\.\\d+-[\\da-z]+$", var.ami_release_version[0])) == 1
+    )
+    error_message = "Var ami_release_version, if supplied, must be like  \"1.16.13-20200821\" (no \"v\")."
+  }
+}
+
+variable "after_cluster_joining_userdata" {
+  type        = list(string)
+  default     = []
+  description = "Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+  validation {
+    condition = (
+      length(var.after_cluster_joining_userdata) < 2
+    )
+    error_message = "You may not specify more than one `after_cluster_joining_userdata`."
+  }
+}

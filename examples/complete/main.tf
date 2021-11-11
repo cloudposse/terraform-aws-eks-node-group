@@ -151,6 +151,11 @@ module "eks_node_group" {
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
+  after_cluster_joining_userdata = var.after_cluster_joining_userdata
+
+  ami_type            = var.ami_type
+  ami_release_version = var.ami_release_version
+
   before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
   context = module.this.context
