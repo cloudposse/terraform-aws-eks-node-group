@@ -111,7 +111,8 @@ document for details.
 
 For a complete example, see [examples/complete](examples/complete).
 
-For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS), see [test](test).
+For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS), 
+see [test](test).
 
 ### Terraform Version
 
@@ -122,9 +123,9 @@ the latest Terraform version before raising any issues about this module.
 
 ### Sources of Information
 
-- This code examples below are manually updated and have a tendency to fall out of sync with actual clode,
+- The code examples below are manually updated and have a tendency to fall out of sync with actual code,
 particularly with respect to usage of other modules. Do not rely on them.
-- The documentation on this page about this module's inputs, output, and compliance is all automatically
+- The documentation on this page about this module's inputs, outputs, and compliance is all automatically
 generated and is up-to-date as of the release date. After the code itself, this is your best source of information.
 - The code in [examples/complete](examples/complete) is automatically tested before every release,
 so that is a good place to look for verified example code. Keep in mind, however, it is code for testing, so
@@ -212,7 +213,6 @@ module "eks_node_group" {
   cluster_name          = module.eks_cluster.eks_cluster_id
   create_before_destroy = true
   kubernetes_version    = var.kubernetes_version == null || var.kubernetes_version == "" ? [] : [var.kubernetes_version]
-
 
   # Enable the Kubernetes cluster auto-scaler to find the auto-scaling group
   cluster_autoscaler_enabled = var.autoscaling_policies_enabled
