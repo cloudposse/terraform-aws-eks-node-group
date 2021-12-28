@@ -167,11 +167,11 @@ The structure of `kubernetes_taints` changed. It used to be a map of `<key> = <v
 
 ```hcl
 new_taints = [
-for k, v in var.old_taints : {
-  key    = k
-  value  = split(":", v)[0]
-  effect = split(":", v)[1]
-}
+  for k, v in var.old_taints : {
+    key    = k
+    value  = split(":", v)[0]
+    effect = split(":", v)[1]
+  }
 ]
 ```
 
