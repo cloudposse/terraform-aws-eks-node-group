@@ -3,7 +3,7 @@
 module "ssh_access" {
   count   = local.need_remote_access_sg ? 1 : 0
   source  = "cloudposse/security-group/aws"
-  version = "0.4.2"
+  version = "0.4.3"
 
   attributes = ["ssh"]
 
