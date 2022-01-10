@@ -28,7 +28,7 @@
 
 -->
 
-Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
+Terraform module to provision an EKS Node Group for [Elastic Kubernetes Service for Kubernetes](https://aws.amazon.com/eks/).
 
 Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
 
