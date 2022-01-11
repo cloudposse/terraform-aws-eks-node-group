@@ -25,7 +25,6 @@ locals {
   launch_template_configured = length(var.launch_template_id) == 1
   generate_launch_template   = local.enabled && local.launch_template_configured == false
   fetch_launch_template      = local.enabled && local.launch_template_configured
-  #ebs_optimized              = local.enabled && local.launch_template_configured
 
   launch_template_id = local.enabled ? (local.fetch_launch_template ? var.launch_template_id[0] : aws_launch_template.default[0].id) : ""
   launch_template_version = local.enabled ? (length(var.launch_template_version) == 1 ? var.launch_template_version[0] : (
@@ -51,7 +50,7 @@ resource "aws_launch_template" "default" {
 
   count = local.generate_launch_template ? 1 : 0
 
-  ebs_optimized = var.ebs_optimized ? true : false
+  ebs_optimized = var.ebs_optimized
 
   dynamic "block_device_mappings" {
     for_each = var.block_device_mappings
