@@ -360,6 +360,7 @@ Available targets:
 | <a name="output_eks_node_group_role_arn"></a> [eks\_node\_group\_role\_arn](#output\_eks\_node\_group\_role\_arn) | ARN of the worker nodes IAM role |
 | <a name="output_eks_node_group_role_name"></a> [eks\_node\_group\_role\_name](#output\_eks\_node\_group\_role\_name) | Name of the worker nodes IAM role |
 | <a name="output_eks_node_group_status"></a> [eks\_node\_group\_status](#output\_eks\_node\_group\_status) | Status of the EKS Node Group |
+| <a name="output_eks_worker_launch_template_name"></a> [eks\_worker\_launch\_template\_name](#output\_eks\_worker\_launch\_template\_name) | The launch template name provided or created for the worker nodes |
 <!-- markdownlint-restore -->
 
 
