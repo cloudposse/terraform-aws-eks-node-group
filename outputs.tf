@@ -40,5 +40,5 @@ output "eks_node_group_cbd_pet_name" {
 
 output "eks_worker_launch_template_name" {
   description = "The launch template name provided or created for the worker nodes"
-  value       = local.fetch_launch_template ? data.aws_launch_template.this.name : aws_launch_template.default.name
+  value       = local.enabled ? (local.fetch_launch_template ? data.aws_launch_template.this[0].name : aws_launch_template.default[0].name) : ""
 }
