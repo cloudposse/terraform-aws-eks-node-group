@@ -258,6 +258,12 @@ variable "module_depends_on" {
   description = "Can be any value desired. Module will wait for this value to be computed before creating node group."
 }
 
+variable "ebs_optimized" {
+  type        = bool
+  default     = false
+  description = "Whether or not to launch instances with EBS optimization. Default is `false`"
+}
+
 variable "launch_template_id" {
   type        = list(string)
   default     = []

@@ -50,6 +50,8 @@ resource "aws_launch_template" "default" {
 
   count = local.generate_launch_template ? 1 : 0
 
+  ebs_optimized = var.ebs_optimized
+
   dynamic "block_device_mappings" {
     for_each = var.block_device_mappings
 
