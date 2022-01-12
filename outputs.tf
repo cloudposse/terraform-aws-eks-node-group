@@ -37,3 +37,8 @@ output "eks_node_group_cbd_pet_name" {
   description = "The pet name of this node group, if this module generated one"
   value       = join("", random_pet.cbd.*.id)
 }
+
+output "eks_worker_launch_template_name"
+  description = "The launch template name created for the worker nodes, if this module generated one"
+  value       = join("", aws_launch_template.*.name)
+}
