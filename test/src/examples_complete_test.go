@@ -108,8 +108,10 @@ func TestExamplesComplete(t *testing.T) {
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupId := terraform.Output(t, terraformOptions, "eks_node_group_id")
+	eksNodeGroupCbdPetName := terraform.Output(t, terraformOptions, "eks_node_group_cbd_pet_name")
+	expectedEksNodeGroupId := "eg-test-eks-node-group-"+randId+"-cluster:eg-test-eks-node-group-"+randId+"-workers-"+eksNodeGroupCbdPetName
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-eks-node-group-"+randId+"-cluster:eg-test-eks-node-group-"+randId+"-workers", eksNodeGroupId)
+	assert.Equal(t, expectedEksNodeGroupId, eksNodeGroupId)
 
 	// Run `terraform output` to get the value of an output variable
 	eksNodeGroupRoleName := terraform.Output(t, terraformOptions, "eks_node_group_role_name")

@@ -16,22 +16,14 @@
 #
 
 locals {
-  kubelet_label_settings = [for k, v in var.kubernetes_labels : format("%v=%v", k, v)]
-  kubelet_taint_settings = [for k, v in var.kubernetes_taints : format("%v=%v", k, v)]
-  kubelet_label_args = (length(local.kubelet_label_settings) == 0 ? "" :
-    "--node-labels=${join(",", local.kubelet_label_settings)}"
-  )
-  kubelet_taint_args = (length(local.kubelet_taint_settings) == 0 ? "" :
-    "--register-with-taints=${join(",", local.kubelet_taint_settings)}"
-  )
 
-  kubelet_extra_args = join(" ", compact([local.kubelet_label_args, local.kubelet_taint_args, var.kubelet_additional_options]))
+  kubelet_extra_args = join(" ", var.kubelet_additional_options)
 
   userdata_vars = {
-    before_cluster_joining_userdata = var.before_cluster_joining_userdata == null ? "" : var.before_cluster_joining_userdata
+    before_cluster_joining_userdata = length(var.before_cluster_joining_userdata) == 0 ? "" : var.before_cluster_joining_userdata[0]
     kubelet_extra_args              = local.kubelet_extra_args
-    bootstrap_extra_args            = var.bootstrap_additional_options == null ? "" : var.bootstrap_additional_options
-    after_cluster_joining_userdata  = var.after_cluster_joining_userdata == null ? "" : var.after_cluster_joining_userdata
+    bootstrap_extra_args            = length(var.bootstrap_additional_options) == 0 ? "" : var.bootstrap_additional_options[0]
+    after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : var.after_cluster_joining_userdata[0]
   }
 
   cluster_data = {
@@ -40,13 +32,16 @@ locals {
     cluster_name               = local.get_cluster_data ? data.aws_eks_cluster.this[0].name : null
   }
 
-  need_bootstrap = local.enabled ? length(compact([local.kubelet_taint_args, var.kubelet_additional_options,
-    local.userdata_vars.bootstrap_extra_args,
-    local.userdata_vars.after_cluster_joining_userdata]
+  need_bootstrap = local.enabled ? length(concat(var.kubelet_additional_options,
+    var.bootstrap_additional_options, var.after_cluster_joining_userdata
   )) > 0 : false
 
-  # If var.userdata_override_base64 = "" then we explicitly set userdata to ""
-  need_userdata = local.enabled && var.userdata_override_base64 == null ? (length(local.userdata_vars.before_cluster_joining_userdata) > 0) || local.need_bootstrap : false
+  # If var.userdata_override_base64[0] = "" then we explicitly set userdata to ""
+  need_userdata = local.enabled && length(var.userdata_override_base64) == 0 ? (
+  (length(var.before_cluster_joining_userdata) > 0) || local.need_bootstrap) : false
 
-  userdata = local.need_userdata ? base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data))) : var.userdata_override_base64
+  userdata = local.need_userdata ? (
+    base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data)))) : (
+    try(var.userdata_override_base64[0], null)
+  )
 }
