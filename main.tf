@@ -88,11 +88,12 @@ resource "random_pet" "cbd" {
   length    = 1
 
   keepers = {
-    node_role_arn  = local.ng.node_role_arn
-    subnet_ids     = join(",", local.ng.subnet_ids)
-    instance_types = join(",", local.ng.instance_types)
-    ami_type       = local.ng.ami_type
-    capacity_type  = local.ng.capacity_type
+    node_role_arn      = local.ng.node_role_arn
+    subnet_ids         = join(",", local.ng.subnet_ids)
+    instance_types     = join(",", local.ng.instance_types)
+    ami_type           = local.ng.ami_type
+    capacity_type      = local.ng.capacity_type
+    launch_template_id = local.launch_template_id
   }
 }
 
