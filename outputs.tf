@@ -37,3 +37,8 @@ output "eks_node_group_cbd_pet_name" {
   description = "The pet name of this node group, if this module generated one"
   value       = join("", random_pet.cbd.*.id)
 }
+
+output "eks_node_group_tags_all" {
+  description = "A map of tags assigned to the resource, including those inherited from the provider default_tags configuration block."
+  value       = join("", aws_eks_node_group.default.*.tags_all, aws_eks_node_group.cbd.*.tags_all)
+}
