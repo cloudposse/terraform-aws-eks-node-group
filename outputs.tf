@@ -37,3 +37,13 @@ output "eks_node_group_cbd_pet_name" {
   description = "The pet name of this node group, if this module generated one"
   value       = join("", random_pet.cbd.*.id)
 }
+
+output "eks_node_group_launch_template_id" {
+  description = "The ID of the launch template used for this node group"
+  value       = local.launch_template_id
+}
+
+output "eks_node_group_launch_template_name" {
+  description = "The name of the launch template used for this node group"
+  value       = local.enabled ? (local.fetch_launch_template ? join("", data.aws_launch_template.this.*.name) : join("", aws_launch_template.default.*.name)) : null
+}

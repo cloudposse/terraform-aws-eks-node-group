@@ -1,6 +1,4 @@
-export TF_DATA_DIR ?= $(CURDIR)/.terraform
-export TF_CLI_ARGS_init ?= -get-plugins=true
-TERRAFORM_VERSION = 0.13
+export TERRAFORM_VERSION ?= $(shell curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version' | cut -d. -f1)
 
 .DEFAULT_GOAL : all
 

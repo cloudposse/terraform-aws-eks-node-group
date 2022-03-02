@@ -1,7 +1,7 @@
 # https://docs.aws.amazon.com/eks/latest/APIReference/API_RemoteAccessConfig.html
 
 module "ssh_access" {
-  count   = local.need_remote_access_sg ? 1 : 0
+  count   = local.need_ssh_access_sg ? 1 : 0
   source  = "cloudposse/security-group/aws"
   version = "0.4.3"
 
@@ -22,6 +22,14 @@ module "ssh_access" {
       from_port   = 22
       to_port     = 22
       description = "Allow SSH ingress"
+      },
+      {
+        key         = "ssh-egress"
+        type        = "egress"
+        from_port   = 0
+        to_port     = 65535
+        protocol    = "tcp"
+        description = "Allow SSH egress"
     }]
   }]
 
