@@ -111,6 +111,8 @@
 | <a name="output_eks_node_group_arn"></a> [eks\_node\_group\_arn](#output\_eks\_node\_group\_arn) | Amazon Resource Name (ARN) of the EKS Node Group |
 | <a name="output_eks_node_group_cbd_pet_name"></a> [eks\_node\_group\_cbd\_pet\_name](#output\_eks\_node\_group\_cbd\_pet\_name) | The pet name of this node group, if this module generated one |
 | <a name="output_eks_node_group_id"></a> [eks\_node\_group\_id](#output\_eks\_node\_group\_id) | EKS Cluster name and EKS Node Group name separated by a colon |
+| <a name="output_eks_node_group_launch_template_id"></a> [eks\_node\_group\_launch\_template\_id](#output\_eks\_node\_group\_launch\_template\_id) | The ID of the launch template used for this node group |
+| <a name="output_eks_node_group_launch_template_name"></a> [eks\_node\_group\_launch\_template\_name](#output\_eks\_node\_group\_launch\_template\_name) | The name of the launch template used for this node group |
 | <a name="output_eks_node_group_remote_access_security_group_id"></a> [eks\_node\_group\_remote\_access\_security\_group\_id](#output\_eks\_node\_group\_remote\_access\_security\_group\_id) | The ID of the security group generated to allow SSH access to the nodes, if this module generated one |
 | <a name="output_eks_node_group_resources"></a> [eks\_node\_group\_resources](#output\_eks\_node\_group\_resources) | List of objects containing information about underlying resources of the EKS Node Group |
 | <a name="output_eks_node_group_role_arn"></a> [eks\_node\_group\_role\_arn](#output\_eks\_node\_group\_role\_arn) | ARN of the worker nodes IAM role |

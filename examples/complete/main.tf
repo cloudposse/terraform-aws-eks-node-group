@@ -55,7 +55,7 @@ locals {
 
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.25.0"
+  version = "0.28.1"
 
   cidr_block = var.vpc_cidr_block
   tags       = local.tags
@@ -65,7 +65,7 @@ module "vpc" {
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.39.4"
+  version = "0.39.8"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -80,7 +80,7 @@ module "subnets" {
 
 module "ssh_source_access" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.0"
+  version = "0.4.3"
 
   attributes                 = ["ssh", "source"]
   security_group_description = "Test source security group ssh access only"
@@ -97,7 +97,7 @@ module "ssh_source_access" {
 
 module "https_sg" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.0"
+  version = "0.4.3"
 
   attributes                 = ["http"]
   security_group_description = "Allow http access"
@@ -114,7 +114,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
-  version = "0.43.2"
+  version = "0.45.0"
 
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
@@ -162,7 +162,7 @@ module "eks_node_group" {
 
   # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
   # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
-  depends_on = [module.eks_cluster.kubernetes_config_map_id]
+  depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
 
   create_before_destroy = true
 
