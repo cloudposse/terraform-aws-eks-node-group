@@ -40,5 +40,5 @@ output "eks_node_group_cbd_pet_name" {
 
 output "eks_node_group_tags_all" {
   description = "A map of tags assigned to the resource, including those inherited from the provider default_tags configuration block."
-  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd.*.tags_all : aws_eks_node_group.default.*.tags_all) : []
+  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd.*.tags_all : aws_eks_node_group.default.*.tags_all) : {}
 }
