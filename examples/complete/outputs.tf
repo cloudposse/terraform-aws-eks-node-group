@@ -92,3 +92,8 @@ output "eks_node_group_cbd_pet_name" {
   description = "The pet name of this node group, if this module generated one"
   value       = module.eks_node_group.eks_node_group_cbd_pet_name
 }
+
+
+output "eks_node_group_launch_template_id" {
+  value = module.eks_node_group.eks_node_group_launch_template_id
+}
