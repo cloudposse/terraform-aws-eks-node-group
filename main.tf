@@ -20,6 +20,7 @@ locals {
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
     "k8s.io/cluster-autoscaler/enabled"             = "true"
+    "Name"                                          = "var.cluster_name"
   }
   autoscaler_kubernetes_label_tags = {
     for label, value in var.kubernetes_labels : format("k8s.io/cluster-autoscaler/node-template/label/%v", label) => value
