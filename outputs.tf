@@ -47,3 +47,8 @@ output "eks_node_group_launch_template_name" {
   description = "The name of the launch template used for this node group"
   value       = local.enabled ? (local.fetch_launch_template ? join("", data.aws_launch_template.this.*.name) : join("", aws_launch_template.default.*.name)) : null
 }
+
+output "eks_node_group_tags_all" {
+  description = "A map of tags assigned to the resource, including those inherited from the provider default_tags configuration block."
+  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd[0].tags_all : aws_eks_node_group.default[0].tags_all) : {}
+}

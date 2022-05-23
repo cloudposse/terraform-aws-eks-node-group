@@ -13,9 +13,16 @@ locals {
 
   get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_ssh_access_sg || length(var.associated_security_group_ids) > 0) : false
 
+  taint_effect_map = {
+    NO_SCHEDULE        = "NoSchedule"
+    NO_EXECUTE         = "NoExecute"
+    PREFER_NO_SCHEDULE = "PreferNoSchedule"
+  }
+
   autoscaler_enabled = var.cluster_autoscaler_enabled
   #
   # Set up tags for autoscaler and other resources
+  # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup
   #
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
@@ -25,7 +32,8 @@ locals {
     for label, value in var.kubernetes_labels : format("k8s.io/cluster-autoscaler/node-template/label/%v", label) => value
   }
   autoscaler_kubernetes_taints_tags = {
-    for taint in var.kubernetes_taints : format("k8s.io/cluster-autoscaler/node-template/taint/%v", taint.key) => taint.value
+    for taint in var.kubernetes_taints : format("k8s.io/cluster-autoscaler/node-template/taint/%v", taint.key) =>
+    "${taint.value == null ? "" : taint.value}:${local.taint_effect_map[taint.effect]}"
   }
   autoscaler_tags = merge(local.autoscaler_enabled_tags, local.autoscaler_kubernetes_label_tags, local.autoscaler_kubernetes_taints_tags)
 

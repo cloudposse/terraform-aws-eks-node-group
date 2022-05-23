@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/random"
-	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 
 	corev1 "k8s.io/api/core/v1"

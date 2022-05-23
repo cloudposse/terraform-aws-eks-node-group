@@ -260,8 +260,8 @@ variable "module_depends_on" {
 
 variable "ebs_optimized" {
   type        = bool
-  default     = false
-  description = "Whether or not to launch instances with EBS optimization. Default is `false`"
+  default     = true
+  description = "Set `false` to disable EBS optimization"
 }
 
 variable "launch_template_id" {
