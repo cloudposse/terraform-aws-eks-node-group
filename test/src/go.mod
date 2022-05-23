@@ -1,4 +1,4 @@
-module github.com/cloudposse/terraform-aws-eks-cluster
+module github.com/cloudposse/terraform-aws-eks-node-group
 
 go 1.17
 

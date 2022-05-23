@@ -122,15 +122,14 @@ In most cases, the changes you need to make are pretty easy.
 #### Review behavior changes and new features
 
 - Do you want node group instance EBS volumes deleted on termination? You can disable that now.
-- Do you want Instance Metadata Service v1 available? This module now disables it by default, and EKS and Kubernetes all handle that fine, but you might have scripts that `curl` the instance
-  metadata endpoint that need it.
-- Did you have the "create before destroy" behavior disabled? The migration to v2.0.0 of this module is going to cause your node group to be destroyed and recreated anyway, so take the
-  opportunity to enable it. It will save you and outage some day.
-- Were you supplying your own launch template, and stuck having to put an instance type in it because the earlier versions of this module would not let you do otherwise? Well, now you can
-  leave the instance type out of your launch template and supply a set of types via the node group to enable a spot fleet.
+- Do you want Instance Metadata Service v1 available? This module now disables it by default, and EKS and Kubernetes all handle that fine, but you might have scripts that `curl` the instance metadata endpoint that need it.
+- Did you have the "create before destroy" behavior disabled? The migration to v2.0.0 of this module is going to cause your node group to be destroyed 
+  and recreated anyway, so take the opportunity to enable it. It will save you an outage some day.
+- Were you supplying your own launch template, and stuck having to put an instance type in it because the earlier versions of this module would not let you do
+  otherwise? Well, now you can leave the instance type out of your launch template and supply a set of types via the node group to enable a spot fleet.
 - Were you unhappy with the way the IAM Role for the nodes was configured? Now you can configure a role exactly the way you like and pass it in.
-- Were you frustrated that you had to copy a bunch of rules from one security group to the node group's security group? Now you can just associate the other security groups directly with the
-  node group.
+- Were you frustrated that you had to copy a bunch of rules from one security group to the node group's security group? Now you can just associate the other
+  security groups directly with the node group.
 - Were you experiencing timeouts creating or updating large node groups? Now you can set Terraform timeouts explicitly, and also control the pace of upgrades with `update_config`.
 
 #### Rename variables
