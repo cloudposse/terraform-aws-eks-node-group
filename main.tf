@@ -102,7 +102,8 @@ resource "random_pet" "cbd" {
     ami_type       = local.ng.ami_type
     capacity_type  = local.ng.capacity_type
 
-    launch_template_id = local.launch_template_id
+    launch_template_id      = local.launch_template_id
+    launch_template_version = local.launch_template_version
   }
 }
 
