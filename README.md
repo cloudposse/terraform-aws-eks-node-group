@@ -222,7 +222,6 @@ module "eks_node_group" {
   # Ensure the cluster is fully created before trying to add the node group
   module_depends_on = [module.eks_cluster.kubernetes_config_map_id]
 }
-
 ```
 
 
@@ -313,6 +312,7 @@ Available targets:
 | <a name="input_enclave_enabled"></a> [enclave\_enabled](#input\_enclave\_enabled) | Set to `true` to enable Nitro Enclaves on the instance. | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT' | `string` | `null` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br>Set to `0` for unlimited length.<br>Set to `null` for keep the existing setting, which defaults to `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
+| <a name="input_instance_requirements"></a> [instance\_requirements](#input\_instance\_requirements) | The attribute requirements for the type of instance.<br><br>The full documentation of this object is located [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#instance-requirements). | `any` | `null` | no |
 | <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Instance types to use for this node group (up to 20). Defaults to ["t3.medium"].<br>Must be empty if the launch template configured by `launch_template_id` specifies an instance type. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
 | <a name="input_kubelet_additional_options"></a> [kubelet\_additional\_options](#input\_kubelet\_additional\_options) | Additional flags to pass to kubelet.<br>DO NOT include `--node-labels` or `--node-taints`,<br>use `kubernetes_labels` and `kubernetes_taints` to specify those." | `list(string)` | `[]` | no |
 | <a name="input_kubernetes_labels"></a> [kubernetes\_labels](#input\_kubernetes\_labels) | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument.<br>Other Kubernetes labels applied to the EKS Node Group will not be managed. | `map(string)` | `{}` | no |
@@ -520,8 +520,8 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
 ### Contributors
 
 <!-- markdownlint-disable -->
-|  [![Erik Osterman][osterman_avatar]][osterman_homepage]<br/>[Erik Osterman][osterman_homepage] | [![Andriy Knysh][aknysh_avatar]][aknysh_homepage]<br/>[Andriy Knysh][aknysh_homepage] | [![Igor Rodionov][goruha_avatar]][goruha_homepage]<br/>[Igor Rodionov][goruha_homepage] |
-|---|---|---|
+|  [![Erik Osterman][osterman_avatar]][osterman_homepage]<br/>[Erik Osterman][osterman_homepage] | [![Andriy Knysh][aknysh_avatar]][aknysh_homepage]<br/>[Andriy Knysh][aknysh_homepage] | [![Igor Rodionov][goruha_avatar]][goruha_homepage]<br/>[Igor Rodionov][goruha_homepage] | [![RB][nitrocode_avatar]][nitrocode_homepage]<br/>[RB][nitrocode_homepage] |
+|---|---|---|---|
 <!-- markdownlint-restore -->
 
   [osterman_homepage]: https://github.com/osterman
@@ -530,6 +530,8 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
   [aknysh_avatar]: https://img.cloudposse.com/150x150/https://github.com/aknysh.png
   [goruha_homepage]: https://github.com/goruha
   [goruha_avatar]: https://img.cloudposse.com/150x150/https://github.com/goruha.png
+  [nitrocode_homepage]: https://github.com/nitrocode
+  [nitrocode_avatar]: https://img.cloudposse.com/150x150/https://github.com/nitrocode.png
 
 [![README Footer][readme_footer_img]][readme_footer_link]
 [![Beacon][beacon]][website]
