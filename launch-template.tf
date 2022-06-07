@@ -129,6 +129,7 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  instance_requirements = var.instance_requirements
 }
 
 data "aws_launch_template" "this" {

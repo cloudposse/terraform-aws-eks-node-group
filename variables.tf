@@ -414,3 +414,12 @@ variable "node_group_terraform_timeouts" {
     EOT
 }
 
+variable "instance_requirements" {
+  type        = any
+  default     = null
+  description = <<-EOT
+    The attribute requirements for the type of instance.
+
+    The full documentation of this object is located [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#instance-requirements).
+    EOT
+}

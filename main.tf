@@ -71,7 +71,7 @@ locals {
     # because node group supports up to 20 types but launch template does not.
     # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
     # Keep sorted so that change in order does not trigger replacement via random_pet
-    instance_types  = sort(var.instance_types)
+    instance_types  = try(length(var.instance_requirements), 0) == 0 ? sort(var.instance_types) : null
     ami_type        = local.launch_template_ami == "" ? var.ami_type : null
     capacity_type   = var.capacity_type
     labels          = var.kubernetes_labels == null ? {} : var.kubernetes_labels

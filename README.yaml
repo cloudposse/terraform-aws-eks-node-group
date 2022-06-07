@@ -186,7 +186,6 @@ usage: |2-
     # Ensure the cluster is fully created before trying to add the node group
     module_depends_on = [module.eks_cluster.kubernetes_config_map_id]
   }
-
   ```
 
 include:
@@ -201,3 +200,5 @@ contributors:
     github: "aknysh"
   - name: "Igor Rodionov"
     github: "goruha"
+  - name: "RB"
+    github: "nitrocode"
