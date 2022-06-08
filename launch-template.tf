@@ -182,13 +182,9 @@ resource "aws_launch_template" "default" {
         }
       }
 
-      dynamic "memory_gib" {
-        for_each = lookup(var.instance_requirements, "memory_gib", null) != null ? [true] : []
-
-        content {
-          min = lookup(var.instance_requirements.memory_gib, "min", 0)
-          max = lookup(var.instance_requirements.memory_gib, "max", 0)
-        }
+      memory_gib {
+        min = try(lookup(var.instance_requirements.memory_gib, "min", 2), 2)
+        max = try(lookup(var.instance_requirements.memory_gib, "max", null), null)
       }
 
       dynamic "network_interface_count" {
@@ -213,13 +209,9 @@ resource "aws_launch_template" "default" {
         }
       }
 
-      dynamic "vcpu_count" {
-        for_each = lookup(var.instance_requirements, "vcpu_count", null) != null ? [true] : []
-
-        content {
-          min = lookup(var.instance_requirements.vcpu_count, "min", 0)
-          max = lookup(var.instance_requirements.vcpu_count, "max", 0)
-        }
+      vcpu_count {
+        min = try(lookup(var.instance_requirements.vcpu_count, "min", 4), 4)
+        max = try(lookup(var.instance_requirements.vcpu_count, "max", null), null)
       }
     }
   }
