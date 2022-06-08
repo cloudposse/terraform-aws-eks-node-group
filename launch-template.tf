@@ -182,9 +182,9 @@ resource "aws_launch_template" "default" {
         }
       }
 
-      memory_gib {
-        min = try(lookup(var.instance_requirements.memory_gib, "min", 2), 2)
-        max = try(lookup(var.instance_requirements.memory_gib, "max", null), null)
+      memory_mib {
+        min = try(lookup(var.instance_requirements.memory_mib, "min", 2000), 2000)
+        max = try(lookup(var.instance_requirements.memory_mib, "max", null), null)
       }
 
       dynamic "network_interface_count" {
