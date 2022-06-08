@@ -3,23 +3,13 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 3.0"
-    }
-    template = {
-      source  = "hashicorp/template"
-      version = ">= 2.0"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 1.3"
+      source = "hashicorp/aws"
+      # retrieve launch template by ID starts at 3.21.0
+      # update_config starts at 3.56
+      version = ">= 4.14"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 2.0"
-    }
-    null = {
-      source  = "hashicorp/null"
       version = ">= 2.0"
     }
   }
