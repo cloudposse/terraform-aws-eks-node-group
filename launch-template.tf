@@ -129,7 +129,7 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  dynamic "instance_requirements" { 
+  dynamic "instance_requirements" {
     for_each = var.instance_requirements != null ? [true] : []
 
     content {
@@ -155,7 +155,7 @@ resource "aws_launch_template" "default" {
       }
 
       accelerator_types = lookup(var.instance_requirements, "accelerator_types", null)
-      bare_metal = lookup(var.instance_requirements, "bare_metal", null)
+      bare_metal        = lookup(var.instance_requirements, "bare_metal", null)
 
       dynamic "baseline_ebs_bandwidth_mbps" {
         for_each = lookup(var.instance_requirements, "baseline_ebs_bandwidth_mbps", null) != null ? [true] : []
