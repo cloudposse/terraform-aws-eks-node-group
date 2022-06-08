@@ -104,20 +104,20 @@ The table below correctly indicates which inputs are required.
 
 ### Major Changes (breaking and otherwise)
 
-With the v0.25.0 release of this module, it has undergone major breaking
-changes and added new features. Please see the [migration](MIGRATION.md)
+With the v2.0.0 (a.k.a. v0.25.0) release of this module, it has undergone major breaking
+changes and added new features. Please see the [migration](docs/migration-v1-v2.md)
 document for details.
 
 
 For a complete example, see [examples/complete](examples/complete).
 
-For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS), 
+For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS),
 see [test](test).
 
 ### Terraform Version
 
 Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on.
-The v0.25.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
+The v2.0.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
 There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to
 the latest Terraform version before raising any issues about this module.
 
@@ -163,7 +163,7 @@ locals {
 module "vpc" {
   source = "cloudposse/vpc/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version = "x.x.x"
+  # version = "1.x.x"
 
   cidr_block = "172.16.0.0/16"
 
@@ -174,12 +174,12 @@ module "vpc" {
 module "subnets" {
   source = "cloudposse/dynamic-subnets/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version = "x.x.x"
+  # version = "2.x.x"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
-  igw_id               = module.vpc.igw_id
-  cidr_block           = module.vpc.vpc_cidr_block
+  igw_id               = [module.vpc.igw_id]
+  ipv4_cidr_block      = [module.vpc.vpc_cidr_block]
   nat_gateway_enabled  = true
   nat_instance_enabled = false
 
@@ -190,7 +190,7 @@ module "subnets" {
 module "eks_cluster" {
   source = "cloudposse/eks-cluster/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version = "x.x.x"
+  # version = "2.x.x"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.subnets.public_subnet_ids
@@ -204,7 +204,7 @@ module "eks_cluster" {
 module "eks_node_group" {
   source = "cloudposse/eks-node-group/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version     = "x.x.x"
+  # version     = "2.x.x"
 
   instance_types        = [var.instance_type]
   subnet_ids            = module.subnets.public_subnet_ids
@@ -272,16 +272,18 @@ Available targets:
 |------|------|
 | [aws_eks_node_group.cbd](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group) | resource |
 | [aws_eks_node_group.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group) | resource |
+| [aws_iam_policy.ipv6_eks_cni_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.amazon_ec2_container_registry_read_only](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_iam_role_policy_attachment.amazon_eks_cni_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.amazon_eks_worker_node_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.existing_policies_for_eks_workers_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.ipv6_eks_cni_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_launch_template.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [random_pet.cbd](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 | [aws_ami.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_eks_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/eks_cluster) | data source |
 | [aws_iam_policy_document.assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.ipv6_eks_cni_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_launch_template.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/launch_template) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 

@@ -18,15 +18,17 @@ module "label" {
 locals {
   # The usage of the specific kubernetes.io/cluster/* resource tags below are required
   # for EKS and Kubernetes to discover and manage networking resources
-  # https://www.terraform.io/docs/providers/aws/guides/eks-getting-started.html#base-vpc-networking
-  tags = try(merge(module.label.tags, tomap("kubernetes.io/cluster/${module.label.id}", "shared")), null)
+  # https://aws.amazon.com/premiumsupport/knowledge-center/eks-vpc-subnet-discovery/
+  # https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/deploy/subnet_discovery.md
+  tags = { "kubernetes.io/cluster/${module.label.id}" = "shared" }
 
-  # Unfortunately, most_recent (https://github.com/cloudposse/terraform-aws-eks-workers/blob/34a43c25624a6efb3ba5d2770a601d7cb3c0d391/main.tf#L141)
-  # variable does not work as expected, if you are not going to use custom ami you should
-  # enforce usage of eks_worker_ami_name_filter variable to set the right kubernetes version for EKS workers,
-  # otherwise will be used the first version of Kubernetes supported by AWS (v1.11) for EKS workers but
-  # EKS control plane will use the version specified by kubernetes_version variable.
-  eks_worker_ami_name_filter = "amazon-eks-node-${var.kubernetes_version}*"
+  # required tags to make ALB ingress work https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
+  public_subnets_additional_tags = {
+    "kubernetes.io/role/elb" : 1
+  }
+  private_subnets_additional_tags = {
+    "kubernetes.io/role/internal-elb" : 1
+  }
 
   allow_all_ingress_rule = {
     key              = "allow_all_ingress"
@@ -55,7 +57,7 @@ locals {
 
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.28.1"
+  version = "1.1.0"
 
   cidr_block = var.vpc_cidr_block
   tags       = local.tags
@@ -65,13 +67,14 @@ module "vpc" {
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.39.8"
+  version = "2.0.2"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
-  igw_id               = module.vpc.igw_id
-  cidr_block           = module.vpc.vpc_cidr_block
-  nat_gateway_enabled  = false
+  igw_id               = [module.vpc.igw_id]
+  ipv4_cidr_block      = [module.vpc.vpc_cidr_block]
+  max_nats             = 1
+  nat_gateway_enabled  = true
   nat_instance_enabled = false
   tags                 = local.tags
 
@@ -114,7 +117,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source  = "cloudposse/eks-cluster/aws"
-  version = "0.45.0"
+  version = "2.2.0"
 
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
