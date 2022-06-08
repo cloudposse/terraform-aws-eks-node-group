@@ -129,7 +129,100 @@ resource "aws_launch_template" "default" {
     }
   }
 
-  instance_requirements = var.instance_requirements
+  dynamic "instance_requirements" { 
+    for_each = var.instance_requirements != null ? [true] : []
+
+    content {
+      dynamic "accelerator_count" {
+        for_each = lookup(var.instance_requirements, "accelerator_count", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.accelerator_count, "min", 0)
+          max = lookup(var.instance_requirements.accelerator_count, "max", 0)
+        }
+      }
+
+      accelerator_manufacturers = lookup(var.instance_requirements, "accelerator_manufacturers", null)
+      accelerator_names         = lookup(var.instance_requirements, "accelerator_names", null)
+
+      dynamic "accelerator_total_memory_mib" {
+        for_each = lookup(var.instance_requirements, "accelerator_total_memory_mib", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.accelerator_total_memory_mib, "min", 0)
+          max = lookup(var.instance_requirements.accelerator_total_memory_mib, "max", 0)
+        }
+      }
+
+      accelerator_types = lookup(var.instance_requirements, "accelerator_types", null)
+      bare_metal = lookup(var.instance_requirements, "bare_metal", null)
+
+      dynamic "baseline_ebs_bandwidth_mbps" {
+        for_each = lookup(var.instance_requirements, "baseline_ebs_bandwidth_mbps", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.baseline_ebs_bandwidth_mbps, "min", 0)
+          max = lookup(var.instance_requirements.baseline_ebs_bandwidth_mbps, "max", 0)
+        }
+      }
+
+      burstable_performance   = lookup(var.instance_requirements, "burstable_performance", null)
+      cpu_manufacturers       = lookup(var.instance_requirements, "cpu_manufacturers", null)
+      excluded_instance_types = lookup(var.instance_requirements, "excluded_instance_types", null)
+      instance_generations    = lookup(var.instance_requirements, "instance_generations", null)
+      local_storage           = lookup(var.instance_requirements, "local_storage", null)
+      local_storage_types     = lookup(var.instance_requirements, "local_storage_types", null)
+
+      dynamic "memory_gib_per_vcpu" {
+        for_each = lookup(var.instance_requirements, "memory_gib_per_vcpu", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.memory_gib_per_vcpu, "min", 0)
+          max = lookup(var.instance_requirements.memory_gib_per_vcpu, "max", 0)
+        }
+      }
+
+      dynamic "memory_gib" {
+        for_each = lookup(var.instance_requirements, "memory_gib", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.memory_gib, "min", 0)
+          max = lookup(var.instance_requirements.memory_gib, "max", 0)
+        }
+      }
+
+      dynamic "network_interface_count" {
+        for_each = lookup(var.instance_requirements, "network_interface_count", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.network_interface_count, "min", 0)
+          max = lookup(var.instance_requirements.network_interface_count, "max", 0)
+        }
+      }
+
+      on_demand_max_price_percentage_over_lowest_price = lookup(var.instance_requirements, "on_demand_max_price_percentage_over_lowest_price", null)
+      require_hibernate_support                        = lookup(var.instance_requirements, "require_hibernate_support", null)
+      spot_max_price_percentage_over_lowest_price      = lookup(var.instance_requirements, "spot_max_price_percentage_over_lowest_price", null)
+
+      dynamic "total_local_storage_gb" {
+        for_each = lookup(var.instance_requirements, "total_local_storage_gb", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.total_local_storage_gb, "min", 0)
+          max = lookup(var.instance_requirements.total_local_storage_gb, "max", 0)
+        }
+      }
+
+      dynamic "vcpu_count" {
+        for_each = lookup(var.instance_requirements, "vcpu_count", null) != null ? [true] : []
+
+        content {
+          min = lookup(var.instance_requirements.vcpu_count, "min", 0)
+          max = lookup(var.instance_requirements.vcpu_count, "max", 0)
+        }
+      }
+    }
+  }
 }
 
 data "aws_launch_template" "this" {
