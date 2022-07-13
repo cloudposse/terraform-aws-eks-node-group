@@ -367,6 +367,7 @@ variable "metadata_http_put_response_hop_limit" {
   default     = 2
   description = <<-EOT
     The desired HTTP PUT response hop limit (between 1 and 64) for Instance Metadata Service requests.
+    The default is `2` to support containerized workloads.
     EOT
   validation {
     condition = (
