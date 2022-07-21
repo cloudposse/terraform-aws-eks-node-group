@@ -20,10 +20,10 @@ locals {
   kubelet_extra_args = join(" ", var.kubelet_additional_options)
 
   userdata_vars = {
-    before_cluster_joining_userdata = length(var.before_cluster_joining_userdata) == 0 ? "" : var.before_cluster_joining_userdata[0]
+    before_cluster_joining_userdata = length(var.before_cluster_joining_userdata) == 0 ? "" : join("\n", var.before_cluster_joining_userdata)
     kubelet_extra_args              = local.kubelet_extra_args
     bootstrap_extra_args            = length(var.bootstrap_additional_options) == 0 ? "" : var.bootstrap_additional_options[0]
-    after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : var.after_cluster_joining_userdata[0]
+    after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : join("\n", var.after_cluster_joining_userdata)
   }
 
   cluster_data = {

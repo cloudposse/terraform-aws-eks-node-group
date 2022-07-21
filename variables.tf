@@ -304,24 +304,12 @@ variable "before_cluster_joining_userdata" {
   type        = list(string)
   default     = []
   description = "Additional `bash` commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
-  validation {
-    condition = (
-      length(var.before_cluster_joining_userdata) < 2
-    )
-    error_message = "You may not specify more than one `before_cluster_joining_userdata`."
-  }
 }
 
 variable "after_cluster_joining_userdata" {
   type        = list(string)
   default     = []
   description = "Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
-  validation {
-    condition = (
-      length(var.after_cluster_joining_userdata) < 2
-    )
-    error_message = "You may not specify more than one `after_cluster_joining_userdata`."
-  }
 }
 
 variable "bootstrap_additional_options" {
