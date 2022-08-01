@@ -414,7 +414,7 @@ variable "node_group_terraform_timeouts" {
     EOT
 }
 
-variable "enabled_detailed_monitoring" {
+variable "detailed_monitoring_enabled" {
   type        = bool
   default     = false
   description = "The launched EC2 instance will have detailed monitoring enabled. Defaults to false"

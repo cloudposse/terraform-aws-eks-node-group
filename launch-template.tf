@@ -130,7 +130,7 @@ resource "aws_launch_template" "default" {
   }
 
   monitoring {
-    enabled = var.enabled_detailed_monitoring
+    enabled = var.detailed_monitoring_enabled
   }
 
 }
