@@ -129,6 +129,10 @@ resource "aws_launch_template" "default" {
     }
   }
 
+  monitoring {
+    enabled = var.detailed_monitoring_enabled
+  }
+
 }
 
 data "aws_launch_template" "this" {
