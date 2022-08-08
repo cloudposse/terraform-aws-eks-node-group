@@ -423,3 +423,9 @@ variable "instance_requirements" {
     The full documentation of this object is located [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#instance-requirements).
     EOT
 }
+
+variable "detailed_monitoring_enabled" {
+  type        = bool
+  default     = false
+  description = "The launched EC2 instance will have detailed monitoring enabled. Defaults to false"
+}
