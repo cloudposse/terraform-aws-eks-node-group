@@ -263,7 +263,7 @@ Available targets:
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_label"></a> [label](#module\_label) | cloudposse/label/null | 0.25.0 |
-| <a name="module_ssh_access"></a> [ssh\_access](#module\_ssh\_access) | cloudposse/security-group/aws | 1.0.1 |
+| <a name="module_ssh_access"></a> [ssh\_access](#module\_ssh\_access) | cloudposse/security-group/aws | 2.0.0 |
 | <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.25.0 |
 
 ## Resources
