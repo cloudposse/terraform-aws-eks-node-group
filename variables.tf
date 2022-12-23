@@ -111,7 +111,7 @@ variable "ami_type" {
   type        = string
   description = <<-EOT
     Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
-    Defaults to `AL2_x86_64`. Valid values: https://docs.aws.amazon.com/eks/latest/APIReference/API_Nodegroup.html.
+    Defaults to `AL2_x86_64`. Valid values are available in the [AWS API Node Group docs](https://docs.aws.amazon.com/eks/latest/APIReference/API_Nodegroup.html).
     EOT
   default     = "AL2_x86_64"
   validation {
