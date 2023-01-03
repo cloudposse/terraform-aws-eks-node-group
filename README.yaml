@@ -191,6 +191,7 @@ usage: |2-
 
 include:
   - "docs/targets.md"
+  - "docs/windows.md"
   - "docs/terraform.md"
 
 # Contributors to this project

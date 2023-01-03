@@ -41,7 +41,7 @@ locals {
   (length(var.before_cluster_joining_userdata) > 0) || local.need_bootstrap) : false
 
   userdata = local.need_userdata ? (
-    base64encode(templatefile("${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data)))) : (
+    base64encode(templatefile(can(regex("WINDOWS", var.ami_type)) ? "${path.module}/userdata_nt.tpl" : "${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data)))) : (
     try(var.userdata_override_base64[0], null)
   )
 }

@@ -51,9 +51,9 @@ resource "aws_iam_role_policy_attachment" "existing_policies_for_eks_workers_rol
 # Create a CNI policy that is a merger of AmazonEKS_CNI_Policy and required IPv6 permissions
 # https://github.com/SummitRoute/aws_managed_policies/blob/master/policies/AmazonEKS_CNI_Policy
 # https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html#cni-iam-role-create-ipv6-policy
-
+# https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 data "aws_iam_policy_document" "ipv6_eks_cni_policy" {
-  count = local.create_role && var.node_role_cni_policy_enabled ? 1 : 0
+  count = local.create_role && var.node_role_cni_policy_enabled || local.create_role && can(regex("WINDOWS", var.ami_type)) ? 1 : 0
 
   statement {
     effect = "Allow"

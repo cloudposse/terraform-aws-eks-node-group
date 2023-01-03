@@ -243,6 +243,38 @@ Available targets:
 ```
 <!-- markdownlint-restore -->
 <!-- markdownlint-disable -->
+## Windows Managed Node groups
+  Windows managed node-groups have a few pre-requisites.
+
+  * Your cluster must contain at least one linux based worker node
+  * Your EKS Cluster must have the `AmazonEKSVPCResourceController` and `AmazonEKSClusterPolicy` policies attached
+  * Your cluster must have a config-map called amazon-vpc-cni with the following content
+  ```yaml
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+  name: amazon-vpc-cni
+  namespace: kube-system
+  data:
+  enable-windows-ipam: "true"
+  ```
+  * It's advisable to taint your Windows nodes
+  ```yaml
+  kubernetes_taints = [{
+    key    = "WINDOWS"
+    value  = "true"
+    effect = "NO_SCHEDULE"
+  }]
+  ```
+  * Any pods that target Windows will need to have the following attributes set in their manifest
+  ```yaml
+    nodeSelector:
+      kubernetes.io/os: windows
+      kubernetes.io/arch: amd64
+  ```
+
+https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
+<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
@@ -295,7 +327,7 @@ Available targets:
 | <a name="input_after_cluster_joining_userdata"></a> [after\_cluster\_joining\_userdata](#input\_after\_cluster\_joining\_userdata) | Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production | `list(string)` | `[]` | no |
 | <a name="input_ami_image_id"></a> [ami\_image\_id](#input\_ami\_image\_id) | AMI to use. Ignored if `launch_template_id` is supplied. | `list(string)` | `[]` | no |
 | <a name="input_ami_release_version"></a> [ami\_release\_version](#input\_ami\_release\_version) | EKS AMI version to use, e.g. For AL2 "1.16.13-20200821" or for bottlerocket "1.2.0-ccf1b754" (no "v"). For AL2 and bottlerocket, it defaults to latest version for Kubernetes version. | `list(string)` | `[]` | no |
-| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Type of Amazon Machine Image (AMI) associated with the EKS Node Group.<br>Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, `BOTTLEROCKET_x86_64`, and `BOTTLEROCKET_ARM_64`. | `string` | `"AL2_x86_64"` | no |
+| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Type of Amazon Machine Image (AMI) associated with the EKS Node Group.<br>Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64,CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`. | `string` | `"AL2_x86_64"` | no |
 | <a name="input_associated_security_group_ids"></a> [associated\_security\_group\_ids](#input\_associated\_security\_group\_ids) | A list of IDs of Security Groups to associate the node group with, in addition to the EKS' created security group.<br>These security groups will not be modified. | `list(string)` | `[]` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br>in the order they appear in the list. New attributes are appended to the<br>end of the list. The elements of the list are joined by the `delimiter`<br>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_before_cluster_joining_userdata"></a> [before\_cluster\_joining\_userdata](#input\_before\_cluster\_joining\_userdata) | Additional `bash` commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production | `list(string)` | `[]` | no |
