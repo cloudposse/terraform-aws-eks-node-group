@@ -73,11 +73,6 @@ variable "local_exec_interpreter" {
   description = "shell to use for local_exec"
 }
 
-variable "disk_size" {
-  type        = number
-  description = "Disk size in GiB for worker nodes. Defaults to 20. Terraform will only perform drift detection if a configuration value is provided"
-}
-
 variable "instance_types" {
   type        = list(string)
   description = "Set of instance types associated with the EKS Node Group. Defaults to [\"t3.medium\"]. Terraform will only perform drift detection if a configuration value is provided"
@@ -197,4 +192,34 @@ variable "after_cluster_joining_userdata" {
     )
     error_message = "You may not specify more than one `after_cluster_joining_userdata`."
   }
+}
+
+variable "include_windows_node" {
+  type        = bool
+  description = "Will include a single windows node"
+
+}
+
+variable "windows_node_ami_type" {
+  type        = string
+  description = "windows node ami-type (i.e. WINDOWS_CORE_2019_x86_64)"
+  default     = "WINDOWS_CORE_2019_x86_64"
+}
+
+variable "aws_auth_roles" {
+  description = "List of role maps to add to the aws-auth configmap"
+  type        = list(any)
+  default     = []
+}
+
+variable "aws_auth_users" {
+  description = "List of user maps to add to the aws-auth configmap"
+  type        = list(any)
+  default     = []
+}
+
+variable "aws_auth_accounts" {
+  description = "List of account maps to add to the aws-auth configmap"
+  type        = list(any)
+  default     = []
 }

@@ -15,7 +15,7 @@ locals {
     "WINDOWS_FULL_2022_x86_64" : ""
   }
 
-  ami_kind = split("_", var.ami_type)[0]
+  ami_kind = split("_", var.ami_type)[0] != "WINDOWS" ? split("_", var.ami_type)[0] : format("WINDOWS_%s_%s", split("_", var.ami_type)[1], split("_", var.ami_type)[2])
 
   ami_format = {
     # amazon-eks{arch_label}-node-{ami_kubernetes_version}-v{ami_version}
@@ -49,10 +49,9 @@ locals {
     # if ami_release_version = "1.21-20211013"
     #   insert the letter v prior to the ami_version so it becomes 1.21-v20211013
     # if not, use the kubernetes version
-    "AL2" : (length(var.ami_release_version) == 1 ? replace(var.ami_release_version[0], "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
-    "${local.ami_kubernetes_version}-*"),
+    "AL2" : (length(var.ami_release_version) == 1 ? replace(var.ami_release_version[0], "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") : "${local.ami_kubernetes_version}-*"),
     # if ami_release_version = "1.2.0-ccf1b754"
-    #   prefex the ami release version with the letter v
+    #   prefix the ami release version with the letter v
     # if not, use an asterisk
     "BOTTLEROCKET" : (length(var.ami_release_version) == 1 ? format("v%s", var.ami_release_version[0]) : "*"),
     "WINDOWS_CORE_2019" : (length(var.ami_release_version) == 1 ? format("%s", var.ami_release_version[0]) : "*"),

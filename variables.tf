@@ -111,7 +111,7 @@ variable "ami_type" {
   type        = string
   description = <<-EOT
     Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
-    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64,CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`.
+    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`.
     EOT
   default     = "AL2_x86_64"
   validation {
@@ -197,6 +197,16 @@ variable "kubernetes_taints" {
     `key` and `effect` are required, `value` may be null.
     EOT
   default     = []
+}
+
+variable "windnows_coredns_service_address" {
+  type        = string
+  description = <<-EOT
+    The value passed to the Powershell setup script on Windows Node start
+    This is required to be set to the service address of core-dns or pod-networking will fail
+    the default behaviour (without a value) will select the DNS of the first network interface
+  EOT
+  default     = "172.20.0.10"
 }
 
 variable "kubelet_additional_options" {

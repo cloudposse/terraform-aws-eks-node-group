@@ -4,7 +4,7 @@ provider "aws" {
 
 module "label" {
   source  = "cloudposse/label/null"
-  version = "0.25.0"
+  #version = "0.25.0"
 
   # This is the preferred way to add attributes. It will put "cluster" last
   # after any attributes set in `var.attributes` or `context.attributes`.
@@ -116,9 +116,9 @@ module "https_sg" {
 
 
 module "eks_cluster" {
-  source  = "cloudposse/eks-cluster/aws"
-  version = "2.4.0"
-
+  # source  = "cloudposse/eks-cluster/aws"
+  version = "2.2.0"
+  source                       = "github.com/ChrisMcKee/terraform-aws-eks-cluster"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -132,10 +132,12 @@ module "eks_cluster" {
   kube_data_auth_enabled = false
   kube_exec_auth_enabled = true
 
+  windows_support = true
+
   context = module.this.context
 }
 
-module "eks_node_group" {
+module "eks_nix_node_group" {
   source = "../../"
 
   subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
@@ -147,19 +149,19 @@ module "eks_node_group" {
   kubernetes_version = [var.kubernetes_version]
   kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
   kubernetes_taints  = var.kubernetes_taints
-  # disk_size          = var.disk_size
+
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]
   associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
-  after_cluster_joining_userdata = var.after_cluster_joining_userdata
+  //after_cluster_joining_userdata = var.after_cluster_joining_userdata
 
   ami_type            = var.ami_type
   ami_release_version = var.ami_release_version
 
-  before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
+  //before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
   context = module.this.context
 
@@ -174,4 +176,155 @@ module "eks_node_group" {
     update = null
     delete = "20m"
   }]
+}
+
+module "windowslabel" {
+  source = "cloudposse/label/null"
+
+  enabled = var.include_windows_node
+
+  context    = module.this.context
+  attributes = ["nt", "workers"]
+  tags = {
+    nodeclass = "windows2019"
+  }
+}
+
+module "eks_nt_node_group" {
+  source = "../../"
+
+  enabled = var.include_windows_node
+
+  context = module.windowslabel.context
+
+  subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
+  cluster_name       = module.eks_cluster.eks_cluster_id
+  instance_types     = var.instance_types
+  desired_size       = 1
+  min_size           = 1
+  max_size           = 1
+  kubernetes_version = [var.kubernetes_version]
+  kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
+
+  ec2_ssh_key_name              = var.ec2_ssh_key_name
+  ssh_access_security_group_ids = [module.ssh_source_access.id]
+  associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
+  node_role_policy_arns         = [local.extra_policy_arn]
+  update_config                 = var.update_config
+
+  ami_type = var.windows_node_ami_type
+
+  # after_cluster_joining_userdata = [
+  #   "Write-Host Hello"
+  # ]
+
+  # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
+  # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
+  depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
+
+  create_before_destroy = true
+
+  node_group_terraform_timeouts = [{
+    create = "40m"
+    update = null
+    delete = "20m"
+  }]
+
+  resources_to_tag = ["instance", "volume", "spot-instances-request", "network-interface"]
+}
+
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks_cluster.cluster_id
+}
+
+locals {
+  kubeconfig = yamlencode({
+    apiVersion      = "v1"
+    kind            = "Config"
+    current-context = "terraform"
+    clusters = [{
+      name = module.eks_cluster.cluster_id
+      cluster = {
+        certificate-authority-data = module.eks_cluster.cluster_certificate_authority_data
+        server                     = module.eks_cluster.cluster_endpoint
+      }
+    }]
+    contexts = [{
+      name = "terraform"
+      context = {
+        cluster = module.eks_cluster.cluster_id
+        user    = "terraform"
+      }
+    }]
+    users = [{
+      name = "terraform"
+      user = {
+        token = data.aws_eks_cluster_auth.this.token
+      }
+    }]
+  })
+}
+
+locals {
+  aws_auth_configmap_data = {
+    mapRoles = yamlencode(concat(
+      [{
+        rolearn  = module.eks_nix_node_group.eks_node_group_role_arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups = [
+          "system:bootstrappers",
+          "system:nodes",
+        ]
+        }
+      ],
+      [{
+        rolearn  = module.eks_nt_node_group.eks_node_group_role_arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups = [
+          "eks:kube-proxy-windows",
+          "system:bootstrappers",
+          "system:nodes",
+        ]
+        }
+      ],
+      var.aws_auth_roles
+    ))
+    mapUsers    = yamlencode(var.aws_auth_users)
+    mapAccounts = yamlencode(var.aws_auth_accounts)
+  }
+}
+
+resource "kubernetes_config_map" "aws_auth" {
+  count = var.include_windows_node && var.create_aws_auth_configmap ? 1 : 0
+
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = local.aws_auth_configmap_data
+
+  lifecycle {
+    # We are ignoring the data here since we will manage it with the resource below
+    # This is only intended to be used in scenarios where the configmap does not exist
+    ignore_changes = [data, metadata[0].labels, metadata[0].annotations]
+  }
+}
+
+resource "null_resource" "apply" {
+  count = var.include_windows_node ? 1 : 0
+  triggers = {
+    kubeconfig = base64encode(local.kubeconfig)
+    cmd_patch  = <<-EOT
+      kubectl create configmap aws-auth -n kube-system --kubeconfig <(echo $KUBECONFIG | base64 --decode)
+      kubectl patch configmap/aws-auth --patch "${kubernetes_config_map.aws_auth_configmap_yaml}" -n kube-system --kubeconfig <(echo $KUBECONFIG | base64 --decode)
+    EOT
+  }
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      KUBECONFIG = self.triggers.kubeconfig
+    }
+    command = self.triggers.cmd_patch
+  }
 }

@@ -14,7 +14,7 @@
   data:
   enable-windows-ipam: "true"
   ```
-  * It's advisable to taint your Windows nodes
+  * Windows nodes will automatically be tainted
   ```yaml
   kubernetes_taints = [{
     key    = "WINDOWS"
