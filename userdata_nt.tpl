@@ -9,7 +9,7 @@ ${before_cluster_joining_userdata}
 }
 Write-Host -Foreground Red -Background Black ($formatstring -f $fields)
 
-& $EKSBootstrapScriptFile -EKSClusterName "${cluster_name}" -APIServerEndpoint "${cluster_endpoint}" -Base64ClusterCA "${certificate_authority_data}" --register-with-taints="OS=Windows:NoSchedule" -DNSClusterIP "${dns_address}" -KubeletExtraArgs "${bootstrap_extra_args}"
+& $EKSBootstrapScriptFile -EKSClusterName "${cluster_name}" -APIServerEndpoint "${cluster_endpoint}" -Base64ClusterCA "${certificate_authority_data}" -ContainerRuntime "containerd" -KubeletExtraArgs "${bootstrap_extra_args}"  3>&1 4>&1 5>&1 6>&1
 
 try{
 ${after_cluster_joining_userdata}

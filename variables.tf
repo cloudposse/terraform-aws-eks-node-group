@@ -199,16 +199,6 @@ variable "kubernetes_taints" {
   default     = []
 }
 
-variable "windnows_coredns_service_address" {
-  type        = string
-  description = <<-EOT
-    The value passed to the Powershell setup script on Windows Node start
-    This is required to be set to the service address of core-dns or pod-networking will fail
-    the default behaviour (without a value) will select the DNS of the first network interface
-  EOT
-  default     = "172.20.0.10"
-}
-
 variable "kubelet_additional_options" {
   type        = list(string)
   description = <<-EOT
