@@ -3,8 +3,8 @@ provider "aws" {
 }
 
 module "label" {
-  source = "cloudposse/label/null"
-  #version = "0.25.0"
+  source  = "cloudposse/label/null"
+  version = "0.25.0"
 
   # This is the preferred way to add attributes. It will put "cluster" last
   # after any attributes set in `var.attributes` or `context.attributes`.
@@ -115,8 +115,8 @@ module "https_sg" {
 }
 
 module "eks_cluster" {
-  source = "cloudposse/eks-cluster/aws"
-  #version                      = "2.4.0"
+  source                       = "cloudposse/eks-cluster/aws"
+  version                      = "2.4.0"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -152,12 +152,12 @@ module "eks_nix_node_group" {
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
-  //after_cluster_joining_userdata = var.after_cluster_joining_userdata
+  after_cluster_joining_userdata = var.after_cluster_joining_userdata
 
   ami_type            = var.ami_type
   ami_release_version = var.ami_release_version
 
-  //before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
+  before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
   context = module.this.context
 
