@@ -231,12 +231,12 @@ variable "ami_image_id" {
 variable "ami_release_version" {
   type        = list(string)
   default     = []
-  description = "EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\"). For AL2 and bottlerocket, it defaults to latest version for Kubernetes version."
+  description = "EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or  for Windows \"2023.02.14\". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version."
   validation {
     condition = (
-      length(var.ami_release_version) == 0 ? true : length(regexall("^\\d+\\.\\d+\\.\\d+-[\\da-z]+$", var.ami_release_version[0])) == 1
+      length(var.ami_release_version) == 0 ? true : length(regexall("(^\\d+\\.\\d+\\.\\d+-[\\da-z]+$)|(^\\d+\\.\\d+\\.\\d+$)", var.ami_release_version[0])) == 1
     )
-    error_message = "Var ami_release_version, if supplied, must be like for AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\")."
+    error_message = "Var ami_release_version, if supplied, must be like for AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or for Windows \"2023.02.14\"."
   }
 }
 
