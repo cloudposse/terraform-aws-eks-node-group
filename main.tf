@@ -70,8 +70,7 @@ locals {
     # Always supply instance types via the node group, not the launch template,
     # because node group supports up to 20 types but launch template does not.
     # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
-    # Keep sorted so that change in order does not trigger replacement via random_pet
-    instance_types  = sort(var.instance_types)
+    instance_types  = var.instance_types
     ami_type        = local.launch_template_ami == "" ? var.ami_type : null
     capacity_type   = var.capacity_type
     labels          = var.kubernetes_labels == null ? {} : var.kubernetes_labels
@@ -98,7 +97,7 @@ resource "random_pet" "cbd" {
   keepers = {
     node_role_arn  = local.ng.node_role_arn
     subnet_ids     = join(",", local.ng.subnet_ids)
-    instance_types = join(",", local.ng.instance_types)
+    instance_types = join(",", sort(local.ng.instance_types))
     ami_type       = local.ng.ami_type
     capacity_type  = local.ng.capacity_type
 
