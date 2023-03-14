@@ -63,6 +63,16 @@ variable "subnet_ids" {
   }
 }
 
+variable "associate_cluster_security_group" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    When true, associate the default cluster security group to the nodes. If disabled the EKS managed security group will not
+    be associated to the nodes, therefore the communications between pods and nodes will not work. Be aware that if no `associated_security_group_ids`
+    nor `ssh_access_security_group_ids` are provided then the nodes will have no inbound or outbound rules. 
+  EOT
+}
+
 variable "associated_security_group_ids" {
   type        = list(string)
   default     = []
