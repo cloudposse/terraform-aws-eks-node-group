@@ -133,7 +133,7 @@ module "eks_cluster" {
   context = module.this.context
 }
 
-module "eks_nix_node_group" {
+module "eks_node_group" {
   source = "../../"
 
   subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
