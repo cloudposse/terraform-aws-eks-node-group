@@ -93,7 +93,6 @@ output "eks_node_group_cbd_pet_name" {
   value       = module.eks_node_group.eks_node_group_cbd_pet_name
 }
 
-
 output "eks_node_group_launch_template_id" {
   value = module.eks_node_group.eks_node_group_launch_template_id
 }

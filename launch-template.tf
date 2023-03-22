@@ -60,7 +60,6 @@ resource "aws_launch_template" "default" {
       device_name = block_device_mappings.value.device_name
 
       ebs {
-
         delete_on_termination = lookup(block_device_mappings.value, "delete_on_termination", null)
         encrypted             = lookup(block_device_mappings.value, "encrypted", null)
         iops                  = lookup(block_device_mappings.value, "iops", null)

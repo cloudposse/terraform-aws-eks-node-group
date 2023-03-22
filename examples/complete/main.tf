@@ -114,11 +114,9 @@ module "https_sg" {
   context = module.label.context
 }
 
-
 module "eks_cluster" {
-  source  = "cloudposse/eks-cluster/aws"
-  version = "2.4.0"
-
+  source                       = "cloudposse/eks-cluster/aws"
+  version                      = "2.4.0"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -147,7 +145,7 @@ module "eks_node_group" {
   kubernetes_version = [var.kubernetes_version]
   kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
   kubernetes_taints  = var.kubernetes_taints
-  # disk_size          = var.disk_size
+
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]
   associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]

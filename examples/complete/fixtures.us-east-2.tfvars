@@ -26,8 +26,6 @@ max_size = 3
 
 min_size = 2
 
-disk_size = 20
-
 kubernetes_labels = {
   terratest = "true"
 }
