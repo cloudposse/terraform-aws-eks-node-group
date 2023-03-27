@@ -31,36 +31,6 @@ variable "cluster_log_retention_period" {
   description = "Number of days to retain cluster logs. Requires `enabled_cluster_log_types` to be set. See https://docs.aws.amazon.com/en_us/eks/latest/userguide/control-plane-logs.html."
 }
 
-variable "map_additional_aws_accounts" {
-  description = "Additional AWS account numbers to add to `config-map-aws-auth` ConfigMap"
-  type        = list(string)
-  default     = []
-}
-
-variable "map_additional_iam_roles" {
-  description = "Additional IAM roles to add to `config-map-aws-auth` ConfigMap"
-
-  type = list(object({
-    rolearn  = string
-    username = string
-    groups   = list(string)
-  }))
-
-  default = []
-}
-
-variable "map_additional_iam_users" {
-  description = "Additional IAM users to add to `config-map-aws-auth` ConfigMap"
-
-  type = list(object({
-    userarn  = string
-    username = string
-    groups   = list(string)
-  }))
-
-  default = []
-}
-
 variable "oidc_provider_enabled" {
   type        = bool
   default     = true
@@ -123,18 +93,6 @@ variable "max_size" {
 variable "min_size" {
   type        = number
   description = "The minimum size of the AutoScaling Group"
-}
-
-variable "launch_template_id" {
-  type        = string
-  description = "The ID of a custom launch template to use for the EKS node group."
-  default     = null
-}
-
-variable "launch_template_version" {
-  type        = string
-  description = "A specific version of the above specific launch template"
-  default     = null
 }
 
 variable "before_cluster_joining_userdata" {
