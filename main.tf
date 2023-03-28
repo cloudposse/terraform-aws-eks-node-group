@@ -71,7 +71,7 @@ locals {
   is_windows = can(regex("WINDOWS", var.ami_type))
   ng = {
     cluster_name  = var.cluster_name
-    node_role_arn = local.create_role ? join("", aws_iam_role.default.*.arn) : try(var.node_role_arn[0], null)
+    node_role_arn = local.create_role ? join("", aws_iam_role.default[*].arn) : try(var.node_role_arn[0], null)
     # Keep sorted so that change in order does not trigger replacement via random_pet
     subnet_ids = sort(var.subnet_ids)
     # Always supply instance types via the node group, not the launch template,
@@ -202,7 +202,7 @@ resource "aws_eks_node_group" "default" {
 # except for count, lifecycle, and node_group_name.
 resource "aws_eks_node_group" "cbd" {
   count           = local.enabled && var.create_before_destroy ? 1 : 0
-  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.cbd.*.id))
+  node_group_name = format("%v%v%v", module.label.id, module.label.delimiter, join("", random_pet.cbd[*].id))
 
   lifecycle {
     create_before_destroy = true
