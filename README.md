@@ -243,19 +243,56 @@ Available targets:
 ```
 <!-- markdownlint-restore -->
 <!-- markdownlint-disable -->
+## Windows Managed Node groups
+
+Windows managed node-groups have a few pre-requisites.
+
+* Your cluster must contain at least one linux based worker node
+* Your EKS Cluster must have the `AmazonEKSVPCResourceController` and `AmazonEKSClusterPolicy` policies attached
+* Your cluster must have a config-map called amazon-vpc-cni with the following content
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+name: amazon-vpc-cni
+namespace: kube-system
+data:
+enable-windows-ipam: "true"
+```
+
+* Windows nodes will automatically be tainted
+
+```yaml
+kubernetes_taints = [{
+  key    = "WINDOWS"
+  value  = "true"
+  effect = "NO_SCHEDULE"
+}]
+```
+* Any pods that target Windows will need to have the following attributes set in their manifest
+
+```yaml
+  nodeSelector:
+    kubernetes.io/os: windows
+    kubernetes.io/arch: amd64
+```
+
+https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
+<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.11 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.56 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.48 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 2.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.56 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.48 |
 | <a name="provider_random"></a> [random](#provider\_random) | >= 2.0 |
 
 ## Modules
@@ -294,8 +331,8 @@ Available targets:
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br>This is for some rare cases where resources want additional configuration of tags<br>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_after_cluster_joining_userdata"></a> [after\_cluster\_joining\_userdata](#input\_after\_cluster\_joining\_userdata) | Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production | `list(string)` | `[]` | no |
 | <a name="input_ami_image_id"></a> [ami\_image\_id](#input\_ami\_image\_id) | AMI to use. Ignored if `launch_template_id` is supplied. | `list(string)` | `[]` | no |
-| <a name="input_ami_release_version"></a> [ami\_release\_version](#input\_ami\_release\_version) | EKS AMI version to use, e.g. For AL2 "1.16.13-20200821" or for bottlerocket "1.2.0-ccf1b754" (no "v"). For AL2 and bottlerocket, it defaults to latest version for Kubernetes version. | `list(string)` | `[]` | no |
-| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Type of Amazon Machine Image (AMI) associated with the EKS Node Group.<br>Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, `BOTTLEROCKET_x86_64`, and `BOTTLEROCKET_ARM_64`. | `string` | `"AL2_x86_64"` | no |
+| <a name="input_ami_release_version"></a> [ami\_release\_version](#input\_ami\_release\_version) | EKS AMI version to use, e.g. For AL2 "1.16.13-20200821" or for bottlerocket "1.2.0-ccf1b754" (no "v") or  for Windows "2023.02.14". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version. | `list(string)` | `[]` | no |
+| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Type of Amazon Machine Image (AMI) associated with the EKS Node Group.<br>Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`. | `string` | `"AL2_x86_64"` | no |
 | <a name="input_associate_cluster_security_group"></a> [associate\_cluster\_security\_group](#input\_associate\_cluster\_security\_group) | When true, associate the default cluster security group to the nodes. If disabled the EKS managed security group will not<br>be associated to the nodes, therefore the communications between pods and nodes will not work. Be aware that if no `associated_security_group_ids`<br>nor `ssh_access_security_group_ids` are provided then the nodes will have no inbound or outbound rules. | `bool` | `true` | no |
 | <a name="input_associated_security_group_ids"></a> [associated\_security\_group\_ids](#input\_associated\_security\_group\_ids) | A list of IDs of Security Groups to associate the node group with, in addition to the EKS' created security group.<br>These security groups will not be modified. | `list(string)` | `[]` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br>in the order they appear in the list. New attributes are appended to the<br>end of the list. The elements of the list are joined by the `delimiter`<br>and treated as a single ID element. | `list(string)` | `[]` | no |
@@ -367,6 +404,7 @@ Available targets:
 | <a name="output_eks_node_group_role_name"></a> [eks\_node\_group\_role\_name](#output\_eks\_node\_group\_role\_name) | Name of the worker nodes IAM role |
 | <a name="output_eks_node_group_status"></a> [eks\_node\_group\_status](#output\_eks\_node\_group\_status) | Status of the EKS Node Group |
 | <a name="output_eks_node_group_tags_all"></a> [eks\_node\_group\_tags\_all](#output\_eks\_node\_group\_tags\_all) | A map of tags assigned to the resource, including those inherited from the provider default\_tags configuration block. |
+| <a name="output_eks_node_group_windows_note"></a> [eks\_node\_group\_windows\_note](#output\_eks\_node\_group\_windows\_note) | Instructions on changes a user needs to follow or script for a windows node group in the event of a custom ami |
 <!-- markdownlint-restore -->
 
 

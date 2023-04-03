@@ -22,14 +22,6 @@ locals {
   # https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/deploy/subnet_discovery.md
   tags = { "kubernetes.io/cluster/${module.label.id}" = "shared" }
 
-  # required tags to make ALB ingress work https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
-  public_subnets_additional_tags = {
-    "kubernetes.io/role/elb" : 1
-  }
-  private_subnets_additional_tags = {
-    "kubernetes.io/role/internal-elb" : 1
-  }
-
   allow_all_ingress_rule = {
     key              = "allow_all_ingress"
     type             = "ingress"
@@ -114,11 +106,9 @@ module "https_sg" {
   context = module.label.context
 }
 
-
 module "eks_cluster" {
-  source  = "cloudposse/eks-cluster/aws"
-  version = "2.4.0"
-
+  source                       = "cloudposse/eks-cluster/aws"
+  version                      = "2.4.0"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -147,7 +137,7 @@ module "eks_node_group" {
   kubernetes_version = [var.kubernetes_version]
   kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
   kubernetes_taints  = var.kubernetes_taints
-  # disk_size          = var.disk_size
+
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]
   associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
