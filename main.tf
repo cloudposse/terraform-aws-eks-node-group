@@ -77,7 +77,7 @@ locals {
     # Always supply instance types via the node group, not the launch template,
     # because node group supports up to 20 types but launch template does not.
     # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
-    instance_types  = var.instance_types
+    instance_types = var.instance_types
     ami_type       = local.launch_template_ami == "" ? var.ami_type : null
     capacity_type  = var.capacity_type
     labels         = var.kubernetes_labels == null ? {} : var.kubernetes_labels
