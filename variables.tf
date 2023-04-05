@@ -404,6 +404,17 @@ variable "placement" {
     EOT
 }
 
+variable "cpu_options" {
+  type        = list(any)
+  default     = []
+  description = <<-EOT
+    Configuration for the [`cpu_options` Configuration Block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#cpu_options) of the launch template.
+    Leave list empty for defaults. Pass list with single object with attributes matching the `cpu_options` block to configure it.
+    Note that this configures the launch template only. Some elements will be ignored by the Auto Scaling Group
+    that actually launches instances. Consult AWS documentation for details.
+    EOT
+}
+
 variable "enclave_enabled" {
   type        = bool
   default     = false
