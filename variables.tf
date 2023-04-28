@@ -63,6 +63,16 @@ variable "subnet_ids" {
   }
 }
 
+variable "associate_cluster_security_group" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    When true, associate the default cluster security group to the nodes. If disabled the EKS managed security group will not
+    be associated to the nodes, therefore the communications between pods and nodes will not work. Be aware that if no `associated_security_group_ids`
+    nor `ssh_access_security_group_ids` are provided then the nodes will have no inbound or outbound rules. 
+  EOT
+}
+
 variable "associated_security_group_ids" {
   type        = list(string)
   default     = []
@@ -111,14 +121,14 @@ variable "ami_type" {
   type        = string
   description = <<-EOT
     Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
-    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, `BOTTLEROCKET_x86_64`, and `BOTTLEROCKET_ARM_64`.
+    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`.
     EOT
   default     = "AL2_x86_64"
   validation {
     condition = (
-      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64", "CUSTOM"], var.ami_type)
+      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "CUSTOM", "BOTTLEROCKET_ARM_64", "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64_NVIDIA", "BOTTLEROCKET_x86_64_NVIDIA", "WINDOWS_CORE_2019_x86_64", "WINDOWS_FULL_2019_x86_64", "WINDOWS_CORE_2022_x86_64", "WINDOWS_FULL_2022_x86_64"], var.ami_type)
     )
-    error_message = "Var ami_type must be one of \"AL2_x86_64\", \"AL2_x86_64_GPU\", \"AL2_ARM_64\", \"BOTTLEROCKET_x86_64\", \"BOTTLEROCKET_ARM_64\", or \"CUSTOM\"."
+    error_message = "Var ami_type must be one of \"AL2_x86_64\",\"AL2_x86_64_GPU\",\"AL2_ARM_64\",\"BOTTLEROCKET_ARM_64\",\"BOTTLEROCKET_x86_64\",\"BOTTLEROCKET_ARM_64_NVIDIA\",\"BOTTLEROCKET_x86_64_NVIDIA\",\"WINDOWS_CORE_2019_x86_64\",\"WINDOWS_FULL_2019_x86_64\",\"WINDOWS_CORE_2022_x86_64\",\"WINDOWS_FULL_2022_x86_64\", or \"CUSTOM\"."
   }
 }
 
@@ -231,12 +241,12 @@ variable "ami_image_id" {
 variable "ami_release_version" {
   type        = list(string)
   default     = []
-  description = "EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\"). For AL2 and bottlerocket, it defaults to latest version for Kubernetes version."
+  description = "EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or  for Windows \"2023.02.14\". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version."
   validation {
     condition = (
-      length(var.ami_release_version) == 0 ? true : length(regexall("^\\d+\\.\\d+\\.\\d+-[\\da-z]+$", var.ami_release_version[0])) == 1
+      length(var.ami_release_version) == 0 ? true : length(regexall("(^\\d+\\.\\d+\\.\\d+-[\\da-z]+$)|(^\\d+\\.\\d+\\.\\d+$)", var.ami_release_version[0])) == 1
     )
-    error_message = "Var ami_release_version, if supplied, must be like for AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\")."
+    error_message = "Var ami_release_version, if supplied, must be like for AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or for Windows \"2023.02.14\"."
   }
 }
 
@@ -291,7 +301,7 @@ variable "launch_template_version" {
 variable "resources_to_tag" {
   type        = list(string)
   description = "List of auto-launched resource types to tag. Valid types are \"instance\", \"volume\", \"elastic-gpu\", \"spot-instances-request\", \"network-interface\"."
-  default     = []
+  default     = ["instance", "volume", "network-interface"]
   validation {
     condition = (
       length(compact([for r in var.resources_to_tag : r if !contains(["instance", "volume", "elastic-gpu", "spot-instances-request", "network-interface"], r)])) == 0
@@ -367,13 +377,13 @@ variable "metadata_http_put_response_hop_limit" {
   default     = 2
   description = <<-EOT
     The desired HTTP PUT response hop limit (between 1 and 64) for Instance Metadata Service requests.
-    The default is `2` to support containerized workloads.
+    The default is `2` to allows containerized workloads assuming the instance profile, but it's not really recomended. You should use OIDC service accounts instead.
     EOT
   validation {
     condition = (
-      var.metadata_http_put_response_hop_limit >= 2
+      var.metadata_http_put_response_hop_limit >= 1
     )
-    error_message = "IMDS hop limit must be at least 2 to support EKS functionality."
+    error_message = "IMDS hop limit must be at least 1 to work."
   }
 }
 

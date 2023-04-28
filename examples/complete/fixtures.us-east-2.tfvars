@@ -10,7 +10,7 @@ stage = "test"
 
 name = "eks-node-group"
 
-kubernetes_version = "1.21"
+kubernetes_version = "1.25"
 
 oidc_provider_enabled = true
 
@@ -25,8 +25,6 @@ desired_size = 2
 max_size = 3
 
 min_size = 2
-
-disk_size = 20
 
 kubernetes_labels = {
   terratest = "true"

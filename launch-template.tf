@@ -33,8 +33,9 @@ locals {
 
   launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : var.ami_image_id[0]
 
+  associate_cluster_security_group = local.enabled && var.associate_cluster_security_group
   launch_template_vpc_security_group_ids = sort(compact(concat(
-    data.aws_eks_cluster.this[*].vpc_config[0].cluster_security_group_id,
+    local.associate_cluster_security_group ? data.aws_eks_cluster.this[*].vpc_config[0].cluster_security_group_id : [],
     module.ssh_access[*].id,
     var.associated_security_group_ids
   )))
@@ -59,7 +60,6 @@ resource "aws_launch_template" "default" {
       device_name = block_device_mappings.value.device_name
 
       ebs {
-
         delete_on_termination = lookup(block_device_mappings.value, "delete_on_termination", null)
         encrypted             = lookup(block_device_mappings.value, "encrypted", null)
         iops                  = lookup(block_device_mappings.value, "iops", null)
