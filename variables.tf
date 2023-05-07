@@ -337,7 +337,7 @@ variable "after_cluster_joining_userdata" {
 variable "bootstrap_additional_options" {
   type        = list(string)
   default     = []
-  description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_args` var instead."
+  description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_options` var instead."
   validation {
     condition = (
       length(var.bootstrap_additional_options) < 2
