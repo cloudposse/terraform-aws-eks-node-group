@@ -22,7 +22,7 @@ locals {
     # e.g. amazon-eks-arm64-node-1.21-v20211013
     AL2 = "amazon-eks%s-node-%s"
     # bottlerocket-aws-k8s-{ami_kubernetes_version}-{arch_label}-v{ami_version}
-    # e.g. bottlerocket-aws-k8s-1.21-x86_64-v1.2.0-ccf1b754
+    # e.g. bottlerocket-aws-k8s-1.21-x86_64-v1[2].0-ccf1b754
     BOTTLEROCKET = "bottlerocket-aws-k8s-%s-%s-%s"
     # Windows_Server-2019-English-Core-EKS_Optimized-{ami_kubernetes_version}-{ami_version}
     # e.g. Windows_Server-2019-English-Core-EKS_Optimized-1.23-2022.11.08
