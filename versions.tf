@@ -7,7 +7,7 @@ terraform {
       # update_config starts at 3.56
       # Windows support starts at 4.48 https://github.com/hashicorp/terraform-provider-aws/blob/main/CHANGELOG.md#4480-december-19-2022
       source  = "hashicorp/aws"
-      version = ">= 3.56"
+      version = ">= 4.48"
     }
     random = {
       source  = "hashicorp/random"
