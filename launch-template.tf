@@ -106,6 +106,15 @@ resource "aws_launch_template" "default" {
   user_data              = local.userdata
   tags                   = local.node_group_tags
 
+  dynamic "cpu_options" {
+    for_each = var.cpu_options
+    
+    content {
+      core_count       = lookup(cpu_options.value, "core_count", null)
+      threads_per_core = lookup(cpu_options.value, "threads_per_core", null)
+    }
+  }
+
   dynamic "placement" {
     for_each = var.placement
 
