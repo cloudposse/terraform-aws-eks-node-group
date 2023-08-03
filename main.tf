@@ -19,6 +19,10 @@ locals {
     PREFER_NO_SCHEDULE = "PreferNoSchedule"
   }
 
+
+  # At the moment, the autoscaler tags are not needed.
+  # We leave them here for when they can be applied to the autoscaling group.
+
   autoscaler_enabled = var.cluster_autoscaler_enabled
   #
   # Set up tags for autoscaler and other resources
@@ -40,16 +44,16 @@ locals {
   node_tags = merge(
     module.label.tags,
     {
+      # We no longer need to add this tag to nodes, as it is added by EKS, but it does not hurt to keep it.
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
   )
+  # It does not help to add the autoscaler tags to the node group tags,
+  # because they only matter when applied to the autoscaling group.
+  # TODO:
+  # Replace: node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
+  # with:    node_group_tags = local.node_tags
   node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
-
-  windows_taint = [{
-    key    = "OS"
-    value  = "Windows"
-    effect = "NO_SCHEDULE"
-  }]
 }
 
 module "label" {
@@ -82,7 +86,7 @@ locals {
     capacity_type  = var.capacity_type
     labels         = var.kubernetes_labels == null ? {} : var.kubernetes_labels
 
-    taints          = local.is_windows ? concat(local.windows_taint, var.kubernetes_taints) : var.kubernetes_taints
+    taints          = var.kubernetes_taints
     release_version = local.launch_template_ami == "" ? try(var.ami_release_version[0], null) : null
     version         = length(compact(concat([local.launch_template_ami], var.ami_release_version))) == 0 ? try(var.kubernetes_version[0], null) : null
 
