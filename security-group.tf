@@ -3,12 +3,17 @@
 module "ssh_access" {
   count   = local.need_ssh_access_sg ? 1 : 0
   source  = "cloudposse/security-group/aws"
-  version = "1.0.1"
+  version = "2.2.0"
 
   attributes = ["ssh"]
 
   security_group_description = "Allow SSH access to nodes"
+
+  # Set preserve_security_group_id to true to prevent Terraform from destroying and re-creating the security group
+  # when possible. Since this is just for SSH access, we can tolerate a brief outage.
+  # See https://github.com/cloudposse/terraform-aws-security-group/blob/main/docs/migration-v1-v2.md#do-you-need-to-preserve-the-security-group-id
   create_before_destroy      = true
+  preserve_security_group_id = true
 
   rule_matrix = [{
     key                       = "ssh"
