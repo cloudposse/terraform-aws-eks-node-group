@@ -56,7 +56,7 @@ module "vpc" {
 
 module "subnets" {
   source               = "cloudposse/dynamic-subnets/aws"
-  version              = "2.3.0"
+  version              = "2.4.1"
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
   igw_id               = [module.vpc.igw_id]
@@ -130,6 +130,17 @@ module "eks_node_group" {
   kubernetes_version = [var.kubernetes_version]
   kubernetes_labels  = merge(var.kubernetes_labels, { attributes = coalesce(join(module.this.delimiter, module.this.attributes), "none") })
   kubernetes_taints  = var.kubernetes_taints
+
+  cluster_autoscaler_enabled = true
+
+  block_device_mappings = [{
+    device_name           = "/dev/xvda"
+    volume_size           = 20
+    volume_type           = "gp2"
+    encrypted             = true
+    delete_on_termination = true
+  }]
+
 
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]

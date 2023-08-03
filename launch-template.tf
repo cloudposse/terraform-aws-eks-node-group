@@ -54,20 +54,26 @@ resource "aws_launch_template" "default" {
   ebs_optimized = var.ebs_optimized
 
   dynamic "block_device_mappings" {
-    for_each = var.block_device_mappings
+    for_each = local.block_device_map
 
     content {
-      device_name = block_device_mappings.value.device_name
+      device_name  = block_device_mappings.key
+      no_device    = block_device_mappings.value.no_device
+      virtual_name = block_device_mappings.value.virtual_name
 
-      ebs {
-        delete_on_termination = lookup(block_device_mappings.value, "delete_on_termination", null)
-        encrypted             = lookup(block_device_mappings.value, "encrypted", null)
-        iops                  = lookup(block_device_mappings.value, "iops", null)
-        kms_key_id            = lookup(block_device_mappings.value, "kms_key_id", null)
-        snapshot_id           = lookup(block_device_mappings.value, "snapshot_id", null)
-        throughput            = lookup(block_device_mappings.value, "throughput", null)
-        volume_size           = lookup(block_device_mappings.value, "volume_size", null)
-        volume_type           = lookup(block_device_mappings.value, "volume_type", null)
+      dynamic "ebs" {
+        for_each = block_device_mappings.value.ebs == null ? [] : [block_device_mappings.value.ebs]
+
+        content {
+          delete_on_termination = ebs.value.delete_on_termination
+          encrypted             = ebs.value.encrypted
+          iops                  = ebs.value.iops
+          kms_key_id            = ebs.value.kms_key_id
+          snapshot_id           = ebs.value.snapshot_id
+          throughput            = ebs.value.throughput
+          volume_size           = ebs.value.volume_size
+          volume_type           = ebs.value.volume_type
+        }
       }
     }
   }
@@ -108,7 +114,7 @@ resource "aws_launch_template" "default" {
 
   dynamic "cpu_options" {
     for_each = var.cpu_options
-    
+
     content {
       core_count       = lookup(cpu_options.value, "core_count", null)
       threads_per_core = lookup(cpu_options.value, "threads_per_core", null)

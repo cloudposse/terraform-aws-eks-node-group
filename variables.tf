@@ -15,7 +15,10 @@ variable "create_before_destroy" {
 
 variable "cluster_autoscaler_enabled" {
   type        = bool
-  description = "Set true to label the node group so that the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup) will discover and autoscale it"
+  description = <<-EOT
+    Set `true` to label the node group so that the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup) will discover and autoscale it.
+    Note that even when `false`, EKS will set the `k8s.io/cluster-autoscaler/enabled` label to `true` on the node group.
+    EOT
   default     = false
 }
 
@@ -68,8 +71,9 @@ variable "associate_cluster_security_group" {
   default     = true
   description = <<-EOT
     When true, associate the default cluster security group to the nodes. If disabled the EKS managed security group will not
-    be associated to the nodes, therefore the communications between pods and nodes will not work. Be aware that if no `associated_security_group_ids`
-    nor `ssh_access_security_group_ids` are provided then the nodes will have no inbound or outbound rules. 
+    be associated to the nodes and you will need to provide another security group that allows the nodes to communicate with
+    the EKS control plane. Be aware that if no `associated_security_group_ids` or `ssh_access_security_group_ids` are provided,
+    then the nodes will have no inbound or outbound rules.
   EOT
 }
 
@@ -160,21 +164,27 @@ variable "capacity_type" {
   }
 }
 
-variable "block_device_mappings" {
-  type        = list(any)
+variable "block_device_map" {
+  type = map(object({
+    no_device    = optional(bool, null)
+    virtual_name = optional(string, null)
+    ebs = optional(object({
+      delete_on_termination = optional(bool, true)
+      encrypted             = optional(bool, true)
+      iops                  = optional(number, null)
+      kms_key_id            = optional(string, null)
+      snapshot_id           = optional(string, null)
+      throughput            = optional(number, null)
+      volume_size           = optional(number, 20)
+      volume_type           = optional(string, "gp3")
+    }))
+  }))
+
   description = <<-EOT
-    List of block device mappings for the launch template.
-    Each list element is an object with a `device_name` key and
-    any keys supported by the `ebs` block of `launch_template`.
+    Map of block device name specification, see [launch_template.block-devices](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#block-devices).
     EOT
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#ebs
-  default = [{
-    device_name           = "/dev/xvda"
-    volume_size           = 20
-    volume_type           = "gp2"
-    encrypted             = true
-    delete_on_termination = true
-  }]
+  default = { "/dev/xvda" = { ebs = {} } }
 }
 
 variable "update_config" {
