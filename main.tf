@@ -44,12 +44,6 @@ locals {
     }
   )
   node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
-
-  windows_taint = [{
-    key    = "OS"
-    value  = "Windows"
-    effect = "NO_SCHEDULE"
-  }]
 }
 
 module "label" {
@@ -82,7 +76,7 @@ locals {
     capacity_type  = var.capacity_type
     labels         = var.kubernetes_labels == null ? {} : var.kubernetes_labels
 
-    taints          = local.is_windows ? concat(local.windows_taint, var.kubernetes_taints) : var.kubernetes_taints
+    taints          = var.kubernetes_taints
     release_version = local.launch_template_ami == "" ? try(var.ami_release_version[0], null) : null
     version         = length(compact(concat([local.launch_template_ami], var.ami_release_version))) == 0 ? try(var.kubernetes_version[0], null) : null
 
