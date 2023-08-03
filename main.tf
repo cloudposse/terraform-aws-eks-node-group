@@ -105,7 +105,7 @@ resource "random_pet" "cbd" {
   keepers = {
     node_role_arn  = local.ng.node_role_arn
     subnet_ids     = join(",", local.ng.subnet_ids)
-    instance_types = join(",", sort(local.ng.instance_types))
+    instance_types = join(",", local.ng.instance_types)
     ami_type       = local.ng.ami_type
     capacity_type  = local.ng.capacity_type
 
