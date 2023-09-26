@@ -151,3 +151,15 @@ variable "after_cluster_joining_userdata" {
     error_message = "You may not specify more than one `after_cluster_joining_userdata`."
   }
 }
+
+variable "force_update_version" {
+  type        = bool
+  default     = false
+  description = "Force version update if existing pods are unable to be drained due to a pod disruption budget issue"
+}
+
+variable "include_kubernetes_version_in_keepers" {
+  type        = bool
+  default     = false
+  description = "Include Kubernetes version in `random_pet` keepers. If set to `true` and the EKS cluster is updated to a new Kubernetes version, the Node Groups will be replaced instead of updated in-place"
+}

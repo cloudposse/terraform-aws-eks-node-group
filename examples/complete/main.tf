@@ -101,7 +101,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "2.4.0"
+  version                      = "2.9.0"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -141,7 +141,6 @@ module "eks_node_group" {
     delete_on_termination = true
   }]
 
-
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]
   associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
@@ -162,6 +161,9 @@ module "eks_node_group" {
   depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
 
   create_before_destroy = true
+
+  force_update_version                  = var.force_update_version
+  include_kubernetes_version_in_keepers = var.include_kubernetes_version_in_keepers
 
   node_group_terraform_timeouts = [{
     create = "40m"

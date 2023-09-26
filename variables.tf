@@ -450,3 +450,15 @@ variable "detailed_monitoring_enabled" {
   default     = false
   description = "The launched EC2 instance will have detailed monitoring enabled. Defaults to false"
 }
+
+variable "force_update_version" {
+  type        = bool
+  default     = false
+  description = "Force version update if existing pods are unable to be drained due to a pod disruption budget issue"
+}
+
+variable "include_kubernetes_version_in_keepers" {
+  type        = bool
+  default     = false
+  description = "Include Kubernetes version in `random_pet` keepers. If set to `true` and the EKS cluster is updated to a new Kubernetes version, the Node Groups will be replaced instead of updated in-place"
+}

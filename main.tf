@@ -97,6 +97,8 @@ locals {
       max_size     = var.max_size
       min_size     = var.min_size
     }
+
+    force_update_version = var.force_update_version
   }
 }
 
@@ -106,15 +108,20 @@ resource "random_pet" "cbd" {
   separator = module.label.delimiter
   length    = 1
 
-  keepers = {
-    node_role_arn  = local.ng.node_role_arn
-    subnet_ids     = join(",", local.ng.subnet_ids)
-    instance_types = join(",", local.ng.instance_types)
-    ami_type       = local.ng.ami_type
-    capacity_type  = local.ng.capacity_type
-
-    launch_template_id = local.launch_template_id
-  }
+  keepers = merge(
+    {
+      node_role_arn      = local.ng.node_role_arn
+      subnet_ids         = join(",", local.ng.subnet_ids)
+      instance_types     = join(",", local.ng.instance_types)
+      ami_type           = local.ng.ami_type
+      capacity_type      = local.ng.capacity_type
+      launch_template_id = local.launch_template_id
+    },
+    var.include_kubernetes_version_in_keepers && local.ng.version != null ?
+    {
+      version = local.ng.version
+    } : {}
+  )
 }
 
 # Because create_before_destroy is such a dramatic change, we want to make it optional.
@@ -134,14 +141,15 @@ resource "aws_eks_node_group" "default" {
   }
 
   # From here to end of resource should be identical in both node groups
-  cluster_name    = local.ng.cluster_name
-  node_role_arn   = local.ng.node_role_arn
-  subnet_ids      = local.ng.subnet_ids
-  instance_types  = local.ng.instance_types
-  ami_type        = local.ng.ami_type
-  labels          = local.ng.labels
-  release_version = local.ng.release_version
-  version         = local.ng.version
+  cluster_name         = local.ng.cluster_name
+  node_role_arn        = local.ng.node_role_arn
+  subnet_ids           = local.ng.subnet_ids
+  instance_types       = local.ng.instance_types
+  ami_type             = local.ng.ami_type
+  labels               = local.ng.labels
+  release_version      = local.ng.release_version
+  version              = local.ng.version
+  force_update_version = local.ng.force_update_version
 
   capacity_type = local.ng.capacity_type
 
@@ -213,14 +221,15 @@ resource "aws_eks_node_group" "cbd" {
   }
 
   # From here to end of resource should be identical in both node groups
-  cluster_name    = local.ng.cluster_name
-  node_role_arn   = local.ng.node_role_arn
-  subnet_ids      = local.ng.subnet_ids
-  instance_types  = local.ng.instance_types
-  ami_type        = local.ng.ami_type
-  labels          = local.ng.labels
-  release_version = local.ng.release_version
-  version         = local.ng.version
+  cluster_name         = local.ng.cluster_name
+  node_role_arn        = local.ng.node_role_arn
+  subnet_ids           = local.ng.subnet_ids
+  instance_types       = local.ng.instance_types
+  ami_type             = local.ng.ami_type
+  labels               = local.ng.labels
+  release_version      = local.ng.release_version
+  version              = local.ng.version
+  force_update_version = local.ng.force_update_version
 
   capacity_type = local.ng.capacity_type
 
