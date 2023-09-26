@@ -155,11 +155,11 @@ variable "after_cluster_joining_userdata" {
 variable "force_update_version" {
   type        = bool
   default     = false
-  description = "Force Kubernetes version update if existing Pods are unable to be drained from the nodes due to PodDisruptionBudget or taint/toleration issues"
+  description = "When updating the Kubernetes version, force Pods to be removed even if PodDisruptionBudget or taint/toleration issues would otherwise prevent them from being removed (and cause the update to fail)"
 }
 
 variable "replace_node_group_on_version_update" {
   type        = bool
   default     = false
-  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `true`, the Node Groups will be replaced instead of updated in-place"
+  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place"
 }
