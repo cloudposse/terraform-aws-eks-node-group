@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	testStructure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 
 	corev1 "k8s.io/api/core/v1"
@@ -59,7 +60,7 @@ func newClientset(cluster *eks.Cluster) (*kubernetes.Clientset, error) {
 
 func cleanup(t *testing.T, terraformOptions *terraform.Options, tempTestFolder string) {
 	terraform.Destroy(t, terraformOptions)
-	os.RemoveAll(tempTestFolder)
+	_ = os.RemoveAll(tempTestFolder)
 }
 
 // Test the Terraform module in examples/complete using Terratest.
@@ -72,7 +73,7 @@ func TestExamplesComplete(t *testing.T) {
 	terraformFolderRelativeToRoot := "examples/complete"
 	varFiles := []string{"fixtures.us-east-2.tfvars"}
 
-	tempTestFolder := test_structure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
+	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
@@ -193,7 +194,7 @@ func TestExamplesCompleteDisabled(t *testing.T) {
 	terraformFolderRelativeToRoot := "examples/complete"
 	varFiles := []string{"fixtures.us-east-2.tfvars"}
 
-	tempTestFolder := test_structure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
+	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
@@ -203,7 +204,7 @@ func TestExamplesCompleteDisabled(t *testing.T) {
 		VarFiles: varFiles,
 		Vars: map[string]interface{}{
 			"attributes": attributes,
-			"enabled":    "false",
+			"enabled":    false,
 		},
 	}
 
@@ -211,11 +212,11 @@ func TestExamplesCompleteDisabled(t *testing.T) {
 	defer cleanup(t, terraformOptions, tempTestFolder)
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
-	terraform.InitAndApply(t, terraformOptions)
+	results := terraform.InitAndApply(t, terraformOptions)
 
-	// Get all the output and lookup a field. Pass if the field is missing or empty.
-	example := terraform.OutputAll(t, terraformOptions)["eks_node_group_arn"]
-
-	// Verify we're getting back the outputs we expect
-	assert.Empty(t, example, "When disabled, module should have no outputs.")
+	// Should complete successfully without creating or changing any resources.
+	// Extract the "Resources:" section of the output to make the error message more readable.
+	re := regexp.MustCompile(`Resources: [^.]+\.`)
+	match := re.FindString(results)
+	assert.Equal(t, "Resources: 0 added, 0 changed, 0 destroyed.", match, "Re-applying the same configuration should not change any resources")
 }

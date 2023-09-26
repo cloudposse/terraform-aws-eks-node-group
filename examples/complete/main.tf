@@ -122,7 +122,7 @@ module "eks_node_group" {
   source = "../../"
 
   subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
-  cluster_name       = module.eks_cluster.eks_cluster_id
+  cluster_name       = local.enabled ? module.eks_cluster.eks_cluster_id : ""
   instance_types     = var.instance_types
   desired_size       = var.desired_size
   min_size           = var.min_size
@@ -154,8 +154,6 @@ module "eks_node_group" {
 
   before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
-  context = module.this.context
-
   # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
   # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
   depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
@@ -170,4 +168,6 @@ module "eks_node_group" {
     update = null
     delete = "20m"
   }]
+
+  context = module.this.context
 }
