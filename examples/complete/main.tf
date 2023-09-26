@@ -101,7 +101,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "2.4.0"
+  version                      = "2.9.0"
   region                       = var.region
   vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
@@ -122,7 +122,7 @@ module "eks_node_group" {
   source = "../../"
 
   subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
-  cluster_name       = module.eks_cluster.eks_cluster_id
+  cluster_name       = module.this.enabled ? module.eks_cluster.eks_cluster_id : "disabled"
   instance_types     = var.instance_types
   desired_size       = var.desired_size
   min_size           = var.min_size
@@ -141,7 +141,6 @@ module "eks_node_group" {
     delete_on_termination = true
   }]
 
-
   ec2_ssh_key_name              = var.ec2_ssh_key_name
   ssh_access_security_group_ids = [module.ssh_source_access.id]
   associated_security_group_ids = [module.ssh_source_access.id, module.https_sg.id]
@@ -155,17 +154,20 @@ module "eks_node_group" {
 
   before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
 
-  context = module.this.context
-
   # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
   # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
   depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
 
   create_before_destroy = true
 
+  force_update_version                 = var.force_update_version
+  replace_node_group_on_version_update = var.replace_node_group_on_version_update
+
   node_group_terraform_timeouts = [{
     create = "40m"
     update = null
     delete = "20m"
   }]
+
+  context = module.this.context
 }

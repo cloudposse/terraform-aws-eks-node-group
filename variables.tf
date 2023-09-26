@@ -450,3 +450,15 @@ variable "detailed_monitoring_enabled" {
   default     = false
   description = "The launched EC2 instance will have detailed monitoring enabled. Defaults to false"
 }
+
+variable "force_update_version" {
+  type        = bool
+  default     = false
+  description = "When updating the Kubernetes version, force Pods to be removed even if PodDisruptionBudget or taint/toleration issues would otherwise prevent them from being removed (and cause the update to fail)"
+}
+
+variable "replace_node_group_on_version_update" {
+  type        = bool
+  default     = false
+  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place"
+}

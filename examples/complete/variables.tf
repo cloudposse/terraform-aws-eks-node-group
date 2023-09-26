@@ -151,3 +151,15 @@ variable "after_cluster_joining_userdata" {
     error_message = "You may not specify more than one `after_cluster_joining_userdata`."
   }
 }
+
+variable "force_update_version" {
+  type        = bool
+  default     = false
+  description = "When updating the Kubernetes version, force Pods to be removed even if PodDisruptionBudget or taint/toleration issues would otherwise prevent them from being removed (and cause the update to fail)"
+}
+
+variable "replace_node_group_on_version_update" {
+  type        = bool
+  default     = false
+  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place"
+}
