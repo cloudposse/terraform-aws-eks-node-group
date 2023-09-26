@@ -460,5 +460,5 @@ variable "force_update_version" {
 variable "replace_node_group_on_version_update" {
   type        = bool
   default     = false
-  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `true`, the Node Groups will be replaced instead of updated in-place"
+  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place."
 }
