@@ -117,7 +117,8 @@ resource "random_pet" "cbd" {
       capacity_type      = local.ng.capacity_type
       launch_template_id = local.launch_template_id
     },
-    var.force_node_group_replacement && local.ng.version != null ?
+    # If `var.replace_node_group_on_version_update` is set to `true`, the Node Groups will be replaced instead of updated in-place
+    var.replace_node_group_on_version_update && local.ng.version != null ?
     {
       version = local.ng.version
     } : {}

@@ -457,8 +457,8 @@ variable "force_update_version" {
   description = "Force Kubernetes version update if existing Pods are unable to be drained from the nodes due to PodDisruptionBudget or taint/toleration issues"
 }
 
-variable "force_node_group_replacement" {
+variable "replace_node_group_on_version_update" {
   type        = bool
   default     = false
-  description = "Force Node Group replacement when upgrading to a new Kubernetes version. If set to `true`, the Node Groups will be replaced instead of updated in-place"
+  description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `true`, the Node Groups will be replaced instead of updated in-place"
 }
