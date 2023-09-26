@@ -454,7 +454,7 @@ variable "detailed_monitoring_enabled" {
 variable "force_update_version" {
   type        = bool
   default     = false
-  description = "Force Kubernetes version update if existing Pods are unable to be drained from the nodes due to PodDisruptionBudget or taint/toleration issues"
+  description = "When updating the Kubernetes version, force Pods to be removed even if PodDisruptionBudget or taint/toleration issues would otherwise prevent them from being removed (and cause the update to fail)"
 }
 
 variable "replace_node_group_on_version_update" {
