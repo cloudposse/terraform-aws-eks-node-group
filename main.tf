@@ -117,7 +117,7 @@ resource "random_pet" "cbd" {
       capacity_type      = local.ng.capacity_type
       launch_template_id = local.launch_template_id
     },
-    var.include_kubernetes_version_in_keepers && local.ng.version != null ?
+    var.force_node_group_replacement && local.ng.version != null ?
     {
       version = local.ng.version
     } : {}

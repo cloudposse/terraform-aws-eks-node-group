@@ -160,8 +160,8 @@ module "eks_node_group" {
 
   create_before_destroy = true
 
-  force_update_version                  = var.force_update_version
-  include_kubernetes_version_in_keepers = var.include_kubernetes_version_in_keepers
+  force_update_version         = var.force_update_version
+  force_node_group_replacement = var.force_node_group_replacement
 
   node_group_terraform_timeouts = [{
     create = "40m"

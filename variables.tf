@@ -454,11 +454,11 @@ variable "detailed_monitoring_enabled" {
 variable "force_update_version" {
   type        = bool
   default     = false
-  description = "Force version update if existing pods are unable to be drained due to a pod disruption budget issue"
+  description = "Force Kubernetes version update if existing Pods are unable to be drained from the nodes due to PodDisruptionBudget or taint/toleration issues"
 }
 
-variable "include_kubernetes_version_in_keepers" {
+variable "force_node_group_replacement" {
   type        = bool
   default     = false
-  description = "Include Kubernetes version in `random_pet` keepers. If set to `true` and the EKS cluster is updated to a new Kubernetes version, the Node Groups will be replaced instead of updated in-place"
+  description = "Force Node Group replacement when upgrading to a new Kubernetes version. If set to `true`, the Node Groups will be replaced instead of updated in-place"
 }
