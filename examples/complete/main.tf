@@ -68,7 +68,7 @@ module "subnets" {
 
 module "ssh_source_access" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.3"
+  version = "2.2.0"
 
   attributes                 = ["ssh", "source"]
   security_group_description = "Test source security group ssh access only"
@@ -85,7 +85,7 @@ module "ssh_source_access" {
 
 module "https_sg" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.3"
+  version = "2.2.0"
 
   attributes                 = ["http"]
   security_group_description = "Allow http access"
