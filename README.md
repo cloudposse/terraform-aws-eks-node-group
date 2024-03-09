@@ -52,11 +52,7 @@ Instantiate it multiple times to create many EKS node groups with specific setti
 
 
 
-> [!IMPORTANT]
-> In Cloud Posse's examples, we avoid pinning modules to specific versions to prevent discrepancies between the documentation 
-> and the latest released versions. However, for your own projects, we strongly advise pinning each module to the exact version
-> you're using. This practice ensures the stability of your infrastructure. Additionally, we recommend implementing a systematic 
-> approach for updating versions to avoid unexpected changes.
+## Usage
 
 
 ### Major Changes (breaking and otherwise)
@@ -456,9 +452,7 @@ In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
  5. **Push** your work back up to your fork
  6. Submit a **Pull Request** so that we can review your changes
 
-We are a [**DevOps Accelerator**](https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support) for funded startups and enterprises.
-Use our ready-to-go terraform architecture blueprints for AWS to get up and running quickly.
-We build it with you. You own everything. Your team wins. Plus, we stick around until you succeed.
+**NOTE:** Be sure to merge the latest changes from "upstream" before making a pull request!
 
 ### 🌎 Slack Community
 
@@ -507,6 +501,8 @@ under the License.
 ## Trademarks
 
 All other trademarks referenced herein are the property of their respective owners.
+
+
 ---
 Copyright © 2017-2024 [Cloud Posse, LLC](https://cpco.io/copyright)
 
