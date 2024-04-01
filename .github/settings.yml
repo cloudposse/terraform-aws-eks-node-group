@@ -1,0 +1,7 @@
+# Upstream changes from _extends are only recognized when modifications are made to this file in the default branch.
+_extends: .github
+repository:
+  name: terraform-aws-eks-node-group
+  description: Terraform module to provision a fully managed AWS EKS Node Group
+  homepage: https://cloudposse.com/accelerate
+  topics: terraform, aws, terraform-module, eks, kubernetes, k8s, hcl2, terratest, node-pool
