@@ -10,7 +10,7 @@ stage = "test"
 
 name = "eks-node-group"
 
-kubernetes_version = "1.25"
+kubernetes_version = "1.29"
 
 oidc_provider_enabled = true
 

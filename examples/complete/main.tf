@@ -15,6 +15,12 @@ module "label" {
   context = module.this.context
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_session_context" "current" {
+  arn = data.aws_caller_identity.current.arn
+}
+
 locals {
   # The usage of the specific kubernetes.io/cluster/* resource tags below are required
   # for EKS and Kubernetes to discover and manage networking resources
@@ -45,18 +51,34 @@ locals {
   }
 
   extra_policy_arn = "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"
+
+  # Enable the IAM user creating the cluster to administer it,
+  # without using the bootstrap_cluster_creator_admin_permissions option,
+  # as a way to test the access_entry_map feature.
+  # In general, this is not recommended. Instead, you should
+  # create the access_entry_map statically, with the ARNs you want to
+  # have access to the cluster. We do it dynamically here just for testing purposes.
+  # See the original PR for more information:
+  # https://github.com/cloudposse/terraform-aws-eks-cluster/pull/206
+  access_entry_map = {
+    (data.aws_iam_session_context.current.issuer_arn) = {
+      access_policy_associations = {
+        ClusterAdmin = {}
+      }
+    }
+  }
 }
 
 module "vpc" {
   source                  = "cloudposse/vpc/aws"
-  version                 = "2.1.0"
+  version                 = "2.2.0"
   ipv4_primary_cidr_block = var.vpc_cidr_block
   context                 = module.this.context
 }
 
 module "subnets" {
   source               = "cloudposse/dynamic-subnets/aws"
-  version              = "2.4.1"
+  version              = "2.4.2"
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
   igw_id               = [module.vpc.igw_id]
@@ -68,11 +90,10 @@ module "subnets" {
 
 module "ssh_source_access" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.3"
+  version = "2.2.0"
 
   attributes                 = ["ssh", "source"]
   security_group_description = "Test source security group ssh access only"
-  create_before_destroy      = true
   allow_all_egress           = true
 
   rules = [local.allow_all_ingress_rule]
@@ -85,11 +106,10 @@ module "ssh_source_access" {
 
 module "https_sg" {
   source  = "cloudposse/security-group/aws"
-  version = "0.4.3"
+  version = "2.2.0"
 
   attributes                 = ["http"]
   security_group_description = "Allow http access"
-  create_before_destroy      = true
   allow_all_egress           = true
 
   rules = [local.allow_http_ingress_rule]
@@ -101,21 +121,21 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "2.9.0"
+  version                      = "4.1.0"
   region                       = var.region
-  vpc_id                       = module.vpc.vpc_id
   subnet_ids                   = module.subnets.public_subnet_ids
   kubernetes_version           = var.kubernetes_version
-  local_exec_interpreter       = var.local_exec_interpreter
   oidc_provider_enabled        = var.oidc_provider_enabled
   enabled_cluster_log_types    = var.enabled_cluster_log_types
   cluster_log_retention_period = var.cluster_log_retention_period
 
-  # data auth has problems destroying the auth-map
-  kube_data_auth_enabled = false
-  kube_exec_auth_enabled = true
+  access_config = {
+    authentication_mode                         = "API"
+    bootstrap_cluster_creator_admin_permissions = false
+  }
 
-  context = module.this.context
+  access_entry_map = local.access_entry_map
+  context          = module.this.context
 }
 
 module "eks_node_group" {
