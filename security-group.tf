@@ -27,14 +27,6 @@ module "ssh_access" {
       from_port   = 22
       to_port     = 22
       description = "Allow SSH ingress"
-      },
-      {
-        key         = "ssh-egress"
-        type        = "egress"
-        from_port   = 0
-        to_port     = 65535
-        protocol    = "tcp"
-        description = "Allow SSH egress"
     }]
   }]
 
