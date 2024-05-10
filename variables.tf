@@ -82,16 +82,17 @@ variable "ami_type" {
   type        = string
   description = <<-EOT
     Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
-    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, and `AL2_ARM_64`.
+    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, and `AL2023_x86_64_standard`.
     EOT
-  default     = "AL2_x86_64"
+  default     = "AL2023_x86_64_standard"
   validation {
     condition = (
-      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64"], var.ami_type)
+      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "AL2023_x86_64_standard"], var.ami_type)
     )
-    error_message = "Var ami_type must be one of \"AL2_x86_64\", \"AL2_x86_64_GPU\", and \"AL2_ARM_64\"."
+    error_message = "Var ami_type must be one of \"AL2_x86_64\", \"AL2_x86_64_GPU\", \"AL2_ARM_64\", or \"AL2023_x86_64_standard\"."
   }
 }
+
 
 variable "disk_size" {
   type        = number
@@ -99,7 +100,6 @@ variable "disk_size" {
     Disk size in GiB for worker nodes. Defaults to 20. Ignored when `launch_template_id` is supplied.
     Terraform will only perform drift detection if a configuration value is provided.
     EOT
-  #default     = 20
   default     = 20
 }
 
