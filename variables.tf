@@ -99,6 +99,7 @@ variable "disk_size" {
     Disk size in GiB for worker nodes. Defaults to 20. Ignored when `launch_template_id` is supplied.
     Terraform will only perform drift detection if a configuration value is provided.
     EOT
+  #default     = 20
   default     = 20
 }
 
