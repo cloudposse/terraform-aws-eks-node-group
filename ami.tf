@@ -5,7 +5,7 @@ locals {
     "AL2_x86_64" : "",
     "AL2_x86_64_GPU" : "-gpu",
     "AL2_ARM_64" : "-arm64",
-    "AL2023" : ""
+    "AL2023_x86_64_standard" : ""
   }
 
   # Kubernetes version priority (first one to be set wins)
