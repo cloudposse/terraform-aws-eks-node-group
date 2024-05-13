@@ -38,8 +38,8 @@ data "aws_ami" "selected" {
   count = local.enabled && local.need_ami_id ? 1 : 0
 
   most_recent = true
-  #name_regex  = local.ami_regex
-  name_regex = "amazon-eks-node-al2023-x86_64-standard-1.29-v20240415"
+  name_regex  = local.ami_regex
+  #name_regex = "amazon-eks-node-al2023-x86_64-standard-1.29-v20240415"
 
   owners = ["amazon"]
 }
