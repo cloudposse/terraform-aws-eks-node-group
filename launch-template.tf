@@ -35,7 +35,8 @@ locals {
     )
   ) : ""
 
-  launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
+  #launch_template_ami = length(local.configured_ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : local.configured_ami_image_id
+  launch_template_ami = "amazon-eks-node-al2023-x86_64-standard-1.29-v20240415"
 
   launch_template_vpc_security_group_ids = (
     local.need_remote_access_sg ?
