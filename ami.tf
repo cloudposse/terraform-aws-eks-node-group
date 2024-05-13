@@ -30,7 +30,8 @@ locals {
     "${local.ami_kubernetes_version}-*"
   ) : ""
 
-  ami_regex = local.need_ami_id ? format("amazon-eks-node-al2023-%s-standard-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  #ami_regex = local.need_ami_id ? format("amazon-eks-node-al2023-%s-standard-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  ami_regex = "amazon-eks-node-al2023-x86_64-standard-1.29-v20240415"
 }
 
 data "aws_ami" "selected" {
