@@ -25,13 +25,16 @@ locals {
   #   (x != null) && (x != "")
   # length(compact([var.ami_release_version])) > 0
   # (var.ami_release_version != null) && (var.ami_release_version != "")
-  ami_version_regex = local.need_ami_id ? (length(compact([var.ami_release_version])) > 0 ?
+  #ami_version_regex = local.need_ami_id ? (length(compact([var.ami_release_version])) > 0 ?
+  ami_version_regex = local.need_ami_id ? (
+    var.ami_release_version != null ?
     replace(var.ami_release_version, "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
     "${local.ami_kubernetes_version}-*"
   ) : ""
 
-  ami_regex = local.need_ami_id ? format("amazon-eks-node-al2023-%s-standard-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  #ami_regex = local.need_ami_id ? format("amazon-eks-node-al2023-%s-standard-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
   #ami_regex = "amazon-eks-node-al2023-x86_64-standard-1.29-v20240415"
+  ami_regex = local.need_ami_id ? format("amazon-eks-node-%s-%s%s", "al2023", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
 }
 
 data "aws_ami" "selected" {
