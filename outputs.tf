@@ -35,5 +35,5 @@ output "eks_node_group_remote_access_security_group_id" {
 
 output "aws_ami_parameters" {
   description = "The ID of the security group generated to allow SSH access to the nodes, if this module generated one"
-  value       = join("-", local.enabled, local.ami_regex , local.need_ami_id)
+  value       = join("-", [local.enabled, local.ami_regex , local.need_ami_id])
 }
