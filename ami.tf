@@ -5,7 +5,7 @@ locals {
     "AL2_x86_64" : "",
     "AL2_x86_64_GPU" : "-gpu",
     "AL2_ARM_64" : "-arm64",
-    "AL2023_x86_64_standard" : ""
+    "AL2023_x86_64_standard" : "x86_64"
   }
 
   # Kubernetes version priority (first one to be set wins)
@@ -25,9 +25,7 @@ locals {
   #   (x != null) && (x != "")
   # length(compact([var.ami_release_version])) > 0
   # (var.ami_release_version != null) && (var.ami_release_version != "")
-  #ami_version_regex = local.need_ami_id ? (length(compact([var.ami_release_version])) > 0 ?
-  ami_version_regex = local.need_ami_id ? (
-    var.ami_release_version != null ?
+  ami_version_regex = local.need_ami_id ? (length(compact([var.ami_release_version])) > 0 ?
     replace(var.ami_release_version, "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") :
     "${local.ami_kubernetes_version}-*"
   ) : ""
