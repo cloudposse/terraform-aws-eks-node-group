@@ -15,6 +15,7 @@ set -ex
 --==MYBOUNDARY==
 Content-Type: application/node.eks.aws
 
+---
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
 spec:
@@ -23,3 +24,5 @@ spec:
     apiServerEndpoint: ${cluster_endpoint}
     certificateAuthority: ${certificate_authority_data}
     cidr: 10.190.0.0/19
+
+--==MYBOUNDARY==--    
