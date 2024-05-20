@@ -5,6 +5,7 @@ locals {
     "AL2_x86_64" : "",
     "AL2_x86_64_GPU" : "-gpu",
     "AL2_ARM_64" : "-arm64",
+    "AL2023_x86_64_standard" : "x86_64"
   }
 
   # Kubernetes version priority (first one to be set wins)
@@ -29,7 +30,7 @@ locals {
     "${local.ami_kubernetes_version}-*"
   ) : ""
 
-  ami_regex = local.need_ami_id ? format("amazon-eks%s-node-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
+  ami_regex = local.need_ami_id ? format("amazon-eks-node-al2023-%s-standard-%s", local.arch_label_map[var.ami_type], local.ami_version_regex) : ""
 }
 
 data "aws_ami" "selected" {
