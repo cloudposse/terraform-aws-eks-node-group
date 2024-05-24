@@ -23,6 +23,6 @@ spec:
     name: ${cluster_name}
     apiServerEndpoint: ${cluster_endpoint}
     certificateAuthority: ${certificate_authority_data}
-    cidr: 10.190.0.0/19
+    cidr: 172.20.0.0/16
 
 --==MYBOUNDARY==--    
