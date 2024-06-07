@@ -168,7 +168,7 @@ variable "cluster_cidr" {
   type        = string
   default     = null
   description = <<-EOT
-    The CIDR block to assign Kubernetes pods.
+    The CIDR block of cluster.
     This will be pass to nodeadm with `AL2023_x86_64_STANDARD` and `AL2023_ARM_64_STANDARD` AMI types.
     If not set, VPC CIDR Block will be used.
     EOT
