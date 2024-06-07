@@ -169,8 +169,13 @@ variable "cluster_cidr" {
   default     = null
   description = <<-EOT
     The CIDR block to assign Kubernetes pods.
-    Terraform will only perform drift detection if a configuration value is provided.
+    This will be pass to nodeadm with `AL2023_x86_64_STANDARD` and `AL2023_ARM_64_STANDARD` AMI types.
+    If not set, VPC CIDR Block will be used.
     EOT
+  validation {
+    condition     = var.cluster_cidr == null ? true : (can(cidrhost(var.cluster_cidr, 32)) || can(cidrhost(var.cluster_cidr, 128)))
+    error_message = "\"cluster_cidr\" is not a valid CIDR."
+  }
 }
 
 variable "block_device_map" {
@@ -356,7 +361,7 @@ variable "after_cluster_joining_userdata" {
 variable "bootstrap_additional_options" {
   type        = list(string)
   default     = []
-  description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_options` var instead."
+  description = "Additional options to bootstrap.sh. DO NOT include `--kubelet-additional-args`, use `kubelet_additional_options` var instead. Not used with AL2023 AMI types."
   validation {
     condition = (
       length(var.bootstrap_additional_options) < 2

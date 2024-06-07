@@ -11,7 +11,7 @@ locals {
 
   need_ssh_access_sg = local.enabled && (local.have_ssh_key || length(var.ssh_access_security_group_ids) > 0) && local.generate_launch_template
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_ssh_access_sg || length(var.associated_security_group_ids) > 0) : false
+  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_ssh_access_sg || length(var.associated_security_group_ids) > 0 || var.cluster_cidr == null) : false
 
   taint_effect_map = {
     NO_SCHEDULE        = "NoSchedule"
@@ -68,6 +68,11 @@ module "label" {
 data "aws_eks_cluster" "this" {
   count = local.get_cluster_data ? 1 : 0
   name  = var.cluster_name
+}
+
+data "aws_vpc" "this" {
+  count = local.get_cluster_data ? 1 : 0
+  id    = data.aws_eks_cluster.this[0].vpc_config[0].vpc_id
 }
 
 # Support keeping 2 node groups in sync by extracting common variable settings

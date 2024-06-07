@@ -23,10 +23,7 @@ spec:
     name: ${cluster_name}
     apiServerEndpoint: ${cluster_endpoint}
     certificateAuthority: ${certificate_authority_data}
-  {{ if .kubelet_extra_args }}
-  kubelet:
-    flags: ${kubelet_extra_args}
-  {{ end }}
-
+    cidr: ${cluster_cidr}
+  ${kubelet_flags}
 
 --==MYBOUNDARY==--    
