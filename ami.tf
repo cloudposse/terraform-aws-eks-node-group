@@ -13,6 +13,8 @@ locals {
     WINDOWS_FULL_2019_x86_64   = ""
     WINDOWS_CORE_2022_x86_64   = ""
     WINDOWS_FULL_2022_x86_64   = ""
+    AL2023_x86_64_STANDARD     = "x86_64"
+    AL2023_ARM_64_STANDARD     = "arm64"
   }
 
   ami_kind = split("_", var.ami_type)[0] != "WINDOWS" ? split("_", var.ami_type)[0] : format("WINDOWS_%s_%s", split("_", var.ami_type)[1], split("_", var.ami_type)[2])
@@ -30,6 +32,7 @@ locals {
     WINDOWS_FULL_2019 = "Windows_Server-2019-English-Full-EKS_Optimized-%s-%s"
     WINDOWS_CORE_2022 = "Windows_Server-2022-English-Core-EKS_Optimized-%s-%s"
     WINDOWS_FULL_2022 = "Windows_Server-2022-English-Full-EKS_Optimized-%s-%s"
+    AL2023            = "amazon-eks-node-al2023-%s-standard-%s"
   }
 
   # Kubernetes version priority (first one to be set wins)
@@ -41,7 +44,7 @@ locals {
   use_cluster_kubernetes_version = local.need_cluster_kubernetes_version && (local.ami_kind == "BOTTLEROCKET" || length(var.ami_release_version) == 0)
 
   ami_kubernetes_version = local.need_ami_id ? (local.use_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version :
-    regex("^(\\d+\\.\\d+)", coalesce(local.ami_kind == "AL2" ? try(var.ami_release_version[0], null) : null, try(var.kubernetes_version[0], null)))[0]
+    regex("^(\\d+\\.\\d+)", coalesce(contains(["AL2", "AL2023"], local.ami_kind) ? try(var.ami_release_version[0], null) : null, try(var.kubernetes_version[0], null)))[0]
   ) : ""
 
   # if ami_release_version is provided
@@ -58,6 +61,10 @@ locals {
     WINDOWS_FULL_2019 = (length(var.ami_release_version) == 1 ? format("%s", var.ami_release_version[0]) : "*"),
     WINDOWS_CORE_2022 = (length(var.ami_release_version) == 1 ? format("%s", var.ami_release_version[0]) : "*"),
     WINDOWS_FULL_2022 = (length(var.ami_release_version) == 1 ? format("%s", var.ami_release_version[0]) : "*"),
+    # if ami_release_version = "1.21-20211013"
+    #   insert the letter v prior to the ami_version so it becomes 1.21-v20211013
+    # if not, use the kubernetes version
+    AL2023 = (length(var.ami_release_version) == 1 ? replace(var.ami_release_version[0], "/^(\\d+\\.\\d+)\\.\\d+-(\\d+)$/", "$1-v$2") : "${local.ami_kubernetes_version}-*"),
   } : {}
 
   ami_regex = local.need_ami_id ? {
@@ -67,6 +74,7 @@ locals {
     WINDOWS_FULL_2019 = format(local.ami_format["WINDOWS_FULL_2019"], local.ami_kubernetes_version, local.ami_version_regex[local.ami_kind]),
     WINDOWS_CORE_2022 = format(local.ami_format["WINDOWS_CORE_2022"], local.ami_kubernetes_version, local.ami_version_regex[local.ami_kind]),
     WINDOWS_FULL_2022 = format(local.ami_format["WINDOWS_FULL_2022"], local.ami_kubernetes_version, local.ami_version_regex[local.ami_kind]),
+    AL2023            = format(local.ami_format["AL2023"], local.arch_label_map[var.ami_type], local.ami_version_regex[local.ami_kind]),
   } : {}
 }
 

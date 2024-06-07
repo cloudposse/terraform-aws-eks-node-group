@@ -73,6 +73,7 @@ data "aws_eks_cluster" "this" {
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
   is_windows = can(regex("WINDOWS", var.ami_type))
+  is_al2023  = can(regex("AL2023", var.ami_type))
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = local.create_role ? join("", aws_iam_role.default[*].arn) : try(var.node_role_arn[0], null)

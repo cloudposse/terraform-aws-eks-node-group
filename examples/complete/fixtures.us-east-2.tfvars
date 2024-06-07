@@ -42,3 +42,5 @@ kubernetes_taints = [
     value  = null
     effect = "PREFER_NO_SCHEDULE"
 }]
+
+ami_type = "AL2023_x86_64_STANDARD"

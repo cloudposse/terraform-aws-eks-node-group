@@ -189,5 +189,7 @@ module "eks_node_group" {
     delete = "20m"
   }]
 
+  cluster_cidr = var.vpc_cidr_block
+
   context = module.this.context
 }

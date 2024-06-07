@@ -30,6 +30,10 @@ locals {
     cluster_endpoint           = local.get_cluster_data ? data.aws_eks_cluster.this[0].endpoint : null
     certificate_authority_data = local.get_cluster_data ? data.aws_eks_cluster.this[0].certificate_authority[0].data : null
     cluster_name               = local.get_cluster_data ? data.aws_eks_cluster.this[0].name : null
+    # cluster_cidr = length(var.cluster_cidr) == 0 ? (
+    #   local.get_cluster_data ? data.aws_eks_cluster.this[0].vpc_config[0].cluster_cidr : null
+    # ) : var.cluster_cidr
+    cluster_cidr = var.cluster_cidr
   }
 
   need_bootstrap = local.enabled ? length(concat(var.kubelet_additional_options,
@@ -41,7 +45,12 @@ locals {
   (length(var.before_cluster_joining_userdata) > 0) || local.need_bootstrap) : false
 
   userdata = local.need_userdata ? (
-    base64encode(templatefile(local.is_windows ? "${path.module}/userdata_nt.tpl" : "${path.module}/userdata.tpl", merge(local.userdata_vars, local.cluster_data)))) : (
+    base64encode(
+      templatefile(
+        local.is_windows ? "${path.module}/userdata_nt.tpl" : (local.is_al2023 ? "${path.module}/userdata_al2023.tpl" : "${path.module}/userdata.tpl"), merge(local.userdata_vars, local.cluster_data)
+      )
+    )
+  ) : (
     try(var.userdata_override_base64[0], null)
   )
 }
