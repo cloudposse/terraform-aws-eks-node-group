@@ -88,8 +88,7 @@ locals {
     capacity_type  = var.capacity_type
     labels         = var.kubernetes_labels == null ? {} : var.kubernetes_labels
 
-    taints  = var.kubernetes_taints
-    version = local.resolved_kubernetes_version
+    taints = var.kubernetes_taints
 
     tags = local.node_group_tags
 
@@ -122,9 +121,9 @@ resource "random_pet" "cbd" {
       )
     },
     # If `var.replace_node_group_on_version_update` is set to `true`, the Node Groups will be replaced instead of updated in-place
-    var.replace_node_group_on_version_update && local.ng.version != null ?
+    var.replace_node_group_on_version_update ?
     {
-      version = local.ng.version
+      version = var.kubernetes_version
     } : {}
   )
 }
@@ -152,7 +151,7 @@ resource "aws_eks_node_group" "default" {
   instance_types       = local.ng.instance_types
   ami_type             = local.ng.ami_type
   labels               = local.ng.labels
-  version              = local.ng.version
+  version              = null # derived from AMI
   force_update_version = local.ng.force_update_version
 
   capacity_type = local.ng.capacity_type
@@ -231,7 +230,7 @@ resource "aws_eks_node_group" "cbd" {
   instance_types       = local.ng.instance_types
   ami_type             = local.ng.ami_type
   labels               = local.ng.labels
-  version              = local.ng.version
+  version              = null # derived from AMI
   force_update_version = local.ng.force_update_version
 
   capacity_type = local.ng.capacity_type
