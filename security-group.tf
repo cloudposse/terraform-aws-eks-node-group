@@ -18,8 +18,7 @@ module "ssh_access" {
   rule_matrix = [{
     key                       = "ssh"
     source_security_group_ids = var.ssh_access_security_group_ids
-    #bridgecrew:skip=BC_AWS_NETWORKING_1:Skipping `Port Security 0.0.0.0:0 to 22` check because we want to allow SSH access to all nodes in the nodeGroup
-    cidr_blocks = length(var.ssh_access_security_group_ids) == 0 ? ["0.0.0.0/0"] : []
+    cidr_blocks               = length(var.ssh_access_security_group_ids) == 0 ? ["0.0.0.0/0"] : []
     rules = [{
       key         = "ssh"
       type        = "ingress"

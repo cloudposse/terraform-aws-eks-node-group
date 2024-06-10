@@ -6,12 +6,38 @@ variable "cluster_name" {
 variable "create_before_destroy" {
   type        = bool
   description = <<-EOT
-    Set true in order to create the new node group before destroying the old one.
-    If false, the old node group will be destroyed first, causing downtime.
+    If `true` (default), a new node group will be created before destroying the old one.
+    If `false`, the old node group will be destroyed first, causing downtime.
     Changing this setting will always cause node group to be replaced.
     EOT
-  default     = false
+  default     = true
   nullable    = false
+}
+
+variable "random_pet_length" {
+  type        = number
+  description = <<-EOT
+    In order to support "create before destroy" behavior, this module uses the `random_pet`
+    resource to generate a unique pet name for the node group, since the node group name
+    must be unique, meaning the new node group must have a different name than the old one.
+    This variable controls the length of the pet name, meaning the number of pet names
+    concatenated together. This module defaults to 1, but there are only 452 names available,
+    so users with large numbers of node groups may want to increase this value.
+    EOT
+  default     = 1
+  nullable    = false
+}
+
+variable "immediately_apply_lt_changes" {
+  type        = bool
+  description = <<-EOT
+    When `true`, any change to the launch template will be applied immediately.
+    When `false`, the changes will only affect new nodes when they are launched.
+    When `null` (default) this input takes the value of `create_before_destroy`.
+    **NOTE:** Setting this to `false` does not guarantee that other changes,
+    such as `ami_type`, will not cause changes to be applied immediately.
+    EOT
+  default     = null
 }
 
 variable "ec2_ssh_key_name" {
@@ -154,10 +180,14 @@ variable "ami_specifier" {
   description = <<-EOT
     OS-dependent specifier for one of the several AMIs that match OS, architecture, and Kubernetes 1.xx version.
     If not specified the recommended/latest AMI for the given Kubernetes version will be used.
+    Unfortunately, the format of this value varies by OS, and we have not found documentation for it.
+    You can generally figure it out from the AMI name or description, and validate it by trying to retrieve
+    the SSM Public Parameter for the AMI ID.
+
     Examples:
       AL2: amazon-eks-node-1.29-v20240117
       AL2023: amazon-eks-node-al2023-x86_64-standard-1.29-v20240605
-      Bottlerocket: 1.20.1-7c3e9198
+      Bottlerocket: 1.20.1-7c3e9198  _# Note: 1.20.1 is the Bottlerocket, not Kubernetes, version_
       Windows: <not allowed>
     EOT
   default     = "recommended"

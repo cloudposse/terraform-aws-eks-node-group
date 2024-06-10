@@ -1,10 +1,9 @@
 locals {
   enabled = module.this.enabled
 
-  # See https://aws.amazon.com/blogs/containers/introducing-launch-template-and-custom-ami-support-in-amazon-eks-managed-node-groups/
-  features_require_ami = local.enabled && local.need_bootstrap
-  need_ami_id          = local.enabled ? local.features_require_ami && length(var.ami_image_id) == 0 : false
-  # features_require_launch_template = local.enabled ? length(var.resources_to_tag) > 0 || local.need_userdata || local.features_require_ami || local.need_imds_settings : false
+  immediately_apply_lt_changes = coalesce(var.immediately_apply_lt_changes, var.create_before_destroy)
+
+  need_ami_id = local.enabled && length(var.ami_image_id) == 0
 
   have_ssh_key     = local.enabled && length(var.ec2_ssh_key_name) == 1
   ec2_ssh_key_name = local.have_ssh_key ? var.ec2_ssh_key_name[0] : null
@@ -57,9 +56,6 @@ locals {
   )
   # It does not help to add the autoscaler tags to the node group tags,
   # because they only matter when applied to the autoscaling group.
-  # TODO:
-  # Replace: node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
-  # with:    node_group_tags = local.node_tags
   node_group_tags = local.node_tags
 }
 
@@ -92,9 +88,8 @@ locals {
     capacity_type  = var.capacity_type
     labels         = var.kubernetes_labels == null ? {} : var.kubernetes_labels
 
-    taints          = var.kubernetes_taints
-    release_version = local.launch_template_ami == "" ? try(var.ami_release_version[0], null) : null
-    version         = length(compact(concat([local.launch_template_ami], var.ami_release_version))) == 0 ? try(var.kubernetes_version[0], null) : null
+    taints  = var.kubernetes_taints
+    version = local.resolved_kubernetes_version
 
     tags = local.node_group_tags
 
@@ -112,16 +107,19 @@ resource "random_pet" "cbd" {
   count = local.enabled && var.create_before_destroy ? 1 : 0
 
   separator = module.label.delimiter
-  length    = 1
+  length    = var.random_pet_length
 
   keepers = merge(
     {
-      node_role_arn      = local.ng.node_role_arn
-      subnet_ids         = join(",", local.ng.subnet_ids)
-      instance_types     = join(",", local.ng.instance_types)
-      ami_type           = local.ng.ami_type
-      capacity_type      = local.ng.capacity_type
-      launch_template_id = local.launch_template_id
+      node_role_arn  = local.ng.node_role_arn
+      subnet_ids     = join(",", local.ng.subnet_ids)
+      instance_types = join(",", local.ng.instance_types)
+      ami_type       = local.ng.ami_type
+      capacity_type  = local.ng.capacity_type
+      launch_template_id = local.launch_template_configured || !local.immediately_apply_lt_changes ? local.launch_template_id : (
+        # If we want changes to the generated launch template to be applied immediately, keep the settings
+        jsonencode(local.launch_template_config)
+      )
     },
     # If `var.replace_node_group_on_version_update` is set to `true`, the Node Groups will be replaced instead of updated in-place
     var.replace_node_group_on_version_update && local.ng.version != null ?
@@ -154,7 +152,6 @@ resource "aws_eks_node_group" "default" {
   instance_types       = local.ng.instance_types
   ami_type             = local.ng.ami_type
   labels               = local.ng.labels
-  release_version      = local.ng.release_version
   version              = local.ng.version
   force_update_version = local.ng.force_update_version
 
@@ -234,7 +231,6 @@ resource "aws_eks_node_group" "cbd" {
   instance_types       = local.ng.instance_types
   ami_type             = local.ng.ami_type
   labels               = local.ng.labels
-  release_version      = local.ng.release_version
   version              = local.ng.version
   force_update_version = local.ng.force_update_version
 

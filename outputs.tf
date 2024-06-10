@@ -20,7 +20,7 @@ output "eks_node_group_arn" {
 
 output "eks_node_group_resources" {
   description = "List of objects containing information about underlying resources of the EKS Node Group"
-  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd[*].resources : aws_eks_node_group.default[*].resources) : []
+  value       = local.enabled ? try(var.create_before_destroy ? aws_eks_node_group.cbd[0].resources : aws_eks_node_group.default[0].resources, []) : []
 }
 
 output "eks_node_group_status" {

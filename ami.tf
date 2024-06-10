@@ -54,20 +54,14 @@ locals {
   # Kubernetes version priority (first one to be set wins)
   # 1. var.kubernetes_version
   # 2. data.eks_cluster.this.kubernetes_version
-  use_cluster_kubernetes_version  = local.enabled ? local.need_ami_id && length(var.kubernetes_version) == 0 : false
+  use_cluster_kubernetes_version  = local.enabled && length(var.kubernetes_version) == 0
   need_cluster_kubernetes_version = local.use_cluster_kubernetes_version
 
-  ami_kubernetes_version = local.use_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version : var.kubernetes_version[0]
+  resolved_kubernetes_version = local.use_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version : var.kubernetes_version[0]
 }
 
 data "aws_ssm_parameter" "ami_id" {
-  count = 1 # local.enabled && local.need_ami_id ? 1 : 0
+  count = local.enabled && local.need_ami_id ? 1 : 0
 
-  name = format(local.ami_ssm_format[var.ami_type], local.ami_specifier, local.ami_kubernetes_version)
-}
-
-output "ami_ids" {
-  value = {
-    for key, value in data.aws_ssm_parameter.ami_id : key => value.insecure_value
-  }
+  name = format(local.ami_ssm_format[var.ami_type], local.ami_specifier, local.resolved_kubernetes_version)
 }

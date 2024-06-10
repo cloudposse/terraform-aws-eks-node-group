@@ -27,11 +27,11 @@
 
 -->
 
-Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
+Terraform module to provision an EKS Managed Node Group for [Elastic Kubernetes Service](https://aws.amazon.com/eks/).
 
-Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
+Instantiate it multiple times to create EKS Managed Node Groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
 
-**IMPORTANT:** This module provisions an `EKS Node Group` nodes globally accessible by SSH (22) port. Normally, AWS recommends that no security group allows unrestricted ingress access to port 22 .
+**IMPORTANT:** When SSH access is enabled without specifying a source security group, this module provisions `EKS Node Group` nodes that are globally accessible by SSH (22) port. Normally, AWS recommends that no security group allows unrestricted ingress access to port 22 .
 
 
 > [!TIP]
@@ -48,15 +48,92 @@ Instantiate it multiple times to create many EKS node groups with specific setti
 
 ## Introduction
 
+This module creates an [EKS Managed Node Group](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html)
+for an [EKS](https://aws.amazon.com/eks/) cluster.
+It assumes you have already created an EKS cluster, but you can create the cluster and the node group in the
+same Terraform configuration. See our
+[full-featured root module (a.k.a. component) `eks/cluster`](https://github.com/cloudposse/terraform-aws-components/tree/main/modules/eks/cluster)
+for an example of how to do that.
+
+### Launch Templates
+
+This module always uses a [launch template](https://docs.aws.amazon.com/autoscaling/ec2/userguide/launch-templates.html)
+to create the node group. You can create your own launch template and
+pass in its ID, or else this module will create one for you.
+
+The AWS default for EKS is that if the launch template is updated, the existing nodes will not be affected. Only
+new instances added to the node group would get the changes specified in the new launch template. In contrast,
+when the launch template changes, this module can immediately create a new node group from the new launch template
+to replace the old one.
+
+See the inputs `create_before_destroy` and `immediately_apply_lt_changes` for details about how to control this behavior.
+
+### Operating system differences
+
+Currently, EKS supports 4 Operating Systems: Amazon Linux 2, Amazon Linux 2023, Bottlerocket, and Windows Server.
+This module supports all 4 OSes, but support for detailed configuration of the nodes varies by OS. The 4 inputs:
+
+1. `before_cluster_joining_userdata`
+2. `kubelet_additional_options`
+3. `bootstrap_additional_options`
+4. `after_cluster_joining_userdata`
+
+are fully supported for Amazon Linux 2 and Windows, and take advantage of the [bootstrap.sh](https://github.com/awslabs/amazon-eks-ami/blob/main/templates/al2/runtime/bootstrap.sh)
+supplied on those AMIs. **NONE** of these inputs are supported on Bottlerocket. On AL2023, only the first 2 are supported.
+
+Note that for all OSes, you can supply the complete `userdata` contents, which will be untouched by this module, via `userdata_override_base64`.
 
 
-
+> [!TIP]
+> #### Use Terraform Reference Architectures for AWS
+>
+> Use Cloud Posse's ready-to-go [terraform architecture blueprints](https://cloudposse.com/reference-architecture/) for AWS to get up and running quickly.
+>
+> ✅ We build it together with your team.<br/>
+> ✅ Your team owns everything.<br/>
+> ✅ 100% Open Source and backed by fanatical support.<br/>
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+> <details><summary>📚 <strong>Learn More</strong></summary>
+>
+> <br/>
+>
+> Cloud Posse is the leading [**DevOps Accelerator**](https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support) for funded startups and enterprises.
+>
+> *Your team can operate like a pro today.*
+>
+> Ensure that your team succeeds by using Cloud Posse's proven process and turnkey blueprints. Plus, we stick around until you succeed.
+> #### Day-0:  Your Foundation for Success
+> - **Reference Architecture.** You'll get everything you need from the ground up built using 100% infrastructure as code.
+> - **Deployment Strategy.** Adopt a proven deployment strategy with GitHub Actions, enabling automated, repeatable, and reliable software releases.
+> - **Site Reliability Engineering.** Gain total visibility into your applications and services with Datadog, ensuring high availability and performance.
+> - **Security Baseline.** Establish a secure environment from the start, with built-in governance, accountability, and comprehensive audit logs, safeguarding your operations.
+> - **GitOps.** Empower your team to manage infrastructure changes confidently and efficiently through Pull Requests, leveraging the full power of GitHub Actions.
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+>
+> #### Day-2: Your Operational Mastery
+> - **Training.** Equip your team with the knowledge and skills to confidently manage the infrastructure, ensuring long-term success and self-sufficiency.
+> - **Support.** Benefit from a seamless communication over Slack with our experts, ensuring you have the support you need, whenever you need it.
+> - **Troubleshooting.** Access expert assistance to quickly resolve any operational challenges, minimizing downtime and maintaining business continuity.
+> - **Code Reviews.** Enhance your team’s code quality with our expert feedback, fostering continuous improvement and collaboration.
+> - **Bug Fixes.** Rely on our team to troubleshoot and resolve any issues, ensuring your systems run smoothly.
+> - **Migration Assistance.** Accelerate your migration process with our dedicated support, minimizing disruption and speeding up time-to-value.
+> - **Customer Workshops.** Engage with our team in weekly workshops, gaining insights and strategies to continuously improve and innovate.
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+> </details>
 
 
 ## Usage
 
 
 ### Major Changes (breaking and otherwise)
+
+With the v3.0.0 release of this module, support for Amazon Linux 2023 (AL2023) has
+been added, and some breaking changes have been made. Please see the
+[release notes](https://github.com/cloudposse/terraform-aws-eks-node-group/releases/tag/3.0.0)
+for details.
 
 With the v2.0.0 (a.k.a. v0.25.0) release of this module, it has undergone major breaking
 changes and added new features. Please see the [migration](docs/migration-v1-v2.md)
@@ -67,13 +144,6 @@ For a complete example, see [examples/complete](examples/complete).
 
 For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS),
 see [test](test).
-
-### Terraform Version
-
-Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on.
-The v2.0.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
-There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to
-the latest Terraform version before raising any issues about this module.
 
 ### Sources of Information
 
@@ -144,7 +214,7 @@ module "subnets" {
 module "eks_cluster" {
   source = "cloudposse/eks-cluster/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version = "2.x.x"
+  # version = "4.x.x"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.subnets.public_subnet_ids
@@ -158,7 +228,7 @@ module "eks_cluster" {
 module "eks_node_group" {
   source = "cloudposse/eks-node-group/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  # version     = "2.x.x"
+  # version     = "3.x.x"
 
   instance_types        = [var.instance_type]
   subnet_ids            = module.subnets.public_subnet_ids
@@ -294,7 +364,7 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 | <a name="input_after_cluster_joining_userdata"></a> [after\_cluster\_joining\_userdata](#input\_after\_cluster\_joining\_userdata) | Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production | `list(string)` | `[]` | no |
 | <a name="input_ami_image_id"></a> [ami\_image\_id](#input\_ami\_image\_id) | AMI to use, overriding other AMI specifications, but must match `ami_type`. Ignored if `launch_template_id` is supplied. | `list(string)` | `[]` | no |
 | <a name="input_ami_release_version"></a> [ami\_release\_version](#input\_ami\_release\_version) | OBSOLETE: Use `ami_specifier` instead. Note that it has a different format.<br>Historical description: EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or  for Windows \"2023.02.14\". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version." | `list(string)` | `[]` | no |
-| <a name="input_ami_specifier"></a> [ami\_specifier](#input\_ami\_specifier) | OS-dependent specifier for one of the several AMIs that match OS, architecture, and Kubernetes 1.xx version.<br>If not specified the recommended/latest AMI for the given Kubernetes version will be used.<br>Examples:<br>  AL2: amazon-eks-node-1.29-v20240117<br>  AL2023: amazon-eks-node-al2023-x86\_64-standard-1.29-v20240605<br>  Bottlerocket: 1.20.1-7c3e9198<br>  Windows: <not allowed> | `string` | `"recommended"` | no |
+| <a name="input_ami_specifier"></a> [ami\_specifier](#input\_ami\_specifier) | OS-dependent specifier for one of the several AMIs that match OS, architecture, and Kubernetes 1.xx version.<br>If not specified the recommended/latest AMI for the given Kubernetes version will be used.<br>Unfortunately, the format of this value varies by OS, and we have not found documentation for it.<br>You can generally figure it out from the AMI name or description, and validate it by trying to retrieve<br>the SSM Public Parameter for the AMI ID.<br><br>Examples:<br>  AL2: amazon-eks-node-1.29-v20240117<br>  AL2023: amazon-eks-node-al2023-x86\_64-standard-1.29-v20240605<br>  Bottlerocket: 1.20.1-7c3e9198  \_# Note: 1.20.1 is the Bottlerocket, not Kubernetes, version\_<br>  Windows: <not allowed> | `string` | `"recommended"` | no |
 | <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Type of Amazon Machine Image (AMI) associated with the EKS Node Group.<br>Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64, AL2023_x86_64_STANDARD, AL2023_ARM_64_STANDARD`. | `string` | `"AL2_x86_64"` | no |
 | <a name="input_associate_cluster_security_group"></a> [associate\_cluster\_security\_group](#input\_associate\_cluster\_security\_group) | When true, associate the default cluster security group to the nodes. If disabled the EKS managed security group will not<br>be associated to the nodes and you will need to provide another security group that allows the nodes to communicate with<br>the EKS control plane. Be aware that if no `associated_security_group_ids` or `ssh_access_security_group_ids` are provided,<br>then the nodes will have no inbound or outbound rules. | `bool` | `true` | no |
 | <a name="input_associated_security_group_ids"></a> [associated\_security\_group\_ids](#input\_associated\_security\_group\_ids) | A list of IDs of Security Groups to associate the node group with, in addition to the EKS' created security group.<br>These security groups will not be modified. | `list(string)` | `[]` | no |
@@ -308,7 +378,7 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | The name of the EKS cluster | `string` | n/a | yes |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br>See description of individual variables for details.<br>Leave string and numeric variables as `null` to use default value.<br>Individual variable settings (non-null) override settings in context object,<br>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br>  "additional_tag_map": {},<br>  "attributes": [],<br>  "delimiter": null,<br>  "descriptor_formats": {},<br>  "enabled": true,<br>  "environment": null,<br>  "id_length_limit": null,<br>  "label_key_case": null,<br>  "label_order": [],<br>  "label_value_case": null,<br>  "labels_as_tags": [<br>    "unset"<br>  ],<br>  "name": null,<br>  "namespace": null,<br>  "regex_replace_chars": null,<br>  "stage": null,<br>  "tags": {},<br>  "tenant": null<br>}</pre> | no |
 | <a name="input_cpu_options"></a> [cpu\_options](#input\_cpu\_options) | Configuration for the [`cpu_options` Configuration Block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#cpu_options) of the launch template.<br>Leave list empty for defaults. Pass list with single object with attributes matching the `cpu_options` block to configure it.<br>Note that this configures the launch template only. Some elements will be ignored by the Auto Scaling Group<br>that actually launches instances. Consult AWS documentation for details. | `list(any)` | `[]` | no |
-| <a name="input_create_before_destroy"></a> [create\_before\_destroy](#input\_create\_before\_destroy) | Set true in order to create the new node group before destroying the old one.<br>If false, the old node group will be destroyed first, causing downtime.<br>Changing this setting will always cause node group to be replaced. | `bool` | `false` | no |
+| <a name="input_create_before_destroy"></a> [create\_before\_destroy](#input\_create\_before\_destroy) | If `true` (default), a new node group will be created before destroying the old one.<br>If `false`, the old node group will be destroyed first, causing downtime.<br>Changing this setting will always cause node group to be replaced. | `bool` | `true` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br>Map of maps. Keys are names of descriptors. Values are maps of the form<br>`{<br>   format = string<br>   labels = list(string)<br>}`<br>(Type is `any` so the map values can later be enhanced to provide additional options.)<br>`format` is a Terraform format string to be passed to the `format()` function.<br>`labels` is a list of labels, in order, to pass to `format()` function.<br>Label values will be normalized before being passed to `format()` so they will be<br>identical to how they appear in `id`.<br>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
 | <a name="input_desired_size"></a> [desired\_size](#input\_desired\_size) | Initial desired number of worker nodes (external changes ignored) | `number` | n/a | yes |
@@ -320,6 +390,7 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT' | `string` | `null` | no |
 | <a name="input_force_update_version"></a> [force\_update\_version](#input\_force\_update\_version) | When updating the Kubernetes version, force Pods to be removed even if PodDisruptionBudget or taint/toleration issues would otherwise prevent them from being removed (and cause the update to fail) | `bool` | `false` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br>Set to `0` for unlimited length.<br>Set to `null` for keep the existing setting, which defaults to `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
+| <a name="input_immediately_apply_lt_changes"></a> [immediately\_apply\_lt\_changes](#input\_immediately\_apply\_lt\_changes) | When `true`, any change to the launch template will be applied immediately.<br>When `false`, the changes will only affect new nodes when they are launched.<br>When `null` (default) this input takes the value of `create_before_destroy`.<br>**NOTE:** Setting this to `false` does not guarantee that other changes,<br>such as `ami_type`, will not cause changes to be applied immediately. | `bool` | `null` | no |
 | <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Instance types to use for this node group (up to 20). Defaults to ["t3.medium"].<br>Must be empty if the launch template configured by `launch_template_id` specifies an instance type. | `list(string)` | <pre>[<br>  "t3.medium"<br>]</pre> | no |
 | <a name="input_kubelet_additional_options"></a> [kubelet\_additional\_options](#input\_kubelet\_additional\_options) | Additional flags to pass to kubelet.<br>DO NOT include `--node-labels` or `--node-taints`,<br>use `kubernetes_labels` and `kubernetes_taints` to specify those." | `list(string)` | `[]` | no |
 | <a name="input_kubernetes_labels"></a> [kubernetes\_labels](#input\_kubernetes\_labels) | Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument.<br>Other Kubernetes labels applied to the EKS Node Group will not be managed. | `map(string)` | `{}` | no |
@@ -345,6 +416,7 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 | <a name="input_node_role_permissions_boundary"></a> [node\_role\_permissions\_boundary](#input\_node\_role\_permissions\_boundary) | If provided, all IAM roles will be created with this permissions boundary attached. | `string` | `null` | no |
 | <a name="input_node_role_policy_arns"></a> [node\_role\_policy\_arns](#input\_node\_role\_policy\_arns) | List of policy ARNs to attach to the worker role this module creates in addition to the default ones | `list(string)` | `[]` | no |
 | <a name="input_placement"></a> [placement](#input\_placement) | Configuration for the [`placement` Configuration Block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template#placement) of the launch template.<br>Leave list empty for defaults. Pass list with single object with attributes matching the `placement` block to configure it.<br>Note that this configures the launch template only. Some elements will be ignored by the Auto Scaling Group<br>that actually launches instances. Consult AWS documentation for details. | `list(any)` | `[]` | no |
+| <a name="input_random_pet_length"></a> [random\_pet\_length](#input\_random\_pet\_length) | In order to support "create before destroy" behavior, this module uses the `random_pet`<br>resource to generate a unique pet name for the node group, since the node group name<br>must be unique, meaning the new node group must have a different name than the old one.<br>This variable controls the length of the pet name, meaning the number of pet names<br>concatenated together. This module defaults to 1, but there are only 452 names available,<br>so users with large numbers of node groups may want to increase this value. | `number` | `1` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br>Characters matching the regex will be removed from the ID elements.<br>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_replace_node_group_on_version_update"></a> [replace\_node\_group\_on\_version\_update](#input\_replace\_node\_group\_on\_version\_update) | Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place | `bool` | `false` | no |
 | <a name="input_resources_to_tag"></a> [resources\_to\_tag](#input\_resources\_to\_tag) | List of auto-launched resource types to tag. Valid types are "instance", "volume", "elastic-gpu", "spot-instances-request", "network-interface". | `list(string)` | <pre>[<br>  "instance",<br>  "volume",<br>  "network-interface"<br>]</pre> | no |
@@ -360,8 +432,8 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 
 | Name | Description |
 |------|-------------|
+| <a name="output_WARNING_ami_release_version"></a> [WARNING\_ami\_release\_version](#output\_WARNING\_ami\_release\_version) | Include the warning output message to quite the linter about unused variables. |
 | <a name="output_WARNING_cluster_autoscaler_enabled"></a> [WARNING\_cluster\_autoscaler\_enabled](#output\_WARNING\_cluster\_autoscaler\_enabled) | n/a |
-| <a name="output_ami_ids"></a> [ami\_ids](#output\_ami\_ids) | n/a |
 | <a name="output_eks_node_group_ami_id"></a> [eks\_node\_group\_ami\_id](#output\_eks\_node\_group\_ami\_id) | The ID of the AMI used for the worker nodes, if specified |
 | <a name="output_eks_node_group_arn"></a> [eks\_node\_group\_arn](#output\_eks\_node\_group\_arn) | Amazon Resource Name (ARN) of the EKS Node Group |
 | <a name="output_eks_node_group_cbd_pet_name"></a> [eks\_node\_group\_cbd\_pet\_name](#output\_eks\_node\_group\_cbd\_pet\_name) | The pet name of this node group, if this module generated one |
@@ -394,45 +466,6 @@ Check out these related projects.
 - [terraform-aws-ec2-instance-group](https://github.com/cloudposse/terraform-aws-ec2-instance-group) - Terraform module for provisioning multiple general purpose EC2 hosts for stateful applications
 
 
-> [!TIP]
-> #### Use Terraform Reference Architectures for AWS
->
-> Use Cloud Posse's ready-to-go [terraform architecture blueprints](https://cloudposse.com/reference-architecture/) for AWS to get up and running quickly.
->
-> ✅ We build it together with your team.<br/>
-> ✅ Your team owns everything.<br/>
-> ✅ 100% Open Source and backed by fanatical support.<br/>
->
-> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
-> <details><summary>📚 <strong>Learn More</strong></summary>
->
-> <br/>
->
-> Cloud Posse is the leading [**DevOps Accelerator**](https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support) for funded startups and enterprises.
->
-> *Your team can operate like a pro today.*
->
-> Ensure that your team succeeds by using Cloud Posse's proven process and turnkey blueprints. Plus, we stick around until you succeed.
-> #### Day-0:  Your Foundation for Success
-> - **Reference Architecture.** You'll get everything you need from the ground up built using 100% infrastructure as code.
-> - **Deployment Strategy.** Adopt a proven deployment strategy with GitHub Actions, enabling automated, repeatable, and reliable software releases.
-> - **Site Reliability Engineering.** Gain total visibility into your applications and services with Datadog, ensuring high availability and performance.
-> - **Security Baseline.** Establish a secure environment from the start, with built-in governance, accountability, and comprehensive audit logs, safeguarding your operations.
-> - **GitOps.** Empower your team to manage infrastructure changes confidently and efficiently through Pull Requests, leveraging the full power of GitHub Actions.
->
-> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
->
-> #### Day-2: Your Operational Mastery
-> - **Training.** Equip your team with the knowledge and skills to confidently manage the infrastructure, ensuring long-term success and self-sufficiency.
-> - **Support.** Benefit from a seamless communication over Slack with our experts, ensuring you have the support you need, whenever you need it.
-> - **Troubleshooting.** Access expert assistance to quickly resolve any operational challenges, minimizing downtime and maintaining business continuity.
-> - **Code Reviews.** Enhance your team’s code quality with our expert feedback, fostering continuous improvement and collaboration.
-> - **Bug Fixes.** Rely on our team to troubleshoot and resolve any issues, ensuring your systems run smoothly.
-> - **Migration Assistance.** Accelerate your migration process with our dedicated support, minimizing disruption and speeding up time-to-value.
-> - **Customer Workshops.** Engage with our team in weekly workshops, gaining insights and strategies to continuously improve and innovate.
->
-> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-eks-node-group&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
-> </details>
 
 ## ✨ Contributing
 

@@ -61,17 +61,58 @@ related:
     url: "https://github.com/cloudposse/terraform-aws-ec2-instance-group"
 # Short description of this project
 description: |-
-  Terraform module to provision an EKS Node Group for [Elastic Container Service for Kubernetes](https://aws.amazon.com/eks/).
+  Terraform module to provision an EKS Managed Node Group for [Elastic Kubernetes Service](https://aws.amazon.com/eks/).
 
-  Instantiate it multiple times to create many EKS node groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
+  Instantiate it multiple times to create EKS Managed Node Groups with specific settings such as GPUs, EC2 instance types, or autoscale parameters.
 
-  **IMPORTANT:** This module provisions an `EKS Node Group` nodes globally accessible by SSH (22) port. Normally, AWS recommends that no security group allows unrestricted ingress access to port 22 .
+  **IMPORTANT:** When SSH access is enabled without specifying a source security group, this module provisions `EKS Node Group` nodes that are globally accessible by SSH (22) port. Normally, AWS recommends that no security group allows unrestricted ingress access to port 22 .
 
-introduction: ""
+introduction: |-
+  This module creates an [EKS Managed Node Group](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html)
+  for an [EKS](https://aws.amazon.com/eks/) cluster.
+  It assumes you have already created an EKS cluster, but you can create the cluster and the node group in the
+  same Terraform configuration. See our
+  [full-featured root module (a.k.a. component) `eks/cluster`](https://github.com/cloudposse/terraform-aws-components/tree/main/modules/eks/cluster)
+  for an example of how to do that.
+
+  ### Launch Templates
+
+  This module always uses a [launch template](https://docs.aws.amazon.com/autoscaling/ec2/userguide/launch-templates.html)
+  to create the node group. You can create your own launch template and
+  pass in its ID, or else this module will create one for you.
+
+  The AWS default for EKS is that if the launch template is updated, the existing nodes will not be affected. Only
+  new instances added to the node group would get the changes specified in the new launch template. In contrast,
+  when the launch template changes, this module can immediately create a new node group from the new launch template
+  to replace the old one.
+
+  See the inputs `create_before_destroy` and `immediately_apply_lt_changes` for details about how to control this behavior.
+
+  ### Operating system differences
+
+  Currently, EKS supports 4 Operating Systems: Amazon Linux 2, Amazon Linux 2023, Bottlerocket, and Windows Server.
+  This module supports all 4 OSes, but support for detailed configuration of the nodes varies by OS. The 4 inputs:
+
+  1. `before_cluster_joining_userdata`
+  2. `kubelet_additional_options`
+  3. `bootstrap_additional_options`
+  4. `after_cluster_joining_userdata`
+
+  are fully supported for Amazon Linux 2 and Windows, and take advantage of the [bootstrap.sh](https://github.com/awslabs/amazon-eks-ami/blob/main/templates/al2/runtime/bootstrap.sh)
+  supplied on those AMIs. **NONE** of these inputs are supported on Bottlerocket. On AL2023, only the first 2 are supported.
+
+  Note that for all OSes, you can supply the complete `userdata` contents, which will be untouched by this module, via `userdata_override_base64`.
+
+
 # How to use this project
-usage: |2-
+usage: |-
 
   ### Major Changes (breaking and otherwise)
+
+  With the v3.0.0 release of this module, support for Amazon Linux 2023 (AL2023) has
+  been added, and some breaking changes have been made. Please see the
+  [release notes](https://github.com/cloudposse/terraform-aws-eks-node-group/releases/tag/3.0.0)
+  for details.
 
   With the v2.0.0 (a.k.a. v0.25.0) release of this module, it has undergone major breaking
   changes and added new features. Please see the [migration](docs/migration-v1-v2.md)
@@ -82,13 +123,6 @@ usage: |2-
 
   For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS),
   see [test](test).
-
-  ### Terraform Version
-
-  Terraform version 1.0 is out. Before that, there was Terraform version 0.15, 0.14, 0.13 and so on.
-  The v2.0.0 release of this module drops support for Terraform 0.13. That version is old and has lots of known issues.
-  There are hardly any breaking changes between Terraform 0.13 and 1.0, so please upgrade to
-  the latest Terraform version before raising any issues about this module.
 
   ### Sources of Information
 
@@ -159,7 +193,7 @@ usage: |2-
   module "eks_cluster" {
     source = "cloudposse/eks-cluster/aws"
     # Cloud Posse recommends pinning every module to a specific version
-    # version = "2.x.x"
+    # version = "4.x.x"
 
     vpc_id     = module.vpc.vpc_id
     subnet_ids = module.subnets.public_subnet_ids
@@ -173,7 +207,7 @@ usage: |2-
   module "eks_node_group" {
     source = "cloudposse/eks-node-group/aws"
     # Cloud Posse recommends pinning every module to a specific version
-    # version     = "2.x.x"
+    # version     = "3.x.x"
 
     instance_types        = [var.instance_type]
     subnet_ids            = module.subnets.public_subnet_ids

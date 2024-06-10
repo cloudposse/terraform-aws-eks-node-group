@@ -31,7 +31,7 @@ locals {
     local.fetch_launch_template ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
   )) : null
 
-  launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ssm_parameter.ami_id[0].insecure_value : "") : var.ami_image_id[0]
+  launch_template_ami = length(var.ami_image_id) == 0 ? (local.generate_launch_template ? data.aws_ssm_parameter.ami_id[0].insecure_value : "") : var.ami_image_id[0]
 
   associate_cluster_security_group = local.enabled && var.associate_cluster_security_group
   launch_template_vpc_security_group_ids = sort(compact(concat(
@@ -39,10 +39,35 @@ locals {
     module.ssh_access[*].id,
     var.associated_security_group_ids
   )))
+
+  # Create a launch template configuration object to use for managing node group updates
+  launch_template_config = {
+    ebs_optimized         = var.ebs_optimized
+    block_device_mappings = local.block_device_map
+    image_id              = local.launch_template_ami
+    key_name              = local.ec2_ssh_key_name
+    tag_specifications    = var.resources_to_tag
+    metadata_options = {
+      # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
+      # We set it to the default setting of "enabled".
+      http_endpoint               = var.metadata_http_endpoint_enabled ? "enabled" : "disabled"
+      http_put_response_hop_limit = var.metadata_http_put_response_hop_limit
+      http_tokens                 = var.metadata_http_tokens_required ? "required" : "optional"
+    }
+    vpc_security_group_ids = local.launch_template_vpc_security_group_ids
+    user_data              = local.userdata
+    tags                   = local.node_group_tags
+    cpu_options            = var.cpu_options
+    placement              = var.placement
+    enclave_options        = var.enclave_enabled ? ["true"] : []
+    monitoring = {
+      enabled = var.detailed_monitoring_enabled
+    }
+  }
 }
 
 resource "aws_launch_template" "default" {
-  # We'll use this default if we aren't provided with a launch template during invocation.
+  # We'll use this if we aren't provided with a launch template during invocation.
   # We would like to generate a new launch template every time the security group list changes
   # so that we can detach the network interfaces from the security groups that we no
   # longer need, so that the security groups can then be deleted, but we cannot guarantee
@@ -51,10 +76,10 @@ resource "aws_launch_template" "default" {
 
   count = local.generate_launch_template ? 1 : 0
 
-  ebs_optimized = var.ebs_optimized
+  ebs_optimized = local.launch_template_config.ebs_optimized
 
   dynamic "block_device_mappings" {
-    for_each = local.block_device_map
+    for_each = local.launch_template_config.block_device_mappings
 
     content {
       device_name  = block_device_mappings.key
@@ -83,11 +108,11 @@ resource "aws_launch_template" "default" {
 
   # Never include instance type in launch template because it is limited to just one
   # https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
-  image_id = local.launch_template_ami == "" ? null : local.launch_template_ami
-  key_name = local.ec2_ssh_key_name
+  image_id = local.launch_template_config.image_id
+  key_name = local.launch_template_config.key_name
 
   dynamic "tag_specifications" {
-    for_each = var.resources_to_tag
+    for_each = local.launch_template_config.tag_specifications
     content {
       resource_type = tag_specifications.value
       tags          = local.node_tags
@@ -103,17 +128,17 @@ resource "aws_launch_template" "default" {
     # Despite being documented as "Optional", `http_endpoint` is required when `http_put_response_hop_limit` is set.
     # We set it to the default setting of "enabled".
 
-    http_endpoint               = var.metadata_http_endpoint_enabled ? "enabled" : "disabled"
-    http_put_response_hop_limit = var.metadata_http_put_response_hop_limit
-    http_tokens                 = var.metadata_http_tokens_required ? "required" : "optional"
+    http_endpoint               = local.launch_template_config.metadata_options.http_endpoint
+    http_put_response_hop_limit = local.launch_template_config.metadata_options.http_put_response_hop_limit
+    http_tokens                 = local.launch_template_config.metadata_options.http_tokens
   }
 
-  vpc_security_group_ids = local.launch_template_vpc_security_group_ids
-  user_data              = local.userdata
-  tags                   = local.node_group_tags
+  vpc_security_group_ids = local.launch_template_config.vpc_security_group_ids
+  user_data              = local.launch_template_config.user_data
+  tags                   = local.launch_template_config.tags
 
   dynamic "cpu_options" {
-    for_each = var.cpu_options
+    for_each = local.launch_template_config.cpu_options
 
     content {
       core_count       = lookup(cpu_options.value, "core_count", null)
@@ -122,7 +147,7 @@ resource "aws_launch_template" "default" {
   }
 
   dynamic "placement" {
-    for_each = var.placement
+    for_each = local.launch_template_config.placement
 
     content {
       affinity                = lookup(placement.value, "affinity", null)
@@ -137,7 +162,7 @@ resource "aws_launch_template" "default" {
   }
 
   dynamic "enclave_options" {
-    for_each = var.enclave_enabled ? ["true"] : []
+    for_each = local.launch_template_config.enclave_options
 
     content {
       enabled = true
@@ -145,17 +170,32 @@ resource "aws_launch_template" "default" {
   }
 
   monitoring {
-    enabled = var.detailed_monitoring_enabled
+    enabled = local.launch_template_config.monitoring.enabled
   }
 
   lifecycle {
+    # See userdata.tf for authoritative details. This is here because it has to be on a resource, and no resources are defined in userdata.tf
+    #
+    # Supported OSes: AL2, AL2023, BOTTLEROCKET, WINDOWS
+    # Userdata inputs: before_cluster_joining_userdata, kubelet_additional_options, bootstrap_additional_options, after_cluster_joining_userdata
+    # We test local.userdata_vars because they have been massaged and perhaps augmented, and we want to
+    # test the final form, even if it means giving a confusing error message at times.
+    # We list supported OSes explicitly to catch any new ones that are added.
     precondition {
-      condition     = length(local.userdata_vars.bootstrap_extra_args) == 0 || local.ami_os != "AL2023"
-      error_message = "The input `bootstrap_additional_options` is not supported for AL2023."
+      condition     = contains(["AL2", "AL2023", "WINDOWS"], local.ami_os) || length(local.userdata_vars.before_cluster_joining_userdata) == 0 || (local.ami_os == "AL2" || local.ami_os == "WINDOWS")
+      error_message = format("The input `before_cluster_joining_userdata` is not supported for %v.", title(lower(local.ami_os)))
     }
     precondition {
-      condition     = length(local.userdata_vars.after_cluster_joining_userdata) == 0 || local.ami_os != "AL2023"
-      error_message = "The input `after_cluster_joining_userdata` is not supported for AL2023."
+      condition     = contains(["AL2", "WINDOWS"], local.ami_os) || length(local.userdata_vars.bootstrap_extra_args) == 0
+      error_message = format("The input `bootstrap_additional_options` is not supported for %v.", title(lower(local.ami_os)))
+    }
+    precondition {
+      condition     = contains(["AL2", "AL2023", "WINDOWS"], local.ami_os) || length(local.userdata_vars.kubelet_extra_args) == 0 || (local.ami_os == "AL2" || local.ami_os == "WINDOWS")
+      error_message = format("The input `kubelet_additional_options` is not supported for %v.", title(lower(local.ami_os)))
+    }
+    precondition {
+      condition     = contains(["AL2", "WINDOWS"], local.ami_os) || length(local.userdata_vars.after_cluster_joining_userdata) == 0 || (local.ami_os == "AL2" || local.ami_os == "WINDOWS")
+      error_message = format("The input `after_cluster_joining_userdata` is not supported for %v.", title(lower(local.ami_os)))
     }
   }
 }

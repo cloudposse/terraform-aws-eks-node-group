@@ -12,6 +12,11 @@ variable "ami_release_version" {
   }
 }
 
+# Include the warning output message to quite the linter about unused variables.
+output "WARNING_ami_release_version" {
+  value = length(var.ami_release_version) == 0 ? null : "WARNING: variable `ami_release_version` is obsolete and has been ignored."
+}
+
 variable "cluster_autoscaler_enabled" {
   type        = bool
   description = <<-EOT
