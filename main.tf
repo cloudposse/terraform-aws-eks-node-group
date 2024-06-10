@@ -11,7 +11,23 @@ locals {
 
   need_ssh_access_sg = local.enabled && (local.have_ssh_key || length(var.ssh_access_security_group_ids) > 0) && local.generate_launch_template
 
-  get_cluster_data = local.enabled ? (local.need_cluster_kubernetes_version || local.need_bootstrap || local.need_ssh_access_sg || length(var.associated_security_group_ids) > 0) : false
+  get_cluster_data = local.enabled ? (
+    local.need_cluster_kubernetes_version ||
+    local.need_bootstrap ||
+    local.need_ssh_access_sg ||
+    length(var.associated_security_group_ids) > 0 ||
+    (length(local.kubelet_extra_args) > 0 && local.ami_os == "AL2023")
+  ) : false
+
+
+
+  # At the moment, the autoscaler tags are not needed.
+  # We leave them here for when they can be applied to the autoscaling group.
+  /*
+  #
+  # Set up tags for autoscaler and other resources
+  # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup
+  #
 
   taint_effect_map = {
     NO_SCHEDULE        = "NoSchedule"
@@ -19,15 +35,6 @@ locals {
     PREFER_NO_SCHEDULE = "PreferNoSchedule"
   }
 
-
-  # At the moment, the autoscaler tags are not needed.
-  # We leave them here for when they can be applied to the autoscaling group.
-
-  autoscaler_enabled = var.cluster_autoscaler_enabled
-  #
-  # Set up tags for autoscaler and other resources
-  # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup
-  #
   autoscaler_enabled_tags = {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
     "k8s.io/cluster-autoscaler/enabled"             = "true"
@@ -39,7 +46,7 @@ locals {
     for taint in var.kubernetes_taints : format("k8s.io/cluster-autoscaler/node-template/taint/%v", taint.key) =>
     "${taint.value == null ? "" : taint.value}:${local.taint_effect_map[taint.effect]}"
   }
-  autoscaler_tags = merge(local.autoscaler_enabled_tags, local.autoscaler_kubernetes_label_tags, local.autoscaler_kubernetes_taints_tags)
+  */
 
   node_tags = merge(
     module.label.tags,
@@ -53,7 +60,7 @@ locals {
   # TODO:
   # Replace: node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
   # with:    node_group_tags = local.node_tags
-  node_group_tags = merge(local.node_tags, local.autoscaler_enabled ? local.autoscaler_tags : null)
+  node_group_tags = local.node_tags
 }
 
 module "label" {
@@ -72,7 +79,6 @@ data "aws_eks_cluster" "this" {
 
 # Support keeping 2 node groups in sync by extracting common variable settings
 locals {
-  is_windows = can(regex("WINDOWS", var.ami_type))
   ng = {
     cluster_name  = var.cluster_name
     node_role_arn = local.create_role ? join("", aws_iam_role.default[*].arn) : try(var.node_role_arn[0], null)

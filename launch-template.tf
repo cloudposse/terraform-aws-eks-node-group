@@ -31,7 +31,7 @@ locals {
     local.fetch_launch_template ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
   )) : null
 
-  launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ami.selected[0].image_id : "") : var.ami_image_id[0]
+  launch_template_ami = length(var.ami_image_id) == 0 ? (local.features_require_ami ? data.aws_ssm_parameter.ami_id[0].insecure_value : "") : var.ami_image_id[0]
 
   associate_cluster_security_group = local.enabled && var.associate_cluster_security_group
   launch_template_vpc_security_group_ids = sort(compact(concat(
@@ -148,6 +148,16 @@ resource "aws_launch_template" "default" {
     enabled = var.detailed_monitoring_enabled
   }
 
+  lifecycle {
+    precondition {
+      condition     = length(local.userdata_vars.bootstrap_extra_args) == 0 || local.ami_os != "AL2023"
+      error_message = "The input `bootstrap_additional_options` is not supported for AL2023."
+    }
+    precondition {
+      condition     = length(local.userdata_vars.after_cluster_joining_userdata) == 0 || local.ami_os != "AL2023"
+      error_message = "The input `after_cluster_joining_userdata` is not supported for AL2023."
+    }
+  }
 }
 
 data "aws_launch_template" "this" {

@@ -30,15 +30,21 @@ kubernetes_labels = {
   terratest = "true"
 }
 
-before_cluster_joining_userdata = <<-EOT
-  printf "\n\n###\nExample output from before_cluster_joining_userdata\n###\n\n"
-  EOT
+before_cluster_joining_userdata = [
+  "echo 1",
+  "echo 2",
+  "echo \"###\"",
+  "printf \"Example output from before_cluster_joining_userdata\n###\n\n\"",
+]
+
+kubelet_additional_options = ["--kube-reserved cpu=100m,memory=600Mi,ephemeral-storage=1Gi --system-reserved cpu=100m,memory=200Mi,ephemeral-storage=1Gi --eviction-hard memory.available<200Mi,nodefs.available<10%,imagefs.available<15%"]
 
 update_config = [{ max_unavailable = 2 }]
 
 kubernetes_taints = [
   {
     key    = "test"
-    value  = null
     effect = "PREFER_NO_SCHEDULE"
 }]
+
+ami_type = "AL2023_x86_64_STANDARD"

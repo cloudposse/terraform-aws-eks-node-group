@@ -121,7 +121,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "4.1.0"
+  version                      = "4.2.0"
   region                       = var.region
   subnet_ids                   = module.subnets.public_subnet_ids
   kubernetes_version           = var.kubernetes_version
@@ -169,14 +169,12 @@ module "eks_node_group" {
 
   after_cluster_joining_userdata = var.after_cluster_joining_userdata
 
-  ami_type            = var.ami_type
-  ami_release_version = var.ami_release_version
+  ami_type      = var.ami_type
+  ami_specifier = var.ami_specifier
 
-  before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
+  before_cluster_joining_userdata = var.before_cluster_joining_userdata
 
-  # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
-  # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
-  depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
+  kubelet_additional_options = var.kubelet_additional_options
 
   create_before_destroy = true
 
@@ -184,8 +182,7 @@ module "eks_node_group" {
   replace_node_group_on_version_update = var.replace_node_group_on_version_update
 
   node_group_terraform_timeouts = [{
-    create = "40m"
-    update = null
+    create = "25m"
     delete = "20m"
   }]
 

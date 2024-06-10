@@ -1,3 +1,29 @@
+variable "ami_release_version" {
+  type        = list(string)
+  description = <<-EOT
+    OBSOLETE: Use `ami_specifier` instead. Note that it has a different format.
+    Historical description: EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or  for Windows \"2023.02.14\". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version."
+    EOT
+  default     = []
+  nullable    = false
+  validation {
+    condition     = length(var.ami_release_version) == 0
+    error_message = "variable `ami_release_version` is obsolete. Use `ami_specifier` instead."
+  }
+}
+
+variable "cluster_autoscaler_enabled" {
+  type        = bool
+  description = <<-EOT
+    OBSOLETE. Used to add support for the Kubernetes Cluster Autoscaler, but additional support is no longer needed.
+    EOT
+  default     = null
+}
+
+output "WARNING_cluster_autoscaler_enabled" {
+  value = var.cluster_autoscaler_enabled == null ? null : "WARNING: variable `cluster_autoscaler_enabled` is obsolete and has been ignored."
+}
+
 variable "block_device_mappings" {
   type        = list(any)
   description = <<-EOT
