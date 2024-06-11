@@ -39,16 +39,21 @@ locals {
     WINDOWS_FULL_2022_x86_64   = "/aws/service/ami-windows-latest/Windows_Server-2022-English-Full-EKS_Optimized-%[2]v/image_id"
   }
 
-  # AMI specifiers
+  # AMI specifiers?
+  # Specifiers for AL2 and AL2023 are AMI Name from https://github.com/awslabs/amazon-eks-ami/releases
   # AL2
   #   AMI name:      amazon-eks-node-1.29-v20240117
   #   AMI SSM param: /aws/service/eks/optimized-ami/1.29/amazon-linux-2/amazon-eks-node-1.29-v20240117/image_id
   # AL2023
   #   AMI name:      amazon-eks-node-al2023-arm64-standard-1.29-v20240605
   #   AMI SSM param: /aws/service/eks/optimized-ami/1.29/amazon-linux-2023/x86_64/standard/amazon-eks-node-al2023-x86_64-standard-1.29-v20240605/image_id
+  # Specifiers for Bottlerocket are the bare release version (e.g. `1.20.0`) or
+  #   the release version and the commit hash (e.g. `1.20.0-7c3e9198`)
   # Bottlerocket:
-  #   AMI name:      bottlerocket-aws-k8s-1.24-nvidia-x86_64-v1.20.1-7c3e9198
-  #   AMI SSM param: bottlerocket/aws-k8s-1.24-nvidia/x86_64/1.20.1-7c3e9198/image_id # No "v"
+  #   AMI name:      bottlerocket-aws-k8s-1.26-nvidia-x86_64-v1.17.0-53f322c2
+  #   AMI SSM param: /aws/service/bottlerocket/aws-k8s-1.26-nvidia/x86_64/1.17.0/image_id # No "v"
+  #      /aws/service/bottlerocket/aws-k8s-1.26-nvidia/x86_64/1.17.0--53f322c2/image_id
+  # Windows does not allow a specifier.
   ami_specifier = var.ami_specifier == "recommended" && startswith(var.ami_type, "BOTTLEROCKET") ? "latest" : var.ami_specifier
 
   # Kubernetes version priority (first one to be set wins)

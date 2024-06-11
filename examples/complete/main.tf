@@ -167,14 +167,15 @@ module "eks_node_group" {
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
-  after_cluster_joining_userdata = var.after_cluster_joining_userdata
 
   ami_type      = var.ami_type
   ami_specifier = var.ami_specifier
 
+  /*
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
-
   kubelet_additional_options = var.kubelet_additional_options
+  after_cluster_joining_userdata = var.after_cluster_joining_userdata
+  */
 
   create_before_destroy = true
 

@@ -12,9 +12,9 @@ locals {
 
   get_cluster_data = local.enabled ? (
     local.need_cluster_kubernetes_version ||
+    local.associate_cluster_security_group ||
     local.need_bootstrap ||
     local.need_ssh_access_sg ||
-    length(var.associated_security_group_ids) > 0 ||
     (length(local.kubelet_extra_args) > 0 && local.ami_os == "AL2023")
   ) : false
 
