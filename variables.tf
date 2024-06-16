@@ -175,25 +175,38 @@ variable "ami_image_id" {
   }
 }
 
-variable "ami_specifier" {
-  type        = string
+variable "ami_release_version" {
+  type        = list(string)
   description = <<-EOT
-    OS-dependent specifier for one of the several AMIs that match OS, architecture, and Kubernetes 1.xx version.
-    If not specified the recommended/latest AMI for the given Kubernetes version will be used.
-    Unfortunately, the format of this value varies by OS, and we have not found documentation for it.
-    You can generally figure it out from the AMI name or description, and validate it by trying to retrieve
-    the SSM Public Parameter for the AMI ID.
-
+    The EKS AMI "release version" to use. Defaults to the latest recommended version.
+    For Amazon Linux, it is the "Release version" from [Amazon AMI Releases](https://github.com/awslabs/amazon-eks-ami/releases)
+    For Bottlerocket, it is the release tag from [Bottlerocket Releases](https://github.com/bottlerocket-os/bottlerocket/releases) without the "v" prefix.
+    For Windows, it is "AMI version" from [AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html).
+    Note that unlike AMI names, release versions never include the "v" prefix.
     Examples:
-      AL2: amazon-eks-node-1.29-v20240117
-      AL2023: amazon-eks-node-al2023-x86_64-standard-1.29-v20240605
-      Bottlerocket: 1.20.1-7c3e9198  _# Note: 1.20.1 is the Bottlerocket, not Kubernetes, version_
-      Windows: <not allowed>
+      AL2: 1.29.3-20240531
+      Bottlerocket: 1.2.0 or 1.2.0-ccf1b754
+      Windows: 1.29-2024.04.09
     EOT
-  default     = "recommended"
-  nullable    = false
+  # Normally we would not validate this input and instead allow the AWS API to validate it,
+  # but in this case, our AMI selection logic depends on it being in a format we expect,
+  # so even if AWS adds options in the future, we need to ensure it is in a format we can handle.
+  validation {
+    condition = (
+      length(var.ami_release_version) == 0 ? true : length(
+        # 1.2.3 with optional -20240531 or -7452c37e   or 1.2.3               or 1.2-2024.04.09
+      regexall("(^\\d+\\.\\d+\\.\\d+(-[\\da-f]{8})?$)|(^\\d+\\.\\d+\\.\\d+$)|(^\\d+\\.\\d+-\\d+\\.\\d+\\.\\d+$)", var.ami_release_version[0])) == 1
+    )
+    error_message = <<-EOT
+        Var ami_release_version, if supplied, must be like
+          Amazon Linux 2 or 2023: 1.29.3-20240531
+          Bottlerocket: 1.18.0 or 1.18.0-7452c37e # note commit hash prefix is 8 characters, not GitHub's default 7
+          Windows: 1.29-2024.04.09
+        EOT
+  }
+  default  = []
+  nullable = false
 }
-
 
 variable "instance_types" {
   type        = list(string)

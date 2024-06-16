@@ -1,22 +1,3 @@
-variable "ami_release_version" {
-  type        = list(string)
-  description = <<-EOT
-    OBSOLETE: Use `ami_specifier` instead. Note that it has a different format.
-    Historical description: EKS AMI version to use, e.g. For AL2 \"1.16.13-20200821\" or for bottlerocket \"1.2.0-ccf1b754\" (no \"v\") or  for Windows \"2023.02.14\". For AL2, bottlerocket and Windows, it defaults to latest version for Kubernetes version."
-    EOT
-  default     = []
-  nullable    = false
-  validation {
-    condition     = length(var.ami_release_version) == 0
-    error_message = "variable `ami_release_version` is obsolete. Use `ami_specifier` instead."
-  }
-}
-
-# Include the warning output message to quite the linter about unused variables.
-output "WARNING_ami_release_version" {
-  value = length(var.ami_release_version) == 0 ? null : "WARNING: variable `ami_release_version` is obsolete and has been ignored."
-}
-
 variable "cluster_autoscaler_enabled" {
   type        = bool
   description = <<-EOT

@@ -30,8 +30,16 @@
 #
 
 locals {
+  # We need to suppress the EKS-supplied bootstrap if and only if we are running bootstrap.sh ourselves.
+  # We need to run bootstrap.sh ourselves if:
+  #  - We are running Amazon Linux 2 or Windows (the other OSes do not use bootstrap.sh) and either:
+  #    - We explicitly are given extra args for bootstrap via bootstrap_additional_options or
+  #    - We are given extra args for kubelet via kubelet_additional_options, which are passed to bootstrap.sh
 
-  ami_os = split("_", var.ami_type)[0]
+  suppress_bootstrap = local.enabled && (local.ami_os == "AL2" || local.ami_os == "WINDOWS") ? (
+    length(var.bootstrap_additional_options) > 0 || length(var.kubelet_additional_options) > 0
+  ) : false
+
   userdata_template_file = {
     AL2          = "${path.module}/userdata.tpl"
     AL2023       = "${path.module}/userdata_al2023.tpl"
@@ -39,9 +47,23 @@ locals {
     WINDOWS      = "${path.module}/userdata_nt.tpl"
   }
 
-  kubelet_extra_args = join(" ", var.kubelet_additional_options)
 
+
+  # When suppressing EKS bootstrap, add --register-with-taints to kubelet_extra_args,
+  #   e.g. --register-with-taints=test=:PreferNoSchedule
+  kubernetes_taint_argv = [
+    for taint in var.kubernetes_taints :
+    "${taint.key}=${taint.value == null ? "" : taint.value}:${local.taint_effect_map[taint.effect]}"
+  ]
+  kubernetes_taint_arg = (local.suppress_bootstrap && length(var.kubernetes_taints) > 0 &&
+    # Do not add to or override --register-with-taints if it is already set
+    !strcontains(local.kubelet_explicit_extra_args, "--register-with-taints=")) ? (
+    " --register-with-taints=${join(",", local.kubernetes_taint_argv)}"
+  ) : ""
   # We use '>-' to handle quoting and escaping values in the YAML.
+
+  kubelet_explicit_extra_args = join(" ", var.kubelet_additional_options)
+  kubelet_extra_args          = "${local.kubelet_explicit_extra_args}${local.kubernetes_taint_arg}"
 
   kubelet_extra_args_yaml = replace(local.kubelet_extra_args, "--", "\n      - >-\n        --")
 
@@ -52,6 +74,13 @@ locals {
     bootstrap_extra_args            = length(var.bootstrap_additional_options) == 0 ? "" : join(" ", var.bootstrap_additional_options)
     after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : join("\n", var.after_cluster_joining_userdata)
 
+    /* It turns out we never need this, because we only use it when we are suppressing the EKS bootstrap,
+     * and we only suppress the EKS bootstrap when we are running bootstrap.sh ourselves, which only happens
+     * when we are running Amazon Linux 2 or Windows. This would only be used by a CUSTOM AMI,
+     * but for a CUSTOM AMI, the user must provide the full userdata.
+     *
+     * Keeping this here for now in case we need it in the future.
+
     cluster_endpoint           = local.get_cluster_data ? data.aws_eks_cluster.this[0].endpoint : null
     certificate_authority_data = local.get_cluster_data ? data.aws_eks_cluster.this[0].certificate_authority[0].data : null
     cluster_name               = local.get_cluster_data ? data.aws_eks_cluster.this[0].name : null
@@ -60,17 +89,18 @@ locals {
       [for net in data.aws_eks_cluster.this[0].kubernetes_network_config : net.service_ipv4_cidr if net.ip_family == "ipv4"],
       [for net in data.aws_eks_cluster.this[0].kubernetes_network_config : net.service_ipv6_cidr if net.ip_family == "ipv6"]
     )...) : null
+     */
   }
 
-  need_bootstrap = local.enabled ? length(concat(var.kubelet_additional_options,
-    var.bootstrap_additional_options, var.after_cluster_joining_userdata
-  )) > 0 : false
-
   # If var.userdata_override_base64[0] is present then we use it rather than generating userdata
-  need_userdata = local.enabled && length(var.userdata_override_base64) == 0 ? (
-  (length(var.before_cluster_joining_userdata) > 0) || local.need_bootstrap) : false
+  generate_userdata = local.enabled && length(var.userdata_override_base64) == 0 ? (
+    length(var.before_cluster_joining_userdata) > 0 ||
+    length(var.kubelet_additional_options) > 0 ||
+    length(var.bootstrap_additional_options) > 0 ||
+    length(var.after_cluster_joining_userdata) > 0
+  ) : false
 
-  userdata = local.need_userdata ? (
+  userdata = local.generate_userdata ? (
     base64encode(
     templatefile(local.userdata_template_file[local.ami_os], local.userdata_vars))
     ) : (

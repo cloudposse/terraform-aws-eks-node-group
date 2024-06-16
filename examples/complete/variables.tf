@@ -129,18 +129,20 @@ variable "ami_type" {
   }
 }
 
-variable "ami_specifier" {
-  type        = string
+variable "ami_release_version" {
+  type        = list(string)
   description = <<-EOT
-    OS-dependent specifier for one of the several AMIs that match OS, architecture, and Kubernetes 1.xx version.
-    If not specified the recommended/latest AMI for the given Kubernetes version will be used.
+    The EKS AMI "release version" to use. Defaults to the latest recommended version.
+    For Amazon Linux, get it from [Amazon AMI Releases](https://github.com/awslabs/amazon-eks-ami/releases)
+    For Bottlerocket, get it from [Bottlerocket Releases](https://github.com/bottlerocket-os/bottlerocket/releases).
+    For Windows, get it from [AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html).
+    Note that unlike AMI names, release versions never include the "v" prefix.
     Examples:
-      AL2: amazon-eks-node-1.29-v20240117
-      AL2023: amazon-eks-node-al2023-x86_64-standard-1.29-v20240605
-      Bottlerocket: 1.20.1-7c3e9198
-      Windows: <not allowed>
+      AL2: 1.29.3-20240531
+      Bottlerocket: 1.2.0 or 1.2.0-ccf1b754
+      Windows: 1.29-2024.04.09
     EOT
-  default     = "recommended"
+  default     = []
   nullable    = false
 }
 

@@ -31,7 +31,7 @@ locals {
     local.fetch_launch_template ? data.aws_launch_template.this[0].latest_version : aws_launch_template.default[0].latest_version
   )) : null
 
-  launch_template_ami = length(var.ami_image_id) == 0 ? (local.generate_launch_template ? data.aws_ssm_parameter.ami_id[0].insecure_value : "") : var.ami_image_id[0]
+  launch_template_ami = local.ami_id
 
   associate_cluster_security_group = local.enabled && var.associate_cluster_security_group
   launch_template_vpc_security_group_ids = sort(compact(concat(

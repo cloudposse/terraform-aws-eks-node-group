@@ -167,15 +167,13 @@ module "eks_node_group" {
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
+  ami_type            = var.ami_type
+  ami_release_version = var.ami_release_version
 
-  ami_type      = var.ami_type
-  ami_specifier = var.ami_specifier
-
-  /*
   before_cluster_joining_userdata = var.before_cluster_joining_userdata
-  kubelet_additional_options = var.kubelet_additional_options
-  after_cluster_joining_userdata = var.after_cluster_joining_userdata
-  */
+  kubelet_additional_options      = var.kubelet_additional_options
+  after_cluster_joining_userdata  = var.after_cluster_joining_userdata
+
 
   create_before_destroy = true
 
@@ -189,3 +187,31 @@ module "eks_node_group" {
 
   context = module.this.context
 }
+
+module "eks_node_group_minimal" {
+  source = "../../"
+
+  # We need to do something to avoid a name clash with the Node Role.
+  # Easiest thing to do is reuse the node role created by the other node group.
+  node_role_arn = [module.eks_node_group.eks_node_group_role_arn]
+
+  subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
+  cluster_name       = module.this.enabled ? module.eks_cluster.eks_cluster_id : "disabled"
+  instance_types     = var.instance_types
+  desired_size       = var.desired_size
+  min_size           = var.min_size
+  max_size           = var.max_size
+  kubernetes_version = [var.kubernetes_version]
+
+  ami_type            = var.ami_type
+  ami_release_version = var.ami_release_version
+
+  node_group_terraform_timeouts = [{
+    create = "15m"
+    delete = "20m"
+  }]
+
+  context = module.this.context
+}
+
+
