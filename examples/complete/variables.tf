@@ -67,17 +67,18 @@ variable "kubernetes_labels" {
 }
 
 variable "kubernetes_taints" {
-  type = list(object({
-    key    = string
-    value  = string
-    effect = string
-  }))
+  type        = list(any)
   description = <<-EOT
     List of `key`, `value`, `effect` objects representing Kubernetes taints.
     `effect` must be one of `NO_SCHEDULE`, `NO_EXECUTE`, or `PREFER_NO_SCHEDULE`.
     `key` and `effect` are required, `value` may be null.
     EOT
   default     = []
+}
+
+variable "kubelet_additional_options" {
+  type        = list(string)
+  description = "Command-line flags to pass to kubelet"
 }
 
 variable "desired_size" {
@@ -96,8 +97,8 @@ variable "min_size" {
 }
 
 variable "before_cluster_joining_userdata" {
-  type        = string
-  default     = ""
+  type        = list(string)
+  default     = []
   description = "Additional commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
 }
 
@@ -117,27 +118,32 @@ variable "ami_type" {
   type        = string
   description = <<-EOT
     Type of Amazon Machine Image (AMI) associated with the EKS Node Group.
-    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64`.
+    Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM, BOTTLEROCKET_ARM_64, BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64_NVIDIA, BOTTLEROCKET_x86_64_NVIDIA, WINDOWS_CORE_2019_x86_64, WINDOWS_FULL_2019_x86_64, WINDOWS_CORE_2022_x86_64, WINDOWS_FULL_2022_x86_64, AL2023_x86_64_STANDARD, AL2023_ARM_64_STANDARD`.
     EOT
   default     = "AL2_x86_64"
   validation {
     condition = (
-      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "CUSTOM", "BOTTLEROCKET_ARM_64", "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64_NVIDIA", "BOTTLEROCKET_x86_64_NVIDIA", "WINDOWS_CORE_2019_x86_64", "WINDOWS_FULL_2019_x86_64", "WINDOWS_CORE_2022_x86_64", "WINDOWS_FULL_2022_x86_64"], var.ami_type)
+      contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "CUSTOM", "BOTTLEROCKET_ARM_64", "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64_NVIDIA", "BOTTLEROCKET_x86_64_NVIDIA", "WINDOWS_CORE_2019_x86_64", "WINDOWS_FULL_2019_x86_64", "WINDOWS_CORE_2022_x86_64", "WINDOWS_FULL_2022_x86_64", "AL2023_x86_64_STANDARD", "AL2023_ARM_64_STANDARD"], var.ami_type)
     )
-    error_message = "Var ami_type must be one of \"AL2_x86_64\",\"AL2_x86_64_GPU\",\"AL2_ARM_64\",\"BOTTLEROCKET_ARM_64\",\"BOTTLEROCKET_x86_64\",\"BOTTLEROCKET_ARM_64_NVIDIA\",\"BOTTLEROCKET_x86_64_NVIDIA\",\"WINDOWS_CORE_2019_x86_64\",\"WINDOWS_FULL_2019_x86_64\",\"WINDOWS_CORE_2022_x86_64\",\"WINDOWS_FULL_2022_x86_64\", or \"CUSTOM\"."
+    error_message = "Var ami_type must be one of \"AL2_x86_64\",\"AL2_x86_64_GPU\",\"AL2_ARM_64\",\"BOTTLEROCKET_ARM_64\",\"BOTTLEROCKET_x86_64\",\"BOTTLEROCKET_ARM_64_NVIDIA\",\"BOTTLEROCKET_x86_64_NVIDIA\",\"WINDOWS_CORE_2019_x86_64\",\"WINDOWS_FULL_2019_x86_64\",\"WINDOWS_CORE_2022_x86_64\",\"WINDOWS_FULL_2022_x86_64\", \"AL2023_x86_64_STANDARD\", \"AL2023_ARM_64_STANDARD\", or \"CUSTOM\"."
   }
 }
 
 variable "ami_release_version" {
   type        = list(string)
+  description = <<-EOT
+    The EKS AMI "release version" to use. Defaults to the latest recommended version.
+    For Amazon Linux, get it from [Amazon AMI Releases](https://github.com/awslabs/amazon-eks-ami/releases)
+    For Bottlerocket, get it from [Bottlerocket Releases](https://github.com/bottlerocket-os/bottlerocket/releases).
+    For Windows, get it from [AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html).
+    Note that unlike AMI names, release versions never include the "v" prefix.
+    Examples:
+      AL2: 1.29.3-20240531
+      Bottlerocket: 1.2.0 or 1.2.0-ccf1b754
+      Windows: 1.29-2024.04.09
+    EOT
   default     = []
-  description = "EKS AMI version to use, e.g. \"1.16.13-20200821\" (no \"v\"). Defaults to latest version for Kubernetes version."
-  validation {
-    condition = (
-      length(var.ami_release_version) == 0 ? true : length(regexall("^\\d+\\.\\d+\\.\\d+-[\\da-z]+$", var.ami_release_version[0])) == 1
-    )
-    error_message = "Var ami_release_version, if supplied, must be like  \"1.16.13-20200821\" (no \"v\")."
-  }
+  nullable    = false
 }
 
 variable "after_cluster_joining_userdata" {

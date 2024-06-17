@@ -121,7 +121,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "4.1.0"
+  version                      = "4.2.0"
   region                       = var.region
   subnet_ids                   = module.subnets.public_subnet_ids
   kubernetes_version           = var.kubernetes_version
@@ -167,16 +167,13 @@ module "eks_node_group" {
   node_role_policy_arns         = [local.extra_policy_arn]
   update_config                 = var.update_config
 
-  after_cluster_joining_userdata = var.after_cluster_joining_userdata
-
   ami_type            = var.ami_type
   ami_release_version = var.ami_release_version
 
-  before_cluster_joining_userdata = [var.before_cluster_joining_userdata]
+  before_cluster_joining_userdata = var.before_cluster_joining_userdata
+  kubelet_additional_options      = var.kubelet_additional_options
+  after_cluster_joining_userdata  = var.after_cluster_joining_userdata
 
-  # Ensure ordering of resource creation to eliminate the race conditions when applying the Kubernetes Auth ConfigMap.
-  # Do not create Node Group before the EKS cluster is created and the `aws-auth` Kubernetes ConfigMap is applied.
-  depends_on = [module.eks_cluster, module.eks_cluster.kubernetes_config_map_id]
 
   create_before_destroy = true
 
@@ -184,10 +181,37 @@ module "eks_node_group" {
   replace_node_group_on_version_update = var.replace_node_group_on_version_update
 
   node_group_terraform_timeouts = [{
-    create = "40m"
-    update = null
+    create = "25m"
     delete = "20m"
   }]
 
   context = module.this.context
 }
+
+module "eks_node_group_minimal" {
+  source = "../../"
+
+  # We need to do something to avoid a name clash with the Node Role.
+  # Easiest thing to do is reuse the node role created by the other node group.
+  node_role_arn = [module.eks_node_group.eks_node_group_role_arn]
+
+  subnet_ids         = module.this.enabled ? module.subnets.public_subnet_ids : ["filler_string_for_enabled_is_false"]
+  cluster_name       = module.this.enabled ? module.eks_cluster.eks_cluster_id : "disabled"
+  instance_types     = var.instance_types
+  desired_size       = var.desired_size
+  min_size           = var.min_size
+  max_size           = var.max_size
+  kubernetes_version = [var.kubernetes_version]
+
+  ami_type            = var.ami_type
+  ami_release_version = var.ami_release_version
+
+  node_group_terraform_timeouts = [{
+    create = "15m"
+    delete = "20m"
+  }]
+
+  context = module.this.context
+}
+
+

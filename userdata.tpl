@@ -3,6 +3,7 @@ Content-Type: multipart/mixed; boundary="/:/+++"
 
 --/:/+++
 Content-Type: text/x-shellscript; charset="us-ascii"
+
 #!/bin/bash
 
 # In multipart MIME format to support EKS appending to it

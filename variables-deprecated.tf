@@ -1,3 +1,15 @@
+variable "cluster_autoscaler_enabled" {
+  type        = bool
+  description = <<-EOT
+    OBSOLETE. Used to add support for the Kubernetes Cluster Autoscaler, but additional support is no longer needed.
+    EOT
+  default     = null
+}
+
+output "WARNING_cluster_autoscaler_enabled" {
+  value = var.cluster_autoscaler_enabled == null ? null : "WARNING: variable `cluster_autoscaler_enabled` is obsolete and has been ignored."
+}
+
 variable "block_device_mappings" {
   type        = list(any)
   description = <<-EOT

@@ -20,7 +20,7 @@ output "eks_node_group_arn" {
 
 output "eks_node_group_resources" {
   description = "List of objects containing information about underlying resources of the EKS Node Group"
-  value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd[*].resources : aws_eks_node_group.default[*].resources) : []
+  value       = local.enabled ? try(var.create_before_destroy ? aws_eks_node_group.cbd[0].resources : aws_eks_node_group.default[0].resources, []) : []
 }
 
 output "eks_node_group_status" {
@@ -53,12 +53,7 @@ output "eks_node_group_tags_all" {
   value       = local.enabled ? (var.create_before_destroy ? aws_eks_node_group.cbd[0].tags_all : aws_eks_node_group.default[0].tags_all) : {}
 }
 
-output "eks_node_group_windows_note" {
-  description = "Instructions on changes a user needs to follow or script for a windows node group in the event of a custom ami"
-  value = (local.enabled && local.is_windows && local.need_bootstrap ? <<-EOT
-    When specifying a custom AMI ID for Windows managed node groups,
-    add eks:kube-proxy-windows to your AWS IAM Authenticator configuration map.
-    For more information, see [Limits and conditions when specifying an AMI ID](https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html)
-    EOT
-  : null)
+output "eks_node_group_ami_id" {
+  description = "The ID of the AMI used for the worker nodes, if specified"
+  value       = local.launch_template_ami
 }

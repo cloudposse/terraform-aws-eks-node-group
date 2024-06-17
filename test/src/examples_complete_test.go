@@ -1,96 +1,27 @@
 package test
 
 import (
-	"encoding/base64"
 	"fmt"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"os"
-	"regexp"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	testStructure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
-
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/eks"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/tools/cache"
 )
 
-func newClientset(cluster *eks.Cluster) (*kubernetes.Clientset, error) {
-	gen, err := token.NewGenerator(true, false)
-	if err != nil {
-		return nil, err
-	}
-	opts := &token.GetTokenOptions{
-		ClusterID: aws.StringValue(cluster.Name),
-	}
-	tok, err := gen.GetWithOptions(opts)
-	if err != nil {
-		return nil, err
-	}
-	ca, err := base64.StdEncoding.DecodeString(aws.StringValue(cluster.CertificateAuthority.Data))
-	if err != nil {
-		return nil, err
-	}
-	clientset, err := kubernetes.NewForConfig(
-		&rest.Config{
-			Host:        aws.StringValue(cluster.Endpoint),
-			BearerToken: tok.Token,
-			TLSClientConfig: rest.TLSClientConfig{
-				CAData: ca,
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	return clientset, nil
-}
-
-func cleanup(t *testing.T, terraformOptions *terraform.Options, tempTestFolder string) {
-	terraform.Destroy(t, terraformOptions)
-	_ = os.RemoveAll(tempTestFolder)
-}
-
-// Test the Terraform module in examples/complete using Terratest.
-func TestExamplesComplete(t *testing.T) {
-	t.Parallel()
-	randID := strings.ToLower(random.UniqueId())
-	attributes := []string{randID}
-
-	rootFolder := "../../"
-	terraformFolderRelativeToRoot := "examples/complete"
-	varFiles := []string{"fixtures.us-east-2.tfvars"}
-
-	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
-
-	terraformOptions := &terraform.Options{
-		// The path to where our Terraform code is located
-		TerraformDir: tempTestFolder,
-		Upgrade:      true,
-		// Variables to pass to our Terraform code using -var-file options
-		VarFiles: varFiles,
-		Vars: map[string]interface{}{
-			"attributes": attributes,
-		},
-	}
-
-	// At the end of the test, run `terraform destroy` to clean up any resources that were created
-	defer cleanup(t, terraformOptions, tempTestFolder)
-
-	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
-	terraform.InitAndApply(t, terraformOptions)
+func testExamplesComplete(t *testing.T, terraformOptions *terraform.Options, randID string, _ string) {
 
 	// Run `terraform output` to get the value of an output variable
 	vpcCidr := terraform.Output(t, terraformOptions, "vpc_cidr")
@@ -151,28 +82,44 @@ func TestExamplesComplete(t *testing.T) {
 	}
 
 	result, err := eksSvc.DescribeCluster(input)
-	assert.NoError(t, err)
+	if !assert.NoError(t, err) {
+		t.Fatal("Unable to find the EKS cluster, skipping any further tests")
+	}
 
 	clientset, err := newClientset(result.Cluster)
-	assert.NoError(t, err)
+	if !assert.NoError(t, err) {
+		t.Fatal("Unable to create a client for the EKS cluster, skipping any further tests")
+	}
 
 	factory := informers.NewSharedInformerFactory(clientset, 0)
 	informer := factory.Core().V1().Nodes().Informer()
 	stopChannel := make(chan struct{})
 	var countOfWorkerNodes uint64 = 0
+	var expectedCountOfWorkerNodes uint64 = 4
+	var allWorkerNodesJoined bool = false
 
+	if !assert.NotNil(t, informer, "Unable to create a node informer") {
+		t.Fatal("Unable to create a node informer, skipping any further tests")
+	}
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			node := obj.(*corev1.Node)
 			fmt.Printf("Worker Node %s has joined the EKS cluster at %s\n", node.Name, node.CreationTimestamp)
 			atomic.AddUint64(&countOfWorkerNodes, 1)
-			if countOfWorkerNodes > 1 {
+			if countOfWorkerNodes >= expectedCountOfWorkerNodes {
+				allWorkerNodesJoined = true
 				close(stopChannel)
 			}
 		},
 	})
 
-	go informer.Run(stopChannel)
+	var wg sync.WaitGroup
+	wg.Add(1) // We're waiting for one goroutine (the informer)
+
+	go func() {
+		informer.Run(stopChannel)
+		wg.Done() // Call Done on the WaitGroup when the informer is finished
+	}()
 
 	select {
 	case <-stopChannel:
@@ -183,40 +130,56 @@ func TestExamplesComplete(t *testing.T) {
 		fmt.Println(msg)
 		assert.Fail(t, msg)
 	}
+
+	wg.Wait() // Wait for all goroutines to finish
+
+	if !allWorkerNodesJoined {
+		return
+	}
+
+	hasLabel := checkSomeNodeHasLabel(clientset, "terratest", "true")
+	assert.True(t, hasLabel, "No node with label terratest=true found in the cluster")
+
+	hasLabel = checkSomeNodeHasLabel(clientset, "attributes", randID)
+	assert.True(t, hasLabel, "No node with label attributes=%s found in the cluster", randID)
+
+	hasTaint := checkSomeNodeHasTaint(clientset, "test", "", corev1.TaintEffectPreferNoSchedule)
+	assert.True(t, hasTaint, "No node with taint test=:PreferNoSchedule found in the cluster")
+
 }
 
-func TestExamplesCompleteDisabled(t *testing.T) {
-	t.Parallel()
-	randID := strings.ToLower(random.UniqueId())
+// To speed up debugging, allow running the tests on an existing cluster,
+// without creating and destroying one.
+// Run this manually by creating a cluster in examples/complete with:
+//
+//	export EXISTING_CLUSTER_ATTRIBUTE="<your-name>"
+//	terraform apply -var-file fixtures.us-east-2.tfvars -var "attributes=[\"$EXISTING_CLUSTER_ATTRIBUTE\"]"
+func Test_ExistingCluster(t *testing.T) {
+	randID := strings.ToLower(os.Getenv("EXISTING_CLUSTER_ATTRIBUTE"))
+	if randID == "" {
+		t.Skip("(This is normal): EXISTING_CLUSTER_ATTRIBUTE is not set, skipping...")
+		return
+	}
+
 	attributes := []string{randID}
 
-	rootFolder := "../../"
-	terraformFolderRelativeToRoot := "examples/complete"
 	varFiles := []string{"fixtures.us-east-2.tfvars"}
-
-	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: tempTestFolder,
+		TerraformDir: "../../examples/complete",
 		Upgrade:      true,
 		// Variables to pass to our Terraform code using -var-file options
 		VarFiles: varFiles,
 		Vars: map[string]interface{}{
 			"attributes": attributes,
-			"enabled":    false,
 		},
 	}
 
-	// At the end of the test, run `terraform destroy` to clean up any resources that were created
-	defer cleanup(t, terraformOptions, tempTestFolder)
+	// Keep the output quiet
+	if !testing.Verbose() {
+		terraformOptions.Logger = logger.Discard
+	}
 
-	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
-	results := terraform.InitAndApply(t, terraformOptions)
-
-	// Should complete successfully without creating or changing any resources.
-	// Extract the "Resources:" section of the output to make the error message more readable.
-	re := regexp.MustCompile(`Resources: [^.]+\.`)
-	match := re.FindString(results)
-	assert.Equal(t, "Resources: 0 added, 0 changed, 0 destroyed.", match, "Re-applying the same configuration should not change any resources")
+	testExamplesComplete(t, terraformOptions, randID, "")
 }
