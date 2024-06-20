@@ -74,13 +74,6 @@ locals {
     bootstrap_extra_args            = length(var.bootstrap_additional_options) == 0 ? "" : join(" ", var.bootstrap_additional_options)
     after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : join("\n", var.after_cluster_joining_userdata)
 
-    /* It turns out we never need this, because we only use it when we are suppressing the EKS bootstrap,
-     * and we only suppress the EKS bootstrap when we are running bootstrap.sh ourselves, which only happens
-     * when we are running Amazon Linux 2 or Windows. This would only be used by a CUSTOM AMI,
-     * but for a CUSTOM AMI, the user must provide the full userdata.
-     *
-     * Keeping this here for now in case we need it in the future.
-
     cluster_endpoint           = local.get_cluster_data ? data.aws_eks_cluster.this[0].endpoint : null
     certificate_authority_data = local.get_cluster_data ? data.aws_eks_cluster.this[0].certificate_authority[0].data : null
     cluster_name               = local.get_cluster_data ? data.aws_eks_cluster.this[0].name : null
@@ -89,7 +82,6 @@ locals {
       [for net in data.aws_eks_cluster.this[0].kubernetes_network_config : net.service_ipv4_cidr if net.ip_family == "ipv4"],
       [for net in data.aws_eks_cluster.this[0].kubernetes_network_config : net.service_ipv6_cidr if net.ip_family == "ipv6"]
     )...) : null
-     */
   }
 
   # If var.userdata_override_base64[0] is present then we use it rather than generating userdata

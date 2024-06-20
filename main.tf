@@ -22,6 +22,7 @@ locals {
 
   get_cluster_data = local.enabled ? (
     local.need_cluster_kubernetes_version ||
+    local.suppress_bootstrap ||
     local.associate_cluster_security_group ||
     local.need_ssh_access_sg
   ) : false
