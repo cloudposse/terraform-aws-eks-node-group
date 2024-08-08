@@ -7,7 +7,8 @@ variable "cluster_autoscaler_enabled" {
 }
 
 output "WARNING_cluster_autoscaler_enabled" {
-  value = var.cluster_autoscaler_enabled == null ? null : "WARNING: variable `cluster_autoscaler_enabled` is obsolete and has been ignored."
+  description = "WARNING"
+  value       = var.cluster_autoscaler_enabled == null ? null : "WARNING: variable `cluster_autoscaler_enabled` is obsolete and has been ignored."
 }
 
 variable "block_device_mappings" {
