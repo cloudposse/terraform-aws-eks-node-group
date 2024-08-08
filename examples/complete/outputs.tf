@@ -79,7 +79,8 @@ output "eks_node_group_cbd_pet_name" {
 }
 
 output "eks_node_group_launch_template_id" {
-  value = module.eks_node_group.eks_node_group_launch_template_id
+  description = "The ID of the launch template used for this node group"
+  value       = module.eks_node_group.eks_node_group_launch_template_id
 }
 
 output "eks_node_group_ami_id" {

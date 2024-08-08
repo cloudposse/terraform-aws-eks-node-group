@@ -89,6 +89,8 @@ resource "aws_iam_policy" "ipv6_eks_cni_policy" {
 
   name   = "${module.this.id}-CNI_Policy"
   policy = join("", data.aws_iam_policy_document.ipv6_eks_cni_policy[*].json)
+
+  tags = module.this.tags
 }
 
 resource "aws_iam_role_policy_attachment" "ipv6_eks_cni_policy" {
