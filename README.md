@@ -432,7 +432,7 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 
 | Name | Description |
 |------|-------------|
-| <a name="output_WARNING_cluster_autoscaler_enabled"></a> [WARNING\_cluster\_autoscaler\_enabled](#output\_WARNING\_cluster\_autoscaler\_enabled) | n/a |
+| <a name="output_WARNING_cluster_autoscaler_enabled"></a> [WARNING\_cluster\_autoscaler\_enabled](#output\_WARNING\_cluster\_autoscaler\_enabled) | WARNING |
 | <a name="output_eks_node_group_ami_id"></a> [eks\_node\_group\_ami\_id](#output\_eks\_node\_group\_ami\_id) | The ID of the AMI used for the worker nodes, if specified |
 | <a name="output_eks_node_group_arn"></a> [eks\_node\_group\_arn](#output\_eks\_node\_group\_arn) | Amazon Resource Name (ARN) of the EKS Node Group |
 | <a name="output_eks_node_group_cbd_pet_name"></a> [eks\_node\_group\_cbd\_pet\_name](#output\_eks\_node\_group\_cbd\_pet\_name) | The pet name of this node group, if this module generated one |
