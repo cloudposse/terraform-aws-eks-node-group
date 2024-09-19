@@ -47,7 +47,11 @@ locals {
     WINDOWS      = "${path.module}/userdata_nt.tpl"
   }
 
-
+  userdata_bootstrapper_template_file = {
+    AL2          = "${path.module}/userdata_bootstrap.tpl"
+    BOTTLEROCKET = "${path.module}/userdata_bootstrap.tpl"
+    WINDOWS      = "${path.module}/userdata_bootstrap_nt.tpl"
+  }
 
   # When suppressing EKS bootstrap, add --register-with-taints to kubelet_extra_args,
   #   e.g. --register-with-taints=test=:PreferNoSchedule
@@ -68,11 +72,13 @@ locals {
   kubelet_extra_args_yaml = replace(local.kubelet_extra_args, "--", "\n      - >-\n        --")
 
   userdata_vars = {
+    bootstrap_script                = (length(var.ami_image_id) > 0 && length(var.after_cluster_joining_userdata) > 0 && (local.ami_os == "AL2" || local.ami_os == "WINDOWS")) ? file(local.userdata_template_file[local.ami_os]) : ""
     before_cluster_joining_userdata = length(var.before_cluster_joining_userdata) == 0 ? "" : join("\n", var.before_cluster_joining_userdata)
     kubelet_extra_args              = local.kubelet_extra_args
     kubelet_extra_args_yaml         = local.kubelet_extra_args_yaml
     bootstrap_extra_args            = length(var.bootstrap_additional_options) == 0 ? "" : join(" ", var.bootstrap_additional_options)
     after_cluster_joining_userdata  = length(var.after_cluster_joining_userdata) == 0 ? "" : join("\n", var.after_cluster_joining_userdata)
+
 
     cluster_endpoint           = local.get_cluster_data ? data.aws_eks_cluster.this[0].endpoint : null
     certificate_authority_data = local.get_cluster_data ? data.aws_eks_cluster.this[0].certificate_authority[0].data : null

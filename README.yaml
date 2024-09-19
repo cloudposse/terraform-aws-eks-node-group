@@ -101,6 +101,8 @@ introduction: |-
   are fully supported for Amazon Linux 2 and Windows, and take advantage of the [bootstrap.sh](https://github.com/awslabs/amazon-eks-ami/blob/main/templates/al2/runtime/bootstrap.sh)
   supplied on those AMIs. **NONE** of these inputs are supported on Bottlerocket. On AL2023, only the first 2 are supported.
 
+  The fourth option is only available when setting an AMI ID for the node group; otherwise AWS will default to the released AMI for the OS and EKS will append your userdata with the bootstrap script.
+
   Note that for all OSes, you can supply the complete `userdata` contents, which will be untouched by this module, via `userdata_override_base64`.
 
 

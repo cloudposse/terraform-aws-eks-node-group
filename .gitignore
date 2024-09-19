@@ -17,3 +17,5 @@
 /.terraform.lock.hcl
 /.vscode
 /examples/complete/.terraform.lock.hcl
+
+/.infracost
