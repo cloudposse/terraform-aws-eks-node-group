@@ -35,9 +35,11 @@ locals {
   #  - We are running Amazon Linux 2 or Windows (the other OSes do not use bootstrap.sh) and either:
   #    - We explicitly are given extra args for bootstrap via bootstrap_additional_options or
   #    - We are given extra args for kubelet via kubelet_additional_options, which are passed to bootstrap.sh
+  #    - We are given a script to run after bootstrap, which means we have to run bootstrap ourselves, because
+  #      otherwise EKS will run boostrap a second time after our bootstrap and "after bootstrap"
 
   suppress_bootstrap = local.enabled && (local.ami_os == "AL2" || local.ami_os == "WINDOWS") ? (
-    length(var.bootstrap_additional_options) > 0 || length(var.kubelet_additional_options) > 0
+    length(var.bootstrap_additional_options) > 0 || length(var.kubelet_additional_options) > 0 || length(var.after_cluster_joining_userdata) > 0
   ) : false
 
   userdata_template_file = {
