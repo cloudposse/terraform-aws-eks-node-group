@@ -480,6 +480,12 @@ variable "node_group_terraform_timeouts" {
   nullable    = false
 }
 
+variable "node_repair_enabled" {
+  type        = bool
+  description = "The node auto-repair configuration for the node group will be enabled. Defaults to false"
+  default     = false
+}
+
 variable "detailed_monitoring_enabled" {
   type        = bool
   description = "The launched EC2 instance will have detailed monitoring enabled. Defaults to false"
