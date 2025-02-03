@@ -209,6 +209,10 @@ resource "aws_eks_node_group" "default" {
     }
   }
 
+  node_repair_config {
+    enabled = var.node_repair_enabled
+  }
+
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
   # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
@@ -287,6 +291,10 @@ resource "aws_eks_node_group" "cbd" {
       update = timeouts.value["update"]
       delete = timeouts.value["delete"]
     }
+  }
+
+  node_repair_config {
+    enabled = var.node_repair_enabled
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
