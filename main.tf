@@ -135,7 +135,7 @@ resource "random_pet" "cbd" {
     # If `var.replace_node_group_on_version_update` is set to `true`, the Node Groups will be replaced instead of updated in-place
     var.replace_node_group_on_version_update ?
     {
-      version = var.kubernetes_version
+      version = var.kubernetes_version[0]
     } : {}
   )
 }
