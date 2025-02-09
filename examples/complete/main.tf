@@ -121,7 +121,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "4.2.0"
+  version                      = "4.6.0"
   region                       = var.region
   subnet_ids                   = module.subnets.public_subnet_ids
   kubernetes_version           = var.kubernetes_version
@@ -175,7 +175,7 @@ module "eks_node_group" {
   after_cluster_joining_userdata  = var.after_cluster_joining_userdata
 
 
-  create_before_destroy = true
+  create_before_destroy = var.create_before_destroy
 
   force_update_version                 = var.force_update_version
   replace_node_group_on_version_update = var.replace_node_group_on_version_update
@@ -202,6 +202,10 @@ module "eks_node_group_minimal" {
   min_size           = var.min_size
   max_size           = var.max_size
   kubernetes_version = [var.kubernetes_version]
+
+  create_before_destroy = !var.create_before_destroy
+
+  replace_node_group_on_version_update = true
 
   ami_type            = var.ami_type
   ami_release_version = var.ami_release_version

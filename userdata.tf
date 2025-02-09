@@ -59,7 +59,8 @@ locals {
   ]
   kubernetes_taint_arg = (local.suppress_bootstrap && length(var.kubernetes_taints) > 0 &&
     # Do not add to or override --register-with-taints if it is already set
-    !strcontains(local.kubelet_explicit_extra_args, "--register-with-taints=")) ? (
+    # strcontains() is not available until Terraform 1.5. See #188
+    length(regexall("--register-with-taints=", local.kubelet_explicit_extra_args)) == 0) ? (
     " --register-with-taints=${join(",", local.kubernetes_taint_argv)}"
   ) : ""
   # We use '>-' to handle quoting and escaping values in the YAML.
