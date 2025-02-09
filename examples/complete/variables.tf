@@ -169,3 +169,14 @@ variable "replace_node_group_on_version_update" {
   default     = false
   description = "Force Node Group replacement when updating to a new Kubernetes version. If set to `false` (the default), the Node Groups will be updated in-place"
 }
+
+variable "create_before_destroy" {
+  type        = bool
+  description = <<-EOT
+    If `true` (default), a new node group will be created before destroying the old one.
+    If `false`, the old node group will be destroyed first, causing downtime.
+    Changing this setting will always cause node group to be replaced.
+    EOT
+  default     = true
+  nullable    = false
+}
