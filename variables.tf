@@ -78,12 +78,6 @@ variable "min_size" {
 variable "subnet_ids" {
   type        = list(string)
   description = "A list of subnet IDs to launch resources in"
-  validation {
-    condition = (
-      length(var.subnet_ids) > 0
-    )
-    error_message = "You must specify at least 1 subnet to launch resources in."
-  }
 }
 
 variable "associate_cluster_security_group" {

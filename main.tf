@@ -4,9 +4,9 @@ locals {
   # Kubernetes version priority (first one to be set wins)
   # 1. var.kubernetes_version
   # 2. data.eks_cluster.this.kubernetes_version
-  use_cluster_kubernetes_version  = local.enabled && length(var.kubernetes_version) == 0
+  use_cluster_kubernetes_version  = !local.enabled || length(var.kubernetes_version) == 0
   need_cluster_kubernetes_version = local.use_cluster_kubernetes_version
-  resolved_kubernetes_version     = local.use_cluster_kubernetes_version ? data.aws_eks_cluster.this[0].version : var.kubernetes_version[0]
+  resolved_kubernetes_version     = local.use_cluster_kubernetes_version ? one(data.aws_eks_cluster.this[*].version) : var.kubernetes_version[0]
 
   # By default (var.immediately_apply_lt_changes is null), apply changes immediately only if create_before_destroy is true.
   immediately_apply_lt_changes = coalesce(var.immediately_apply_lt_changes, var.create_before_destroy)
@@ -89,7 +89,8 @@ locals {
     cluster_name  = var.cluster_name
     node_role_arn = local.create_role ? join("", aws_iam_role.default[*].arn) : try(var.node_role_arn[0], null)
     # Keep sorted so that change in order does not trigger replacement via random_pet
-    subnet_ids = sort(var.subnet_ids)
+    # Allow for empty subnet_ids to be passed in when enabled=false
+    subnet_ids = sort(coalesce(var.subnet_ids, []))
     # Always supply instance types via the node group, not the launch template,
     # because node group supports up to 20 types but launch template does not.
     # See https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateNodegroup.html#API_CreateNodegroup_RequestSyntax
@@ -152,6 +153,8 @@ resource "random_pet" "cbd" {
 # to the default behavior of destroying the old node group before creating the new one
 # when switching from destroy-before-create to create-before-destroy.
 resource "null_resource" "seq" {
+  count = local.enabled ? 1 : 0
+
   depends_on = [aws_eks_node_group.default]
   triggers = {
     create_before_destroy = var.create_before_destroy
