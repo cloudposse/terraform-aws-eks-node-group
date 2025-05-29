@@ -3,7 +3,7 @@
 <!-- markdownlint-disable -->
 <a href="https://cpco.io/homepage"><img src="https://github.com/cloudposse/terraform-aws-eks-node-group/blob/main/.github/banner.png?raw=true" alt="Project Banner"/></a><br/>
     <p align="right">
-<a href="https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg?style=for-the-badge" alt="Latest Release"/></a><a href="https://github.com/cloudposse/terraform-aws-eks-node-group/commits"><img src="https://img.shields.io/github/last-commit/cloudposse/terraform-aws-eks-node-group.svg?style=for-the-badge" alt="Last Updated"/></a><a href="https://slack.cloudposse.com"><img src="https://slack.cloudposse.com/for-the-badge.svg" alt="Slack Community"/></a></p>
+<a href="https://github.com/cloudposse/terraform-aws-eks-node-group/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-eks-node-group.svg?style=for-the-badge" alt="Latest Release"/></a><a href="https://github.com/cloudposse/terraform-aws-eks-node-group/commits"><img src="https://img.shields.io/github/last-commit/cloudposse/terraform-aws-eks-node-group.svg?style=for-the-badge" alt="Last Updated"/></a><a href="https://cloudposse.com/slack"><img src="https://slack.cloudposse.com/for-the-badge.svg" alt="Slack Community"/></a></p>
 <!-- markdownlint-restore -->
 
 <!--
@@ -126,7 +126,6 @@ Note that for all OSes, you can supply the complete `userdata` contents, which w
 
 
 ## Usage
-
 
 ### Major Changes (breaking and otherwise)
 
@@ -262,55 +261,6 @@ module "eks_node_group" {
 
 
 
-<!-- markdownlint-disable -->
-## Makefile Targets
-```text
-Available targets:
-
-  help                                Help screen
-  help/all                            Display help for all targets
-  help/short                          This help short screen
-  lint                                Lint terraform code
-
-```
-<!-- markdownlint-restore -->
-<!-- markdownlint-disable -->
-## Windows Managed Node groups
-
-Windows managed node-groups have a few pre-requisites.
-
-* Your cluster must contain at least one linux based worker node
-* Your EKS Cluster must have the `AmazonEKSVPCResourceController` and `AmazonEKSClusterPolicy` policies attached
-* Your cluster must have a config-map called amazon-vpc-cni with the following content
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-name: amazon-vpc-cni
-namespace: kube-system
-data:
-enable-windows-ipam: "true"
-```
-
-* Windows nodes will automatically be tainted
-
-```yaml
-kubernetes_taints = [{
-  key    = "WINDOWS"
-  value  = "true"
-  effect = "NO_SCHEDULE"
-}]
-```
-* Any pods that target Windows will need to have the following attributes set in their manifest
-
-```yaml
-  nodeSelector:
-    kubernetes.io/os: windows
-    kubernetes.io/arch: amd64
-```
-
-https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 <!-- markdownlint-disable -->
 ## Requirements
 
@@ -450,6 +400,48 @@ https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 | <a name="output_eks_node_group_status"></a> [eks\_node\_group\_status](#output\_eks\_node\_group\_status) | Status of the EKS Node Group |
 | <a name="output_eks_node_group_tags_all"></a> [eks\_node\_group\_tags\_all](#output\_eks\_node\_group\_tags\_all) | A map of tags assigned to the resource, including those inherited from the provider default\_tags configuration block. |
 <!-- markdownlint-restore -->
+
+
+
+
+
+<!-- markdownlint-disable -->
+## Windows Managed Node groups
+
+Windows managed node-groups have a few pre-requisites.
+
+* Your cluster must contain at least one linux based worker node
+* Your EKS Cluster must have the `AmazonEKSVPCResourceController` and `AmazonEKSClusterPolicy` policies attached
+* Your cluster must have a config-map called amazon-vpc-cni with the following content
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+name: amazon-vpc-cni
+namespace: kube-system
+data:
+enable-windows-ipam: "true"
+```
+
+* Windows nodes will automatically be tainted
+
+```yaml
+kubernetes_taints = [{
+  key    = "WINDOWS"
+  value  = "true"
+  effect = "NO_SCHEDULE"
+}]
+```
+* Any pods that target Windows will need to have the following attributes set in their manifest
+
+```yaml
+  nodeSelector:
+    kubernetes.io/os: windows
+    kubernetes.io/arch: amd64
+```
+
+https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
 
 
 ## Related Projects
