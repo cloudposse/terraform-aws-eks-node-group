@@ -37,6 +37,8 @@ locals {
     AL2023_ARM_64_STANDARD     = "/aws/service/eks/optimized-ami/%[2]v/amazon-linux-2023/arm64/standard/%[1]v/image_id"
     BOTTLEROCKET_x86_64        = "/aws/service/bottlerocket/aws-k8s-%[2]v/x86_64/%[1]v/image_id"
     BOTTLEROCKET_ARM_64        = "/aws/service/bottlerocket/aws-k8s-%[2]v/arm64/%[1]v/image_id"
+    BOTTLEROCKET_x86_64_FIPS   = "/aws/service/bottlerocket/aws-k8s-%[2]v-fips/x86_64/%[1]v/image_id"
+    BOTTLEROCKET_ARM_64_FIPS   = "/aws/service/bottlerocket/aws-k8s-%[2]v-fips/arm64/%[1]v/image_id"
     BOTTLEROCKET_x86_64_NVIDIA = "/aws/service/bottlerocket/aws-k8s-%[2]v-nvidia/x86_64/%[1]v/image_id"
     BOTTLEROCKET_ARM_64_NVIDIA = "/aws/service/bottlerocket/aws-k8s-%[2]v-nvidia/arm64/%[1]v/image_id"
     WINDOWS_CORE_2019_x86_64   = "/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%[2]v/image_id"
