@@ -75,7 +75,7 @@ locals {
   kubelet_extra_args_yaml = replace(local.kubelet_extra_args, "--", "\n      - >-\n        --")
 
   userdata_vars = {
-    bootstrap_script                = (length(var.ami_image_id) > 0 && length(var.after_cluster_joining_userdata) > 0 && (local.ami_os == "AL2" || local.ami_os == "WINDOWS")) ? file(local.userdata_template_file[local.ami_os]) : ""
+    bootstrap_script                = (length(var.ami_image_id) > 0 && length(var.after_cluster_joining_userdata) > 0 && (local.ami_os == "AL2" || local.ami_os == "WINDOWS")) ? file(local.userdata_bootstrapper_template_file[local.ami_os]) : ""
     before_cluster_joining_userdata = length(var.before_cluster_joining_userdata) == 0 ? "" : join("\n", var.before_cluster_joining_userdata)
     kubelet_extra_args              = local.kubelet_extra_args
     kubelet_extra_args_yaml         = local.kubelet_extra_args_yaml
