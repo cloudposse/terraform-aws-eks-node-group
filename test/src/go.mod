@@ -1,6 +1,8 @@
 module github.com/cloudposse/terraform-aws-eks-node-group
 
-go 1.21
+go 1.24
+
+toolchain go1.24.0
 
 require (
 	github.com/aws/aws-sdk-go v1.44.315
