@@ -35,6 +35,7 @@ locals {
     AL2023_x86_64_NEURON       = "/aws/service/eks/optimized-ami/%[2]v/amazon-linux-2023/x86_64/neuron/%[1]v/image_id"
     AL2023_x86_64_NVIDIA       = "/aws/service/eks/optimized-ami/%[2]v/amazon-linux-2023/x86_64/nvidia/%[1]v/image_id"
     AL2023_ARM_64_STANDARD     = "/aws/service/eks/optimized-ami/%[2]v/amazon-linux-2023/arm64/standard/%[1]v/image_id"
+    AL2023_ARM_64_NVIDIA       = "/aws/service/eks/optimized-ami/%[2]v/amazon-linux-2023/arm64/nvidia/%[1]v/image_id"
     BOTTLEROCKET_x86_64        = "/aws/service/bottlerocket/aws-k8s-%[2]v/x86_64/%[1]v/image_id"
     BOTTLEROCKET_ARM_64        = "/aws/service/bottlerocket/aws-k8s-%[2]v/arm64/%[1]v/image_id"
     BOTTLEROCKET_x86_64_FIPS   = "/aws/service/bottlerocket/aws-k8s-%[2]v-fips/x86_64/%[1]v/image_id"
@@ -74,6 +75,7 @@ locals {
     AL2023_ARM_64_STANDARD = format("amazon-eks-node-al2023-arm64-standard-%v-v%v", local.amazon_linux_ami_name_release_part, local.release_version_parts[1])
     AL2023_x86_64_NEURON   = format("amazon-eks-node-al2023-x86_64-neuron-%v-v%v", local.amazon_linux_ami_name_release_part, local.release_version_parts[1])
     AL2023_x86_64_NVIDIA   = format("amazon-eks-node-al2023-x86_64-nvidia-%v-v%v", local.amazon_linux_ami_name_release_part, local.release_version_parts[1])
+    AL2023_ARM_64_NVIDIA   = format("amazon-eks-node-al2023-arm64-nvidia-%v-v%v", local.amazon_linux_ami_name_release_part, local.release_version_parts[1])
   }
 
   ami_specifier = length(var.ami_release_version) == 0 ? (local.ami_os == "BOTTLEROCKET" ? "latest" : "recommended") : (
