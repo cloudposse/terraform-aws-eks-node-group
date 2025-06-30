@@ -357,14 +357,18 @@ variable "resources_to_tag" {
 
 variable "before_cluster_joining_userdata" {
   type        = list(string)
-  description = "Additional `bash` commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+  description = "Additional `bash` commands to execute on each worker node before joining the EKS cluster (before executing the `bootstrap.sh/ps1` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
   default     = []
   nullable    = false
 }
 
 variable "after_cluster_joining_userdata" {
   type        = list(string)
-  description = "Additional `bash` commands to execute on each worker node after joining the EKS cluster (after executing the `bootstrap.sh` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+  description = <<-EOT
+    Additional (bash for linux, powershell for Windows) commands to execute on each worker node after joining the EKS cluster
+    (after executing the `bootstrap` script). For more info, see https://kubedex.com/90-days-of-aws-eks-in-production"
+    This can only be used with AL2 and Windows AMI types with a custom AMI set as EKS will inject a bootstrapper into all other user-scripts
+    EOT
   default     = []
   nullable    = false
 }
