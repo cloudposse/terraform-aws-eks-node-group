@@ -44,6 +44,8 @@ locals {
     "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
     "k8s.io/cluster-autoscaler/enabled"             = "true"
   }
+  */
+  # AWS does not currently apply the autoscaler autodiscovery label/taint tags to the node group.
   autoscaler_kubernetes_label_tags = {
     for label, value in var.kubernetes_labels : format("k8s.io/cluster-autoscaler/node-template/label/%v", label) => value
   }
@@ -51,7 +53,7 @@ locals {
     for taint in var.kubernetes_taints : format("k8s.io/cluster-autoscaler/node-template/taint/%v", taint.key) =>
     "${taint.value == null ? "" : taint.value}:${local.taint_effect_map[taint.effect]}"
   }
-
+  /*
 
   node_tags = merge(
     module.label.tags,
@@ -65,8 +67,12 @@ locals {
   # because they only matter when applied to the autoscaling group.
   node_group_tags = local.node_tags
   */
-  node_tags       = module.label.tags
-  node_group_tags = module.label.tags
+  node_tags = module.label.tags
+  node_group_tags = merge(
+    module.label.tags,
+    local.autoscaler_kubernetes_label_tags,
+    local.autoscaler_kubernetes_taints_tags
+  )
 }
 
 module "label" {

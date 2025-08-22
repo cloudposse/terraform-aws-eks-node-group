@@ -56,7 +56,7 @@ locals {
     }
     vpc_security_group_ids = local.launch_template_vpc_security_group_ids
     user_data              = local.userdata
-    tags                   = local.node_group_tags
+    tags                   = local.node_tags
     cpu_options            = var.cpu_options
     placement              = var.placement
     enclave_options        = var.enclave_enabled ? ["true"] : []
