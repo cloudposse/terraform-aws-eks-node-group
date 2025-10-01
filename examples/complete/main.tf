@@ -121,7 +121,7 @@ module "https_sg" {
 
 module "eks_cluster" {
   source                       = "cloudposse/eks-cluster/aws"
-  version                      = "4.6.0"
+  version                      = "4.8.0"
   region                       = var.region
   subnet_ids                   = module.subnets.public_subnet_ids
   kubernetes_version           = var.kubernetes_version
