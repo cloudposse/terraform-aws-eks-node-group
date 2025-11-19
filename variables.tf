@@ -475,8 +475,8 @@ variable "node_group_terraform_timeouts" {
 
 variable "node_repair_enabled" {
   type        = bool
-  description = "The node auto-repair configuration for the node group will be enabled. Defaults to false"
-  default     = false
+  description = "The node auto-repair configuration for the node group will be enabled. Defaults to true"
+  default     = true
 }
 
 variable "detailed_monitoring_enabled" {
