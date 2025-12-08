@@ -197,6 +197,10 @@ resource "aws_launch_template" "default" {
       condition     = contains(["AL2", "WINDOWS"], local.ami_os) || length(local.userdata_vars.after_cluster_joining_userdata) == 0 || (local.ami_os == "AL2" || local.ami_os == "WINDOWS")
       error_message = format("The input `after_cluster_joining_userdata` is not supported for %v.", title(lower(local.ami_os)))
     }
+    precondition {
+      condition     = length(local.userdata_vars.after_cluster_joining_userdata) == 0 || length(var.ami_image_id) != 0 && length(local.userdata_vars.after_cluster_joining_userdata) > 0 && (local.ami_os == "AL2" || local.ami_os == "WINDOWS")
+      error_message = format("The input `after_cluster_joining_userdata` is not supported for %v, a custom ami_image_id must be set for this functionality", title(lower(local.ami_os)))
+    }
   }
 }
 
