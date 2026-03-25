@@ -103,6 +103,25 @@ introduction: |-
 
   Note that for all OSes, you can supply the complete `userdata` contents, which will be untouched by this module, via `userdata_override_base64`.
 
+  ### EKS Auto Mode Compatibility
+
+  This module creates **EKS managed node groups**, which can coexist with
+  [EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html) nodes in the same cluster.
+
+  **When to keep managed node groups alongside Auto Mode:**
+  - Workloads requiring custom AMIs (AL2, Ubuntu, Windows) -- Auto Mode only supports Bottlerocket
+  - Workloads requiring SSH or SSM access to nodes
+  - Workloads requiring EC2 instance metadata (IMDS) access
+  - Gradual migration from managed node groups to Auto Mode
+
+  **Important: EBS storage caveat.** Auto Mode nodes use a different EBS CSI provisioner
+  (`ebs.csi.eks.amazonaws.com`) than managed node groups (`ebs.csi.aws.com`). PersistentVolumeClaims
+  created by one provisioner cannot be mounted on nodes managed by the other. Use node selectors
+  or taints to pin EBS-dependent workloads to one node type.
+
+  When Auto Mode is the sole compute, this module is not needed -- Auto Mode handles all
+  node provisioning automatically.
+
 
 # How to use this project
 usage: |2-
